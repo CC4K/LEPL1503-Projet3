@@ -15,5 +15,11 @@
  * @return: a new vector of `symbol_size` byte containing the result of symbol_1 + symbol_2 in GF(256)
  */
 uint8_t *gf_256_full_add_vector(uint8_t *symbol_1, uint8_t *symbol_2, uint32_t symbol_size){
-
+    //Fait par Jacques le 15/03/22
+    //TODO: Verifier si le code est bon
+    uint8_t *output = symbol_1;
+    for (int i = 0; i < symbol_size/ sizeof(int); ++i) {
+        output[i] = (symbol_1[i] ^ symbol_2[i]);
+    }
+    return output;
 }
