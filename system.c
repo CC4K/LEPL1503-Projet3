@@ -23,3 +23,19 @@ uint8_t *gf_256_full_add_vector(uint8_t *symbol_1, uint8_t *symbol_2, uint32_t s
     }
     return output;
 }
+
+/**
+ *
+ * Multiply a vector by a coefficient in a Galois Field 256
+ * @param symbol: the symbol to multiply
+ * @param coef: the coefficient of the scaling
+ * @param symbol_size: size of the symbol
+ * @return: a new vector of `symbol_size` byte containing the result of symbol * coef in GF(256)
+ */
+uint8_t *gf_256_mul_vector(uint8_t *symbol, uint8_t coef, uint32_t symbol_size){
+    uint8_t *output = symbol;
+    for (int i = 0; i < symbol_size/ sizeof(uint8_t); i++) {
+        output[i] = (symbol * coef);
+    }
+    return output;
+}
