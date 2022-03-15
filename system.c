@@ -38,7 +38,7 @@ uint8_t *gf_256_inv_vector(uint8_t *symbol, uint8_t coef, uint32_t symbol_size) 
     //TODO: Verifier si le code est bon
     uint8_t *output = symbol;
     for (int i = 0; i < symbol_size / sizeof(int); ++i) {
-        output[i] = f256_mul_table[(int) symbol[i]][1/coef];
+        output[i] = gf256_mul_table[(int) symbol[i]][gf256_inv_table[coef]];
     }
     return output;
 }
