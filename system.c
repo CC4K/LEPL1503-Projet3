@@ -25,6 +25,7 @@ uint8_t *gf_256_full_add_vector(uint8_t *symbol_1, uint8_t *symbol_2, uint32_t s
     return output;
 }
 
+
 /**
  *
  * Divide a vector in a Galois Field 256 by a coefficient
@@ -57,4 +58,33 @@ uint8_t *gf_256_mul_vector(uint8_t *symbol, uint8_t coef, uint32_t symbol_size){
         output[i] = gf256_mul_table[(int) symbol[i]][coef];
     }
     return output;
+}
+/**
+ *
+ * Resolve the linear system Ax=b in a Galois Field 256. The result is stored in the independent terms after the resolution
+ * @param A: matrix of coefficients
+ * @param b: independent terms
+ * @param symbol_size: size of the independent terms
+ * @param system_size: the size of the system (i.e., number of rows/columns)
+ */
+void gf_256_gaussian_elimination(uint8_t **A, uint8_t **b, uint32_t symbol_size, uint32_t system_size) {
+    for (int k = 0; k < symbol_size; ++k) {
+        for (int i = k+1; i < symbol_size; ++i) {
+            static const uint8_t factor = gf256_mul_table[A[i][k]][gf256_inv_table[A[k][k]]];
+            for (int j = 0; j < size; ++j) {
+                A[i][j] = A[i][j] ^ gf256_mul_table[A[k][j]][factor];
+            }
+            B[i] = gf_256_full_add_vector(B[i], gf_256_mul_vector(B[k], factor));
+        }
+    }
+
+    int factor_tab[system_size];
+    for (int i = symbol_size - 1; i > -1 ; --i) {
+        for (int j = i+&; j < symbol_size; ++j) {
+            factor_tab = gf_256_full_add_vector(factor_tab, gf_256_mul_vector(B[j], A[i][j]));
+        }
+        B[i] = gf_256_inv_vector(gf_256_full_add_vector(B[i], factor_tab), A[i][i]);
+
+    }
+    return B;
 }
