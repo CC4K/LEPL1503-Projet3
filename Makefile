@@ -15,7 +15,7 @@ clean:
 	rm -f test_tinymt32
 
 tests: tests/test_tinymt32.c
-	$(CC) -o test_tinymt32 tests/test_tinymt32.c -lcunit
+	$(CC) -o test_tinymt32 tests/test_tinymt32.c system.c -lcunit
 	./test_tinymt32
 	echo "TODO !"
 

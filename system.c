@@ -19,7 +19,7 @@ uint8_t *gf_256_full_add_vector(uint8_t *symbol_1, uint8_t *symbol_2, uint32_t s
     //Fait par Jacques le 15/03/22
     //TODO: Verifier si le code est bon
     uint8_t *output = symbol_1;
-    for (int i = 0; i < symbol_size/ sizeof(int); ++i) {
+    for (int i = 0; i < symbol_size/sizeof(int); ++i) {
         output[i] = (symbol_1[i] ^ symbol_2[i]);
     }
     return output;
@@ -70,21 +70,19 @@ uint8_t *gf_256_mul_vector(uint8_t *symbol, uint8_t coef, uint32_t symbol_size){
 void gf_256_gaussian_elimination(uint8_t **A, uint8_t **b, uint32_t symbol_size, uint32_t system_size) {
     for (int k = 0; k < symbol_size; ++k) {
         for (int i = k+1; i < symbol_size; ++i) {
-            static const uint8_t factor = gf256_mul_table[A[i][k]][gf256_inv_table[A[k][k]]];
-            for (int j = 0; j < size; ++j) {
+            uint8_t factor = gf256_mul_table[A[i][k]][gf256_inv_table[A[k][k]]];
+            for (int j = 0; j < symbol_size; ++j) {
                 A[i][j] = A[i][j] ^ gf256_mul_table[A[k][j]][factor];
             }
-            B[i] = gf_256_full_add_vector(B[i], gf_256_mul_vector(B[k], factor));
+            b[i] = gf_256_full_add_vector(b[i], gf_256_mul_vector(b[k], factor, symbol_size), symbol_size);
         }
     }
 
-    int factor_tab[system_size];
+    uint8_t* factor_tab;
     for (int i = symbol_size - 1; i > -1 ; --i) {
-        for (int j = i+&; j < symbol_size; ++j) {
-            factor_tab = gf_256_full_add_vector(factor_tab, gf_256_mul_vector(B[j], A[i][j]));
+        for (int j = i+1; j < symbol_size; ++j) {
+            factor_tab = gf_256_full_add_vector(factor_tab, gf_256_mul_vector(b[j], A[i][j], symbol_size), symbol_size);
         }
-        B[i] = gf_256_inv_vector(gf_256_full_add_vector(B[i], factor_tab), A[i][i]);
-
+        b[i] = gf_256_inv_vector(gf_256_full_add_vector(b[i], factor_tab, symbol_size), A[i][i], symbol_size);
     }
-    return B;
-}
+ }
