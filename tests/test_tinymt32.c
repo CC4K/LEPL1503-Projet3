@@ -26,18 +26,28 @@ void test_tinymt32_gen_42()
 }
 
 void test_gaussian() {
-
-    uint8_t** A = malloc(sizeof(int*)*3);
-    uint8_t** b = malloc(sizeof(int*)*3);
-    uint8_t **expected = malloc(sizeof(int*)*3);
+    uint8_t **A = malloc(sizeof(int*)*3);
+    uint8_t **b = malloc(sizeof(int*)*3);
+    uint8_t **expected_b = malloc(sizeof(int*)*3);
+    uint8_t **expected_a = malloc(sizeof(int*)*3);
     uint32_t symbol_size = 3;
     uint32_t system_size = 3;
     for (int i = 0; i < 3; ++i) {
         A[i] = malloc(sizeof(int)*3);
         b[i] = malloc(sizeof(int));
-        expected[i] = malloc(sizeof(int));
+        expected_a[i] = malloc(sizeof(int)*3);
+        expected_b[i] = malloc(sizeof(int));
         b[i][0] = 1;
     }
+    expected_a[0][0] = 2;
+    expected_a[0][1] = 3;
+    expected_a[0][2] = 1;
+    expected_a[1][0] = 1;
+    expected_a[1][1] = 0.5;
+    expected_a[1][2] = 1.5;
+    expected_a[2][0] = 1;
+    expected_a[2][1] = 0.5;
+    expected_a[2][2] = 1;
     A[0][0] = 1;
     A[0][1] = 2;
     A[0][2] = 3;
@@ -47,28 +57,38 @@ void test_gaussian() {
     A[2][0] = 2;
     A[2][1] = 3;
     A[2][2] = 1;
-    expected[0][0] = -1;
-    expected[1][0] = 1;
-    expected[2][0] = 0;
+    expected_b[0][0] = -1;
+    expected_b[1][0] = 1;
+    expected_b[2][0] = 0;
     gf_256_gaussian_elimination(A,b,symbol_size,system_size);
+    printf("A :\n");
     for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 3; ++j) {
-            printf("%" PRId8 "\n", A[i][j]);
+            printf("%" PRId8 "\t", A[i][j]);
         }
+        printf("\n");
+    }
+    printf("excpected A :\n");
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            printf("%" PRId8 "\t", expected_a[i][j]);
+        }
+        printf("\n");
     }
     for (int i = 0; i < 3; ++i) {
-        if (b[i] != expected[i]) {
-            printf("Nope\n");
+        if (b[i][0] != expected_b[i][0]) {
+            printf("error in b: ");
+            printf("%" PRId8 "\n", *b[i]);
         }
-        printf("%" PRId8 "\n", *b[i]);
+        else {
+            printf("correct b: ");
+            printf("%" PRId8 "\n", *b[i]);
+        }
     }
-    printf("Yep\n");
-
-
+    printf("End of test\n");
 }
 
-int main()
-{
+int main(){
     CU_initialize_registry();
     CU_pSuite suite = CU_add_suite("tinymt32", 0, 0);
     CU_add_test(suite, "correct_coeffs", test_tinymt32_gen_42);

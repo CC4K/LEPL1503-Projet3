@@ -68,21 +68,61 @@ uint8_t *gf_256_mul_vector(uint8_t *symbol, uint8_t coef, uint32_t symbol_size){
  * @param system_size: the size of the system (i.e., number of rows/columns)
  */
 void gf_256_gaussian_elimination(uint8_t **A, uint8_t **b, uint32_t symbol_size, uint32_t system_size) {
-    for (int k = 0; k < symbol_size; ++k) {
-        for (int i = k+1; i < symbol_size; ++i) {
-            uint8_t factor = gf256_mul_table[A[i][k]][gf256_inv_table[A[k][k]]];
-            for (int j = 0; j < symbol_size; ++j) {
-                A[i][j] = A[i][j] ^ gf256_mul_table[A[k][j]][factor];
-            }
-            b[i] = gf_256_full_add_vector(b[i], gf_256_mul_vector(b[k], factor, symbol_size), symbol_size);
-        }
-    }
+    // Code de Romain
+//    for (int k = 0; k < symbol_size; ++k) {
+//        for (int i = k+1; i < symbol_size; ++i) {
+//            uint8_t factor = gf256_mul_table[A[i][k]][gf256_inv_table[A[k][k]]];
+//            for (int j = 0; j < symbol_size; ++j) {
+//                A[i][j] = A[i][j] ^ gf256_mul_table[A[k][j]][factor];
+//            }
+//            b[i] = gf_256_full_add_vector(b[i], gf_256_mul_vector(b[k], factor, symbol_size), symbol_size);
+//        }
+//    }
+//
+//    uint8_t* factor_tab;
+//    for (int i = symbol_size - 1; i > -1 ; --i) {
+//        for (int j = i+1; j < symbol_size; ++j) {
+//            factor_tab = gf_256_full_add_vector(factor_tab, gf_256_mul_vector(b[j], A[i][j], symbol_size), symbol_size);
+//        }
+//        b[i] = gf_256_inv_vector(gf_256_full_add_vector(b[i], factor_tab, symbol_size), A[i][i], symbol_size);
+//    }
 
-    uint8_t* factor_tab;
-    for (int i = symbol_size - 1; i > -1 ; --i) {
-        for (int j = i+1; j < symbol_size; ++j) {
-            factor_tab = gf_256_full_add_vector(factor_tab, gf_256_mul_vector(b[j], A[i][j], symbol_size), symbol_size);
+    // Code de Cédric (retravaillé)
+    // Forward
+    for (int k = 0; k < symbol_size; k++) {
+        uint8_t i_max = k;
+        uint8_t v_max = A[i_max][k];
+        for (int i = k+1; i < symbol_size; i++) {
+            if (A[i][k] > v_max || -(A[i][k]) > v_max){
+                v_max = A[i][k];
+                i_max = i;
+            }
         }
-        b[i] = gf_256_inv_vector(gf_256_full_add_vector(b[i], factor_tab, symbol_size), A[i][i], symbol_size);
+        if (i_max != k){
+            for (int h = 0; h < symbol_size; h++) {
+                double temp = A[k][h];
+                A[k][h] = A[i_max][h];
+                A[i_max][h] = temp;
+            }
+        }
+        for (int i = k+1; i < symbol_size; i++) {
+            uint8_t divider = gf256_mul_table[A[i][k]][gf256_inv_table[A[k][k]]];
+            for (int j = k+1; j < symbol_size; j++) {
+                A[i][j] = A[i][j] ^ gf256_mul_table[A[k][j]][divider];
+            }
+            A[i][k] = 0;
+        }
     }
+    // Backward
+//    uint8_t* factor_tab;
+//    for (int m = symbol_size-1; m >= 0; m--) {
+//        factor_tab[m] = A[m][symbol_size];
+//        for (int n = m+1; n < symbol_size; n++) {
+//            factor_tab = gf_256_full_add_vector(factor_tab, gf_256_mul_vector(b[n], A[m][n], symbol_size), symbol_size);
+//        }
+//        b[m] = gf_256_inv_vector(gf_256_full_add_vector(b[m], factor_tab, symbol_size), A[m][m], symbol_size);
+//    }
+    // TODO
+    // le forward semble fonctionner
+    // le backward fait n'importe quoi HELP !!!
  }
