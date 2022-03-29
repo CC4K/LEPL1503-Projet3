@@ -6,6 +6,10 @@
 
 #include "headers/system.h"
 #include "headers/gf256_tables.h"
+#include "headers/tinymt32.h"
+#include <malloc.h>
+#include <stdio.h>
+#include <string.h>
 
 /**
  *
@@ -125,4 +129,50 @@ void gf_256_gaussian_elimination(uint8_t **A, uint8_t **b, uint32_t symbol_size,
     // TODO
     // le forward semble fonctionner
     // le backward fait n'importe quoi HELP !!!
- }
+}
+
+
+/**
+ *
+ * Generate all coefficients for a block
+ * @param seed: the seed to generate the coefficients
+ * @param nss: number of source symbols in a block
+ * @param nrs: number of repair symbols in a block
+ * @return: a nss * nrs array of coefficients
+ */
+uint8_t **gen_coefs(uint32_t seed, uint32_t nss, uint32_t nrs){
+    //fait pas Jacques le 29/03/22
+    //Normalement bon car vérifié par Emma
+
+    //cree une matrice de malloc
+    uint8_t **coefs = malloc(sizeof(uint8_t*) * nss);
+    if(coefs == NULL){
+        return NULL
+    }
+    for (int i = 0; i < nss ; ++i) {
+        coefs[i] = malloc(sizeof(uint8_t) * nrs);
+        if (coef[i] == NULL){
+            return NULL;
+        }
+    }
+
+    //crée le *random
+    tinymt32_t prng;
+    memset(&prng, 0, sizeof(tinymt32_t));
+    // Do not modify these values!
+    prng.mat1 = 0x8f7011ee;
+    prng.mat2 = 0xfc78ff1f;
+    prng.tmat = 0x3793fdff;
+    tinymt32_init(&prng, seed);
+
+    //generate tous les coefs
+    for (int i = 0; i < nss; ++i) {
+        for (int j = 0; j < nrs; ++j) {
+            coefs[i][j] = tinymt32_generate_uint32(&prng) %256;
+            if (coefs[i][j] == 0){
+                coefs[i][j] = 1;
+            }
+        }
+    }
+    return coefs;
+}
