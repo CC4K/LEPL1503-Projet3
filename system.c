@@ -147,11 +147,11 @@ uint8_t **gen_coefs(uint32_t seed, uint32_t nss, uint32_t nrs){
     //cree une matrice de malloc
     uint8_t **coefs = malloc(sizeof(uint8_t*) * nss);
     if(coefs == NULL){
-        return NULL
+        return NULL;
     }
     for (int i = 0; i < nss ; ++i) {
         coefs[i] = malloc(sizeof(uint8_t) * nrs);
-        if (coef[i] == NULL){
+        if (coefs[i] == NULL){
             return NULL;
         }
     }
@@ -168,7 +168,7 @@ uint8_t **gen_coefs(uint32_t seed, uint32_t nss, uint32_t nrs){
     //generate tous les coefs
     for (int i = 0; i < nss; ++i) {
         for (int j = 0; j < nrs; ++j) {
-            coefs[i][j] = tinymt32_generate_uint32(&prng) %256;
+            coefs[i][j] = (uint8_t) tinymt32_generate_uint32(&prng);
             if (coefs[i][j] == 0){
                 coefs[i][j] = 1;
             }
