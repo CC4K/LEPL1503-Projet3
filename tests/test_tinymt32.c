@@ -68,24 +68,19 @@ void test_gaussian() {
         }
         printf("\n");
     }
-    printf("excpected A :\n");
+    printf("expected A :\n");
     for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 3; ++j) {
             printf("%" PRId8 "\t", expected_a[i][j]);
         }
         printf("\n");
     }
-    for (int i = 0; i < 3; ++i) {
-        if (b[i][0] != expected_b[i][0]) {
-            printf("error in b: ");
-            printf("%" PRId8 "\n", *b[i]);
-        }
-        else {
-            printf("correct b: ");
-            printf("%" PRId8 "\n", *b[i]);
-        }
-    }
+
+
+
     printf("End of test\n");
+
+
 }
 
 int main(){

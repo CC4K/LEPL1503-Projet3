@@ -15,9 +15,8 @@ clean:
 	rm -f test_tinymt32
 
 tests: tests/test_tinymt32.c
-	$(CC) -o test_tinymt32 tests/test_tinymt32.c system.c -lcunit
+	$(CC) -o test_tinymt32 tests/test_tinymt32.c system.c tinymt32.c -lcunit
 	./test_tinymt32
-	echo "TODO !"
 
 # a .PHONY target forces make to execute the command even if the target already exists
 .PHONY: clean tests
