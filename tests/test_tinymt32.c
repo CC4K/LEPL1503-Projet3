@@ -52,23 +52,30 @@ void test_gaussian() {
     A[0][1] = 165;
     A[1][0] = 61;
     A[1][1] = 69;
+    printf("b avant: \n");
+    for (int i = 0; i < 2; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            printf("%" PRId8 "\t", b[i][j]);
+        }
+        printf("\n");
+    }
     gf_256_gaussian_elimination(A,b,symbol_size,system_size);
     printf("A :\n");
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
+    for (int i = 0; i < 2; ++i) {
+        for (int j = 0; j < 2; ++j) {
             printf("%" PRId8 "\t", A[i][j]);
         }
         printf("\n");
     }
     printf("expected A :\n");
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
+    for (int i = 0; i < 2; ++i) {
+        for (int j = 0; j < 2; ++j) {
             printf("%" PRId8 "\t", expected_a[i][j]);
         }
         printf("\n");
     }
     printf("b :\n");
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 2; ++i) {
         for (int j = 0; j < 3; ++j) {
             printf("%" PRId8 "\t", b[i][j]);
         }

@@ -90,16 +90,15 @@ void gf_256_gaussian_elimination(uint8_t **A, uint8_t **b, uint32_t symbol_size,
     }
 
     uint8_t* factor_tab = malloc(sizeof(uint8_t)*symbol_size);
-    for(int a = 0; a < symbol_size; a++){
-        factor_tab[a] = 0;
-    }
     for (int i = system_size - 1; i > -1 ; --i) {
+        for(int a = 0; a < symbol_size; a++){
+            factor_tab[a] = 0;
+        }
         for (int j = i+1; j < system_size; ++j) {
             factor_tab = gf_256_full_add_vector(factor_tab, gf_256_mul_vector(b[j], A[i][j], symbol_size), symbol_size);
         }
         b[i] = gf_256_inv_vector(gf_256_full_add_vector(b[i], factor_tab, symbol_size), A[i][i], symbol_size);
     }
-    return b;
 
     // Code de Cédric (retravaillé)
     // Forward
