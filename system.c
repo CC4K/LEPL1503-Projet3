@@ -76,40 +76,27 @@ uint8_t *gf_256_mul_vector(uint8_t *symbol, uint8_t coef, uint32_t symbol_size){
  */
 void gf_256_gaussian_elimination(uint8_t **A, uint8_t **b, uint32_t symbol_size, uint32_t system_size) {
     // Code de Romain
-    printf("%" PRId32 "\t\n", system_size);
-    printf("%" PRId32 "\t\n", symbol_size);
     for (int k = 0; k < system_size; ++k) {
         for (int i = k+1; i < system_size; ++i) {
             uint8_t factor = gf256_mul_table[A[i][k]][gf256_inv_table[A[k][k]]];
-            printf("factor : %" PRId8 "\t\n", factor);
             for (int j = 0; j < system_size; ++j) {
                 A[i][j] = A[i][j] ^ gf256_mul_table[A[k][j]][factor];
             }
-            // test print a enlever
             for (int j = 0; j < system_size; ++j) {
-                printf("%" PRId8 "\t", A[i][j]);
             }
             printf("\n");
             b[i] = gf_256_full_add_vector(b[i], gf_256_mul_vector(b[k], factor, symbol_size), symbol_size);
         }
     }
-    printf("A Forward :\n");
-    for (int k = 0; k < system_size; ++k) {
-        for (int i = k+1; i < system_size; ++i) {
-            for (int j = 0; j < system_size; ++j) {
-                printf("%" PRId8 "\t", A[i][j]);
-            }
-            printf("\n");
-        }
-    }
 
-    uint8_t* factor_tab = malloc(sizeof(symbol_size)*3);
+    uint8_t* factor_tab = malloc(sizeof(uint8_t)*symbol_size);
     for (int i = system_size - 1; i > -1 ; --i) {
         for (int j = i+1; j < system_size; ++j) {
             factor_tab = gf_256_full_add_vector(factor_tab, gf_256_mul_vector(b[j], A[i][j], symbol_size), symbol_size);
         }
         b[i] = gf_256_inv_vector(gf_256_full_add_vector(b[i], factor_tab, symbol_size), A[i][i], symbol_size);
     }
+    return b;
 
     // Code de Cédric (retravaillé)
     // Forward

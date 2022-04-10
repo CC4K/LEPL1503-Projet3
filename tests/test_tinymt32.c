@@ -26,40 +26,32 @@ void test_tinymt32_gen_42()
 }
 
 void test_gaussian() {
-    uint8_t **A = malloc(sizeof(int*)*3);
-    uint8_t **b = malloc(sizeof(int*)*3);
-    uint8_t **expected_b = malloc(sizeof(int*)*3);
-    uint8_t **expected_a = malloc(sizeof(int*)*3);
+    uint8_t **A = malloc(sizeof(int*)*2);
+    uint8_t **b = malloc(sizeof(int*)*2);
+    uint8_t **expected_b = malloc(sizeof(int*)*2);
+    uint8_t **expected_a = malloc(sizeof(int*)*2);
     uint32_t symbol_size = 3;
     uint32_t system_size = 3;
     for (int i = 0; i < 3; ++i) {
-        A[i] = malloc(sizeof(int)*3);
+        A[i] = malloc(sizeof(int)*2);
         b[i] = malloc(sizeof(int));
-        expected_a[i] = malloc(sizeof(int)*3);
+        expected_a[i] = malloc(sizeof(int)*2);
         expected_b[i] = malloc(sizeof(int));
-        b[i][0] = 1;
     }
-    expected_a[0][0] = 2;
-    expected_a[0][1] = 3;
-    expected_a[0][2] = 1;
-    expected_a[1][0] = 1;
-    expected_a[1][1] = 0.5;
-    expected_a[1][2] = 1.5;
-    expected_a[2][0] = 1;
-    expected_a[2][1] = 0.5;
-    expected_a[2][2] = 1;
-    A[0][0] = 1;
-    A[0][1] = 2;
-    A[0][2] = 3;
-    A[1][0] = 1;
-    A[1][1] = 2;
-    A[1][2] = 2;
-    A[2][0] = 2;
-    A[2][1] = 3;
-    A[2][2] = 1;
-    expected_b[0][0] = -1;
-    expected_b[1][0] = 1;
-    expected_b[2][0] = 0;
+    b[0][0] = 57;
+    b[0][1] = 148;
+    b[0][2] = 214;
+    b[1][0] = 63;
+    b[1][1] = 140;
+    b[1][2] = 157;
+    expected_a[0][0] = 171;
+    expected_a[0][1] = 165;
+    expected_a[1][0] = 0;
+    expected_a[1][1] = 78;
+    A[0][0] = 171;
+    A[0][1] = 165;
+    A[1][0] = 61;
+    A[1][1] = 69;
     gf_256_gaussian_elimination(A,b,symbol_size,system_size);
     printf("A :\n");
     for (int i = 0; i < 3; ++i) {
@@ -72,6 +64,13 @@ void test_gaussian() {
     for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 3; ++j) {
             printf("%" PRId8 "\t", expected_a[i][j]);
+        }
+        printf("\n");
+    }
+    printf("b :\n");
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            printf("%" PRId8 "\t", b[i][j]);
         }
         printf("\n");
     }
