@@ -20,12 +20,15 @@ typedef struct
 } args_t;
 
 typedef struct {
-    uint32_t *seed;
-    uint32_t *block_size;
-    uint32_t *word_size;
-    uint32_t *redundancy;
-    uint64_t *message_size;
+    uint32_t seed;
+    uint32_t block_size;
+    uint32_t word_size;
+    uint32_t redundancy;
+    uint64_t message_size;
 }file_data_t;
+
+//Global variable for all file infos
+file_data_t* file_data;
 
 /*
     Récupère les informations du bloc `data`, comme spécifiées dans l'énoncé
@@ -135,7 +138,37 @@ int parse_args(args_t *args, int argc, char *argv[])
     strcpy(args->input_dir_path, argv[optind++]);
 
     return 0;
-}x²
+}
+
+/*
+Construit le bloc sur base des données et de la taille d'un bloc
+
+    :param data: les données du bloc en format binaire. Si le fichier d'input est bien formé, celui-ci est découpé
+                 `size` symboles de taille `word_size` bytes, suivis de `redundancy` symboles de taille `word_size`
+    :param size: le nombre de symboles sources dans un bloc
+    :return block: le block construit, sous la forme d'une matrice (une ligne = un symbole)
+*/
+uint8_t** make_block(data,uint8_t size){
+    //TODO: verifié
+    //Fait par Jacques le 12/04/22
+    uint8_t** block = malloc(sizeof(uint8_t)*(size + file_data->redundancy));
+    if(block == NULL){
+        return NULL;
+    }
+    for (int i = 0; i < size; ++i) {
+        block[i] = malloc(sizeof(file_data->word_size))
+        if(block[i] == NULL){
+            return NULL;
+        }
+    }
+
+    for (int i = 0; i < (size + (file_data->redundancy)); ++i) {
+        for (int j = 0; j < (file_data->word_size); ++j) {
+            block[i][j] = data[i * (file_data->word_size) + j]
+        }
+    }
+    return block;
+}
 
 int main(int argc, char *argv[])
 {
