@@ -13,10 +13,12 @@ clean:
 	rm -f src/*.o
 	rm -f fec
 	rm -f test_tinymt32
+	rm -f main
 
 tests: tests/test_tinymt32.c
 	$(CC) -o test_tinymt32 tests/test_tinymt32.c system.c tinymt32.c -lcunit
-	./test_tinymt32
+	$(CC) -o main main.c system.c tinymt32.c
+	valgrind ./test_tinymt32
 
 # a .PHONY target forces make to execute the command even if the target already exists
 .PHONY: clean tests
