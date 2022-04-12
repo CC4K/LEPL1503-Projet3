@@ -19,6 +19,56 @@ typedef struct
     bool verbose;
 } args_t;
 
+typedef struct {
+    uint32_t *seed;
+    uint32_t *block_size;
+    uint32_t *word_size;
+    uint32_t *redundancy;
+    uint64_t *message_size;
+}file_data_t;
+
+/*
+    Récupère les informations du bloc `data`, comme spécifiées dans l'énoncé
+        :param data: les 24 premieers bytes brutes du fichier
+        :return pointeur sur un file_data_t qui comporte des pointeurs vers la seed, block_size,word_size et message_size
+            seed = seed pour PRNG
+            block_size = taille d'un block de symbole source
+            word_size = la taille d'un mot
+            redundancy = nb de coef de redondance qui protegent les blocs
+            message_size = la taille du message initial a récupérer
+*/
+file_data_t* get_file_info(uint8_t* data){
+    //TODO:vérifier
+    //Fait par Jacques le 12/04/22
+    file_data_t * output = malloc(sizeof(file_data_t));
+    if(output == NULL){
+        return NULL;
+    }
+    for (int i = 0; i < 24; ++i) {
+        //Seed [0:4]
+        if(0<=i && i<4){
+            output->seed[i] = data[i];
+        }
+        //block_size [4:8]
+        if(4<= i && i<8){
+            output->block_size[i-4] = data[i];
+        }
+        //word_size [8:12]
+        if(8<= i && i<12){
+            output->word_size[i-8] = data[i];
+        }
+        //redundancy [12:16]
+        if(12<= i && i<16){
+            output->redundancy[i-12] = data[i];
+        }
+        //message_size [16:24]
+        if(16<= i && i<24){
+            output->message_size[i-16] = data[i];
+        }
+    }
+    return output;
+}
+
 void usage(char *prog_name)
 {
     fprintf(stderr, "USAGE:\n");
@@ -85,7 +135,7 @@ int parse_args(args_t *args, int argc, char *argv[])
     strcpy(args->input_dir_path, argv[optind++]);
 
     return 0;
-}
+}x²
 
 int main(int argc, char *argv[])
 {
