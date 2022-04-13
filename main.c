@@ -90,10 +90,15 @@ linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint32_t nb_unk, u
 uint8_t** make_block(uint8_t* data, uint8_t size){
     // Fait par Jacques le 12/04/22
     // TODO: à verifier
-    uint8_t** block = malloc(sizeof(uint8_t));
+    uint8_t** block = malloc(sizeof(uint8_t)*(size + *(file_data->redundancy)));
     if(block == NULL) return NULL;
-    for (int i = 0; i < (size + *(file_data->redundancy)) ; ++i) {
-        for (int j = 0; j < *(file_data->word_size); ++j) {
+    for (int i = 0; i < (size + *(file_data->redundancy)); ++i) {
+        block[i] = malloc(sizeof(uint8_t) * (*(file_data->word_size)));
+        if(block[i] == NULL){return NULL;}
+    }
+
+    for (int i = 0; i < (size + (*(file_data->redundancy))) ; ++i) {
+        for (int j = 0; j < (*(file_data->word_size)); ++j) {
             block[i][j] = data[i * (*(file_data->word_size)) + j];
         }
     }
@@ -115,6 +120,33 @@ uint8_t** process_block(uint8_t** block, uint8_t size){
     return block;
 }
 
+
+
+/**
+ *Fonction d'aide. Retourne un string stocké en binaire dans le bloc passé en argument
+ *
+ *:param block: le bloc en question
+ *:param size: la taille du bloc
+ *:return s: le string du bloc converti en binaire
+ */
+char* block_to_string(uint8_t *block, uint32_t size){
+    //TODO:Verifié
+    //fait par jacques le 13/04/22
+    char* str = malloc(sizeof(char)*(size* strlen(*block[0])));
+    if(str == NULL){return NULL;}
+
+    int index = 0;
+    for (int i = 0; i < size; ++i) {
+        for (int j = 0; j < strlen(*block[0]); ++j) {
+            if(block[i][j] == 0){
+                return str;
+            }
+            str[index] = (char) block[i][j];
+            index++;
+        }
+    }
+    return str;
+}
 
 /**
  * Récupère les informations du bloc 'data', comme spécifiées dans l'énoncé
