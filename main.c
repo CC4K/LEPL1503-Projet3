@@ -155,7 +155,7 @@ uint8_t** make_block(uint8_t* data,uint8_t size){
     if(block == NULL){
         return NULL;
     }
-    for (int i = 0; i < (*size + *(file_data->redundancy)) ; ++i) {
+    for (int i = 0; i < (size + *(file_data->redundancy)) ; ++i) {
         for (int j = 0; j < *(file_data->word_size); ++j) {
             block[i][j] = data[i * (*(file_data->word_size)) + j];
         }
