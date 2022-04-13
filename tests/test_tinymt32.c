@@ -26,10 +26,10 @@ void test_tinymt32_gen_42()
 }
 
 void test_gaussian() {
-    uint8_t **A = malloc(sizeof(int*)*2);
-    uint8_t **b = malloc(sizeof(int*)*2);
-    uint8_t **expected_b = malloc(sizeof(int*)*2);
-    uint8_t **expected_a = malloc(sizeof(int*)*2);
+    uint8_t** A = malloc(sizeof(int*)*2);
+    uint8_t** b = malloc(sizeof(int*)*2);
+    uint8_t** expected_b = malloc(sizeof(int*)*2);
+    uint8_t** expected_a = malloc(sizeof(int*)*2);
     uint32_t symbol_size = 3;
     uint32_t system_size = 3;
     for (int i = 0; i < 3; ++i) {
