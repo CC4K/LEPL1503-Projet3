@@ -24,12 +24,6 @@ typedef struct {
 
 
 typedef struct {
-    uint8_t** A;
-    uint8_t** B;
-} linear_system_t;
-
-
-typedef struct {
     uint32_t* seed;
     uint32_t* block_size;
     uint32_t* word_size;
