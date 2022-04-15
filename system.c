@@ -74,8 +74,6 @@ void gf_256_gaussian_elimination(uint8_t** A, uint8_t** b, uint32_t symbol_size,
             for (int k = 0; k < system_size; k++) {
                 A[j][k] = A[j][k] ^ gf256_mul_table[A[i][k]][factor];
             }
-            for (int m = 0; m < system_size; m++) {
-            }
             b[j] = gf_256_full_add_vector(b[j], gf_256_mul_vector(b[i], factor, symbol_size), symbol_size);
         }
     }

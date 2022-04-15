@@ -1,3 +1,9 @@
+//
+// LEPL1503-Projet_3
+// Created by Jacques, Romain, Cédric & Pierre on 15/03/22.
+//
+
+// Includes
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -16,7 +22,7 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 
-
+// Structures
 typedef struct {
     DIR* input_dir;
     char input_dir_path[PATH_MAX];
@@ -26,7 +32,6 @@ typedef struct {
     uint8_t** coeffs;
 } args_t;
 
-
 typedef struct {
     uint32_t* seed;
     uint32_t* block_size;
@@ -35,12 +40,10 @@ typedef struct {
     uint64_t* message_size;
 } file_data_t;
 
-
 typedef struct {
     bool* unknown_map;
     uint8_t unknowns_amount;
 } unknowns_t;
-
 
 // Global variable for all file infos
 file_data_t* file_data;
@@ -58,15 +61,15 @@ uint8_t word_size = 0;
 uint8_t** make_block(uint8_t* data, uint8_t size){
     // Fait par Jacques le 12/04/22
     // TODO: à verifier
-    uint8_t** block = malloc(sizeof(uint8_t)*(size + *(file_data->redundancy)));
+    uint8_t** block = malloc(sizeof(uint8_t) * (size + *(file_data->redundancy)));
     if(block == NULL) return NULL;
-    for (int i = 0; i < (size + *(file_data->redundancy)); ++i) {
+    for (int i = 0; i < (size + *(file_data->redundancy)); i++) {
         block[i] = malloc(sizeof(uint8_t) * (*(file_data->word_size)));
-        if(block[i] == NULL){return NULL;}
+        if(block[i] == NULL) return NULL;
     }
 
-    for (int i = 0; i < (size + (*(file_data->redundancy))) ; ++i) {
-        for (int j = 0; j < (*(file_data->word_size)); ++j) {
+    for (int i = 0; i < (size + (*(file_data->redundancy))) ; i++) {
+        for (int j = 0; j < (*(file_data->word_size)); j++) {
             block[i][j] = data[i * (*(file_data->word_size)) + j];
         }
     }
@@ -97,7 +100,7 @@ unknowns_t* find_lost_words(uint8_t** block, uint8_t size){
     // mapping the locations with lost values and counting the unknowns
     for (int i = 0; i < size; i++) {
         uint8_t count = 0;
-        for (int j = 0; j < word_size; ++j) {
+        for (int j = 0; j < word_size; j++) {
             count += block[i][j];
         }
         if (count == 0){ // Un symbole avec uniquement des 0 est considéré comme perdu
@@ -129,8 +132,8 @@ uint8_t** make_linear_system(bool* unknown_indexes,uint8_t nb_unk,uint8_t** curr
     // Crée par Romain le 15/04/22
     // TODO: à vérifier
 
-    uint8_t** A = malloc(sizeof(uint8_t * ) * nb_unk);
-    uint8_t** b = malloc(sizeof(uint8_t * ) * nb_unk);
+    uint8_t** A = malloc(sizeof(uint8_t*) * nb_unk);
+    uint8_t** b = malloc(sizeof(uint8_t*) * nb_unk);
 
     for (int i = 0; i < nb_unk; i++) {
         b[i] = current_block[block_size + 1];
@@ -198,15 +201,16 @@ uint8_t** process_block(uint8_t** block, uint8_t size){
  *:return s: le string du bloc converti en binaire
  */
 char* block_to_string(uint8_t **block, uint32_t size){
+    // Fait par jacques le 13/04/22
     // fonctionne et testé avec matrice carré seulement
-    //TODO: verifié si la matrice est carré ou pas
-    //fait par jacques le 13/04/22
-    char* str = malloc(sizeof(char)* (size * size)); //verifié si bien une matrice carrée
-    if(str == NULL){return NULL;}
+    // TODO: verifier si la matrice est carré ou pas
+
+    char* str = malloc(sizeof(char) * (size * size)); // verifier si bien une matrice carrée
+    if(str == NULL) return NULL;
 
     int index = 0;
-    for (int i = 0; i < size; ++i) {
-        for (int j = 0; j < size; ++j) { // la meme vérifié la taille de la matrice
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) { // la meme vérifier la taille de la matrice
             if(block[i][j] == 0){
                 return str;
             }
@@ -226,7 +230,7 @@ char* block_to_string(uint8_t **block, uint32_t size){
  * @param size: la taille du bloc
  * @param word_size: la taille de chaque symbole du bloc
  */
-void write_block(FILE *output_file, uint8_t **block, uint8_t size, uint8_t word_size) {
+void write_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t word_size) {
     typedef unsigned char Byte;
 
     for (int i = 0; i < size; i++) {
@@ -260,7 +264,7 @@ file_data_t* get_file_info(char* filename){
 
     // alloue mémoire de la struc que on retourne
     file_data_t* output = malloc(sizeof(file_data_t));
-    if(output == NULL){return NULL;}
+    if(output == NULL) return NULL;
 
     FILE* fileptr;
     uint32_t* buf;
@@ -280,11 +284,11 @@ file_data_t* get_file_info(char* filename){
     output->message_size = malloc(sizeof(uint64_t));
 
     // verifie si malloc a fonctionné
-    if(output->seed == NULL){return NULL;}
-    if(output->block_size == NULL){return NULL;}
-    if(output->word_size == NULL){return NULL;}
-    if(output->redundancy == NULL){return NULL;}
-    if(output->message_size == NULL){return NULL;}
+    if(output->seed == NULL) return NULL;
+    if(output->block_size == NULL) return NULL;
+    if(output->word_size == NULL) return NULL;
+    if(output->redundancy == NULL) return NULL;
+    if(output->message_size == NULL) return NULL;
 
     // chaque valeur est associé
     *output->seed = be32toh((uint32_t)*buf);
@@ -292,8 +296,6 @@ file_data_t* get_file_info(char* filename){
     *output->word_size = be32toh((uint32_t)*(buf+2));
     *output->redundancy = be32toh((uint32_t)*(buf+3));
     *output->message_size = be64toh((uint64_t)*(buf+2));
-
-
 
     // uncomment to see the result or call the verbose if you run main.c
     /*
@@ -380,7 +382,7 @@ int parse_args(args_t* args, int argc, char* argv[]){
 }
 
 
-int main(int argc, char *argv[]){
+int main(int argc, char* argv[]){
     args_t args;
     int err = parse_args(&args, argc, argv);
     if (err == -1){
