@@ -37,7 +37,7 @@ typedef struct {
 
 
 typedef struct {
-    bool unknown_map;
+    bool* unknown_map;
     uint8_t unknowns_amount;
 } unknowns_t;
 
@@ -46,43 +46,6 @@ typedef struct {
 file_data_t* file_data;
 uint8_t** coeffs = NULL;
 uint8_t word_size = 0;
-
-
-/**
- * Construit un système linéaire Ax=b à partir des blocs donnés en argument
- * @param unknown_indexes: tableau des index des symboles source d'un bloc. L'entrée i est `True` si le symbole i est perdu
- * @param nb_unk: le nombre d'inconnues dans le système - la taille du système
- * @param current_block: le bloc de symboles à résoudre
- * @param block_size: le nombre de symboles sources dans le bloc
- * @return A: la matrice de coefficients
- * @return B: le vecteur de termes indépendants. Chaque élément de B est de la même taille qu'un vecteur de données (paquet)
- */
-uint8_t **make_linear_system(uint8_t* unknown_indexes,uint8_t nb_unk,uint8_t** current_block,uint8_t block_size) {
-
-    // TODO: à tester(si c'est possible)
-
-    uint8_t **A = malloc(sizeof(uint8_t * ) * nb_unk);
-    uint8_t **b = malloc(sizeof(uint8_t * ) * nb_unk);
-
-    for (int i = 0; i < nb_unk; ++i) {
-        b[i] = current_block[block_size + 1];
-    }
-
-    for (int i = 0; i < nb_unk; ++i) {
-        int temp = 0;
-        for (int j = 0; j < block_size; ++j) {
-            if (unknown_indexes[j] == 1) {
-                A[i][temp] = coeffs[i][j];
-                temp += 1;
-            } else {
-                b[i] = gf_256_full_add_vector(b[i], gf_256_mul_vector(current_block[j], coeffs[i][j], block_size),block_size);
-            }
-
-        }
-    }
-    uint8_t **return_array[2] = {A, b};
-    return *return_array;
-}
 
 
 /**
@@ -112,21 +75,6 @@ uint8_t** make_block(uint8_t* data, uint8_t size){
 
 
 /**
- * Sur base d'un bloc, trouve les inconnues (i.e., symboles sources perdus) et construit le système linéaire
- * correspondant. Cette version simple considère qu'il y a toujours autant d'inconnues que de symboles de redondance,
- * c'est-à-dire qu'on va toujours construire un système avec autant d'équations que de symboles de redondances
- * @param block: le bloc en question
- * @param size: la taille du bloc
- * @return block: retourne le bloc résolu
- */
-uint8_t** process_block(uint8_t** block, uint8_t size){
-    // Crée par Cédric le 13/04/22
-    // TODO: à faire après avoir terminé find_lost_words(), make_linear_systems() matrix_solve() et leurs sous-fct°
-    return block;
-}
-
-
-/**
  * Sur base d'un bloc, trouve les symboles sources perdus et les répertorie dans `unknown_indexes`
  * Un symbole est considéré comme perdu dans le bloc si le symbole ne contient que des 0
  * @param block: le bloc en question
@@ -136,6 +84,9 @@ uint8_t** process_block(uint8_t** block, uint8_t size){
  * @return unknowns: le nombre de symboles sources perdus
  */
 unknowns_t* find_lost_words(uint8_t** block, uint8_t size){
+    // Crée par Cédric le 15/04/22
+    // TODO: à vérifier
+
     // initialize boolean array to false * size & unknowns to 0
     bool unknown_indexes[size];
     for (int i = 0; i < size; i++) {
@@ -162,6 +113,80 @@ unknowns_t* find_lost_words(uint8_t** block, uint8_t size){
     output->unknowns_amount = unknowns;
 
     return output;
+}
+
+
+/**
+ * Construit un système linéaire Ax=b à partir des blocs donnés en argument
+ * @param unknown_indexes: tableau des index des symboles source d'un bloc. L'entrée i est `True` si le symbole i est perdu
+ * @param nb_unk: le nombre d'inconnues dans le système - la taille du système
+ * @param current_block: le bloc de symboles à résoudre
+ * @param block_size: le nombre de symboles sources dans le bloc
+ * @return A: la matrice de coefficients
+ * @return B: le vecteur de termes indépendants. Chaque élément de B est de la même taille qu'un vecteur de données (paquet)
+ */
+uint8_t** make_linear_system(bool* unknown_indexes,uint8_t nb_unk,uint8_t** current_block,uint8_t block_size) {
+    // Crée par Romain le 15/04/22
+    // TODO: à vérifier
+
+    uint8_t** A = malloc(sizeof(uint8_t * ) * nb_unk);
+    uint8_t** b = malloc(sizeof(uint8_t * ) * nb_unk);
+
+    for (int i = 0; i < nb_unk; i++) {
+        b[i] = current_block[block_size + 1];
+    }
+
+    for (int i = 0; i < nb_unk; i++) {
+        int temp = 0;
+        for (int j = 0; j < block_size; j++) {
+            if (unknown_indexes[j]) {
+                A[i][temp] = coeffs[i][j];
+                temp += 1;
+            }
+            else {
+                b[i] = gf_256_full_add_vector(b[i], gf_256_mul_vector(current_block[j], coeffs[i][j], block_size),block_size);
+            }
+
+        }
+    }
+    uint8_t** return_array[2] = {A, b};
+    return *return_array;
+}
+
+
+/**
+ * Sur base d'un bloc, trouve les inconnues (i.e., symboles sources perdus) et construit le système linéaire
+ * correspondant. Cette version simple considère qu'il y a toujours autant d'inconnues que de symboles de redondance,
+ * c'est-à-dire qu'on va toujours construire un système avec autant d'équations que de symboles de redondances
+ * @param block: le bloc en question
+ * @param size: la taille du bloc
+ * @return block: retourne le bloc résolu
+ */
+uint8_t** process_block(uint8_t** block, uint8_t size){
+    // Crée par Cédric le 13/04/22
+    // TODO: à vérifier
+
+    // import the data from the other functions
+    unknowns_t* input_unknowns = find_lost_words(block, size);
+    bool* unknown_indexes = input_unknowns->unknown_map;
+    uint8_t unknowns = input_unknowns->unknowns_amount;
+    uint8_t** input_linear_system = make_linear_system(unknown_indexes, unknowns, block, size);
+    uint8_t** A = &input_linear_system[0];
+    uint8_t** B = &input_linear_system[1];
+
+    // gaussian elimination 'in place'
+    gf_256_gaussian_elimination(A, B, word_size, size);
+
+    // for every place marked as 'true', replace the data
+    uint8_t temp = 0;
+    for (int i = 0; i < size; i++) {
+        if (unknown_indexes[i]){
+            block[i] = B[temp];
+            temp += 1;
+        }
+    }
+
+    return block;
 }
 
 
@@ -193,29 +218,30 @@ char* block_to_string(uint8_t **block, uint32_t size){
     return str;
 }
 
+
 /**
-Ecrit dans le fichier `output_file` le bloc en binaire
-
-:param output_file: le descripteur de fichier de sortie
-:param block: le bloc en question
-:param size: la taille du bloc
-:param word_size: la taille de chaque symbole du bloc
-*/
-
+ * Ecrit dans le fichier `output_file` le bloc en binaire
+ * @param output_file: le descripteur de fichier de sortie
+ * @param block: le bloc en question
+ * @param size: la taille du bloc
+ * @param word_size: la taille de chaque symbole du bloc
+ */
 void write_block(FILE *output_file, uint8_t **block, uint8_t size, uint8_t word_size) {
-
     typedef unsigned char Byte;
 
-    for (int i = 0; i < size; ++i) {
-        for (int j = 0; j < word_size; ++j) {
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < word_size; j++) {
             if ((output_file == stdout) || (output_file == stderr)) {
                 printf("%c", (char) block[i][j]);
-            } else {
+            }
+            else {
                 fprintf(output_file, "%d", (Byte) block[i][j]);
             }
         }
     }
 }
+
+
 /**
  * Récupère les informations du bloc 'data', comme spécifiées dans l'énoncé
  * @param filename: le Path Absulue du fichier
@@ -229,38 +255,38 @@ void write_block(FILE *output_file, uint8_t **block, uint8_t size, uint8_t word_
  *                                 ni les informations reprises ci-dessus
  */
 file_data_t* get_file_info(char* filename){
-    //fait pas jacques le 15/04/22
-    //Fonctionnel et testé
+    // Fait par jacques le 15/04/22
+    // Fonctionnel et testé
 
-    //alloue mémoire de la struc que on retourne
-    file_data_t *output = malloc(sizeof(file_data_t));
+    // alloue mémoire de la struc que on retourne
+    file_data_t* output = malloc(sizeof(file_data_t));
     if(output == NULL){return NULL;}
 
     FILE* fileptr;
-    uint32_t * buf;
+    uint32_t* buf;
 
-    //ouvre le fichier
+    // ouvre le fichier
     fileptr = fopen(filename, "rb");
 
-    //creer un buf qui contient les 24 premier Bytes;
-    buf = malloc(4* sizeof(uint32_t) + 1 * sizeof(uint64_t));
-    fread(buf,4* sizeof(uint32_t) + 1 * sizeof(uint64_t),1,fileptr);
+    // creer un buf qui contient les 24 premier Bytes;
+    buf = malloc(4 * sizeof(uint32_t) + 1 * sizeof(uint64_t));
+    fread(buf,4 * sizeof(uint32_t) + 1 * sizeof(uint64_t),1,fileptr);
 
-    //alloue la memoire pour les pointeurs de la structure
+    // alloue la memoire pour les pointeurs de la structure
     output->seed = malloc(sizeof(uint32_t));
     output->block_size = malloc(sizeof(uint32_t));
     output->word_size = malloc(sizeof(uint32_t));
     output->redundancy = malloc(sizeof(uint32_t));
     output->message_size = malloc(sizeof(uint64_t));
 
-    //verifie si malloc a fonctionné
+    // verifie si malloc a fonctionné
     if(output->seed == NULL){return NULL;}
     if(output->block_size == NULL){return NULL;}
     if(output->word_size == NULL){return NULL;}
     if(output->redundancy == NULL){return NULL;}
     if(output->message_size == NULL){return NULL;}
 
-    //chaque valeur est associé
+    // chaque valeur est associé
     *output->seed = be32toh((uint32_t)*buf);
     *output->block_size = be32toh((uint32_t)*(buf+1));
     *output->word_size = be32toh((uint32_t)*(buf+2));
@@ -269,7 +295,7 @@ file_data_t* get_file_info(char* filename){
 
 
 
-    //uncomment to see the result or call the verbose if you run main.c
+    // uncomment to see the result or call the verbose if you run main.c
     /*
         printf("seed: %d\n",*output->seed);
         printf("block_size: %d\n", *output->block_size);
@@ -278,10 +304,10 @@ file_data_t* get_file_info(char* filename){
         printf("message_size: %lu\n", *output->message_size);
     */
 
-    //ferme le fichier
+    // ferme le fichier
     fclose(fileptr);
 
-    //free le buf
+    // free le buf
     free(buf);
 
     return output;
