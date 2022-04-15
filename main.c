@@ -172,24 +172,26 @@ unknowns_t* find_lost_words(uint8_t** block, uint8_t size){
  *:param size: la taille du bloc
  *:return s: le string du bloc converti en binaire
  */
-//char* block_to_string(uint8_t *block, uint32_t size){
-//    //TODO: a Verifié (sans blague...)
-//    //fait par jacques le 13/04/22
-//    char* str = malloc(sizeof(char)*(size* strlen(*block[0])));
-//    if(str == NULL){return NULL;}
-//
-//    int index = 0;
-//    for (int i = 0; i < size; ++i) {
-//        for (int j = 0; j < strlen(*block[0]); ++j) {
-//            if(block[i][j] == 0){
-//                return str;
-//            }
-//            str[index] = (char) block[i][j];
-//            index++;
-//        }
-//    }
-//    return str;
-//}
+char* block_to_string(uint8_t **block, uint32_t size){
+    // fonctionne et testé avec matrice carré seulement
+    //TODO: verifié si la matrice est carré ou pas
+    //fait par jacques le 13/04/22
+    char* str = malloc(sizeof(char)* (size * size)); //verifié si bien une matrice carrée
+    if(str == NULL){return NULL;}
+
+    int index = 0;
+    for (int i = 0; i < size; ++i) {
+        for (int j = 0; j < size; ++j) { // la meme vérifié la taille de la matrice
+            if(block[i][j] == 0){
+                return str;
+            }
+            str[index] = (char) block[i][j];
+            index++;
+        }
+    }
+    str[index] = '\0';
+    return str;
+}
 
 /**
 Ecrit dans le fichier `output_file` le bloc en binaire
