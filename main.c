@@ -191,7 +191,29 @@ unknowns_t* find_lost_words(uint8_t** block, uint8_t size){
 //    return str;
 //}
 
+/**
+Ecrit dans le fichier `output_file` le bloc en binaire
 
+:param output_file: le descripteur de fichier de sortie
+:param block: le bloc en question
+:param size: la taille du bloc
+:param word_size: la taille de chaque symbole du bloc
+*/
+
+void write_block(FILE *output_file, uint8_t **block, uint8_t size, uint8_t word_size) {
+
+    typedef unsigned char Byte;
+
+    for (int i = 0; i < size; ++i) {
+        for (int j = 0; j < word_size; ++j) {
+            if ((output_file == stdout) || (output_file == stderr)) {
+                printf("%c", (char) block[i][j]);
+            } else {
+                fprintf(output_file, "%d", (Byte) block[i][j]);
+            }
+        }
+    }
+}
 /**
  * Récupère les informations du bloc 'data', comme spécifiées dans l'énoncé
  * @param filename: le Path Absulue du fichier
