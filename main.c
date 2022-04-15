@@ -52,6 +52,8 @@ uint8_t** coeffs = NULL;
  */
 uint8_t **make_linear_system(uint8_t* unknown_indexes,uint8_t nb_unk,uint8_t** current_block,uint8_t block_size) {
 
+    // TODO: à tester(si c'est possible)
+
     uint8_t **A = malloc(sizeof(uint8_t * ) * nb_unk);
     uint8_t **b = malloc(sizeof(uint8_t * ) * nb_unk);
 
