@@ -10,6 +10,11 @@
 #include <stdbool.h>
 #include "headers/tinymt32.h"
 #include "headers/system.h"
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/mman.h>
 
 
 typedef struct {
@@ -39,6 +44,8 @@ typedef struct {
 // Global variable for all file infos
 file_data_t* file_data;
 uint8_t** coeffs = NULL;
+
+//====================================================================================================================//
 
 
 /**
@@ -130,7 +137,7 @@ uint8_t** process_block(uint8_t** block, uint8_t size){
  *:return s: le string du bloc converti en binaire
  */
 char* block_to_string(uint8_t *block, uint32_t size){
-    //TODO:Verifié
+    //TODO: a Verifié
     //fait par jacques le 13/04/22
     char* str = malloc(sizeof(char)*(size* strlen(*block[0])));
     if(str == NULL){return NULL;}
@@ -150,53 +157,79 @@ char* block_to_string(uint8_t *block, uint32_t size){
 
 /**
  * Récupère les informations du bloc 'data', comme spécifiées dans l'énoncé
- * @param data: les 24 premiers bytes brutes du fichier
- * @return block_size: la taille d'un bloc - le nombre de symboles sources dans le bloc
- * @return word_size: la taille d'un symbole 'complet' dans un bloc
- * @return redundancy: le nombre de symboles de redondance dans le bloc
- * @message_size: la taille (en bytes) du fichier initial que nous souhaitons récupérer.
- *          Cette valeur ne prend en compte que les données du fichier, donc sans symbole de réparation
- *          ni les informations reprises ci-dessus
+ * @param filename: le Path Absulue du fichier
+ * @return output: un structure qui contient des pointeurs vers la seed, le word_size, block_size, redundancy et message_size
+ *                 - seed: le seed pour la génération de nombre aléatoire
+ *                 - block_size: la taille d'un bloc - le nombre de symboles sources dans le bloc
+ *                 - word_size: la taille d'un symbole 'complet' dans un bloc
+ *                 - redundancy: le nombre de symboles de redondance dans le bloc
+ *                 - message_size: la taille (en bytes) du fichier initial que nous souhaitons récupérer.
+ *                                 Cette valeur ne prend en compte que les données du fichier, donc sans symbole de réparation
+ *                                 ni les informations reprises ci-dessus
  */
-file_data_t* get_file_info(uint8_t* data){
-    // Fait par Jacques le 12/04/22
-    // TODO: à vérifier
-    file_data_t* output = malloc(sizeof(file_data_t));
-    if(output == NULL) return NULL;
+file_data_t* get_file_info(char* filename){
+    //fait pas jacques le 15/04/22
+    //Fonctionnel et testé
 
-    for (int i = 0; i < 24; i++) {
-        // seed [0:4]
-        if(0<=i && i<4) output->seed[i] = data[i];
+    //alloue mémoire de la struc que on retourne
+    file_data_t *output = malloc(sizeof(file_data_t));
+    if(output == NULL){return NULL;}
 
-        // block_size [4:8]
-        if(4<=i && i<8) output->block_size[i-4] = data[i];
+    FILE* fileptr;
+    uint32_t * buf;
 
-        // word_size [8:12]
-        if(8<=i && i<12) output->word_size[i-8] = data[i];
+    //ouvre le fichier
+    fileptr = fopen(filename, "rb");
 
-        // redundancy [12:16]
-        if(12<=i && i<16) output->redundancy[i-12] = data[i];
+    //creer un buf qui contient les 24 premier Bytes;
+    buf = malloc(4* sizeof(uint32_t) + 1 * sizeof(uint64_t));
+    fread(buf,4* sizeof(uint32_t) + 1 * sizeof(uint64_t),1,fileptr);
 
-        // message_size [16:24]
-        if(16<=i && i<24) output->message_size[i-16] = data[i];
-    }
+    //alloue la memoire pour les pointeurs de la structure
+    output->seed = malloc(sizeof(uint32_t));
+    output->block_size = malloc(sizeof(uint32_t));
+    output->word_size = malloc(sizeof(uint32_t));
+    output->redundancy = malloc(sizeof(uint32_t));
+    output->message_size = malloc(sizeof(uint64_t));
+
+    //verifie si malloc a fonctionné
+    if(output->seed == NULL){return NULL;}
+    if(output->block_size == NULL){return NULL;}
+    if(output->word_size == NULL){return NULL;}
+    if(output->redundancy == NULL){return NULL;}
+    if(output->message_size == NULL){return NULL;}
+
+    //chaque valeur est associé
+    *output->seed = be32toh((uint32_t)*buf);
+    *output->block_size = be32toh((uint32_t)*(buf+1));
+    *output->word_size = be32toh((uint32_t)*(buf+2));
+    *output->redundancy = be32toh((uint32_t)*(buf+3));
+    *output->message_size = be64toh((uint64_t)*(buf+2));
+
+
+
+    //uncomment to see the result or call the verbose if you run main.c
+    /*
+        printf("seed: %d\n",*output->seed);
+        printf("block_size: %d\n", *output->block_size);
+        printf("word_size: %d\n", *output->word_size);
+        printf("redundancy: %d\n", *output->redundancy);
+        printf("message_size: %lu\n", *output->message_size);
+    */
+
+    //ferme le fichier
+    fclose(fileptr);
+
+    //free le buf
+    free(buf);
+
     return output;
 }
 
 
 // fonctions ci-dessous initialement dans main.c
 
-
-void usage(char* prog_name){
-    fprintf(stderr, "USAGE:\n");
-    fprintf(stderr, "    %s [OPTIONS] input_dir\n", prog_name);
-    fprintf(stderr, "    input_dir: path to the directory containing the instance files with the encoded messages\n");
-    fprintf(stderr, "    -f output_file: path to the output file containing all decoded messages\n");
-    fprintf(stderr, "    -n n_threads (default: 4): set the number of computing threads that will be used to execute the RLC algorithm\n");
-    fprintf(stderr, "    -v : enable debugging messages. If not set, no such messages will be displayed (except error messages on failure)\n");
-}
-
-
+//Fonctionnel
 int parse_args(args_t* args, int argc, char* argv[]){
     memset(args, 0, sizeof(args_t));
 
@@ -207,28 +240,28 @@ int parse_args(args_t* args, int argc, char* argv[]){
     int opt;
     while ((opt = getopt(argc, argv, "n:vf:")) != -1){
         switch (opt){
-        case 'n':
-            args->nb_threads = atoi(optarg);
-            if (args->nb_threads == 0){
-                fprintf(stderr, "The number of computing threads must be a positive integer, got: %s\n", optarg);
-                return -1;
-            }
-            break;
-        case 'v':
-            args->verbose = true;
-            break;
-        case 'f':
-            args->output_stream = fopen(optarg, "w");
-            if (args->output_stream == NULL){
-                fprintf(stderr, "Impossible to open the output file %s: %s\n", optarg, strerror(errno));
-                return -1;
-            }
-            break;
-        case '?':
-            usage(argv[0]);
-            return 1;
-        default:
-            usage(argv[0]);
+            case 'n':
+                args->nb_threads = atoi(optarg);
+                if (args->nb_threads == 0){
+                    fprintf(stderr, "The number of computing threads must be a positive integer, got: %s\n", optarg);
+                    return -1;
+                }
+                break;
+            case 'v':
+                args->verbose = true;
+                break;
+            case 'f':
+                args->output_stream = fopen(optarg, "w");
+                if (args->output_stream == NULL){
+                    fprintf(stderr, "Impossible to open the output file %s: %s\n", optarg, strerror(errno));
+                    return -1;
+                }
+                break;
+            case '?':
+                usage(argv[0]);
+                return 1;
+            default:
+                usage(argv[0]);
         }
     }
 
@@ -248,6 +281,14 @@ int parse_args(args_t* args, int argc, char* argv[]){
     return 0;
 }
 
+void usage(char* prog_name){
+    fprintf(stderr, "USAGE:\n");
+    fprintf(stderr, "    %s [OPTIONS] input_dir\n", prog_name);
+    fprintf(stderr, "    input_dir: path to the directory containing the instance files with the encoded messages\n");
+    fprintf(stderr, "    -f output_file: path to the output file containing all decoded messages\n");
+    fprintf(stderr, "    -n n_threads (default: 4): set the number of computing threads that will be used to execute the RLC algorithm\n");
+    fprintf(stderr, "    -v : enable debugging messages. If not set, no such messages will be displayed (except error messages on failure)\n");
+}
 
 int main(int argc, char *argv[]){
     args_t args;
@@ -293,10 +334,23 @@ int main(int argc, char *argv[]){
         }
 
         // TODO: parse the input binary file, decode the encoded message with RLC and write the output in the output stream following the statement
-        
+        //retounr structure avec seed, word_size ...
+        //TODO: vérifié si c'est bien de faire une variable global ou si on fait le malloc ici
+        file_data = get_file_info(full_path);
+
+        if(args.verbose){
+            printf("Information sur le fichier :");
+            printf("Seed : %d", *file_data->seed);
+            printf("Block_size : %d", *file_data->block_size);
+            printf("Word_size : %d", *file_data->word_size);
+            printf("Seed : %d", *file_data->redundancy);
+        }
+
+        //
+
         // You may modify or delete the following lines. This is just an example of how to use tinymt32
         uint32_t seed = 42; // Replace with the seed from the instance file!
-        
+
         tinymt32_t prng;
         memset(&prng, 0, sizeof(tinymt32_t));
         // Do not modify these values!
