@@ -8,6 +8,7 @@
 #include <limits.h>
 #include <inttypes.h>
 #include <stdbool.h>
+#include "headers/system.h"
 #include "headers/tinymt32.h"
 #include "headers/system.h"
 
@@ -18,6 +19,7 @@ typedef struct {
     FILE* output_stream;
     uint8_t nb_threads;
     bool verbose;
+    uint8_t** coeffs;
 } args_t;
 
 
@@ -50,33 +52,29 @@ uint8_t** coeffs = NULL;
  * @return A: la matrice de coefficients
  * @return B: le vecteur de termes indépendants. Chaque élément de B est de la même taille qu'un vecteur de données (paquet)
  */
-linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint32_t nb_unk, uint8_t** current_block, uint32_t block_size){
-    // Crée par Cédric le 13/04/22
-    // TODO: à verifier
-    linear_system_t* output = malloc(sizeof(linear_system_t));
-    if (output == NULL) return NULL;
-    uint8_t** A = malloc(sizeof(int) * (nb_unk*nb_unk));
-    if (A == NULL) return NULL;
-    uint8_t** B = malloc(sizeof(int) * (nb_unk*block_size)); // block_size devrait être word_size dcp faudrait voir cmt on l'implémente
-    if (B == NULL) return NULL;
+uint8_t **make_linear_system(uint8_t* unknown_indexes,uint8_t nb_unk,uint8_t** current_block,uint8_t block_size) {
 
-    for (int i = 0; i < nb_unk; i++) {
-        B[i] = current_block[block_size + i];
+    uint8_t **A = malloc(sizeof(uint8_t * ) * nb_unk);
+    uint8_t **b = malloc(sizeof(uint8_t * ) * nb_unk);
+
+    for (int i = 0; i < nb_unk; ++i) {
+        b[i] = current_block[block_size + 1];
     }
 
-    for (int i = 0; i < nb_unk; i++) {
+    for (int i = 0; i < nb_unk; ++i) {
         int temp = 0;
-        for (int j = 0; j < block_size; j++) {
-            if (unknown_indexes[j]){    // Si c'est une inconnue
+        for (int j = 0; j < block_size; ++j) {
+            if (unknown_indexes[j] == 1) {
                 A[i][temp] = coeffs[i][j];
                 temp += 1;
+            } else {
+                b[i] = gf_256_full_add_vector(b[i], gf_256_mul_vector(current_block[j], coeffs[i][j], block_size),block_size);
             }
-            else{
-                B[i] = gf_256_full_add_vector(B[i], gf_256_mul_vector(current_block[j], coeffs[i][j], block_size), block_size);
-            }
+
         }
     }
-    return output;
+    uint8_t **return_array[2] = {A, b};
+    return *return_array;
 }
 
 
@@ -195,6 +193,7 @@ void usage(char* prog_name){
     fprintf(stderr, "    -n n_threads (default: 4): set the number of computing threads that will be used to execute the RLC algorithm\n");
     fprintf(stderr, "    -v : enable debugging messages. If not set, no such messages will be displayed (except error messages on failure)\n");
 }
+
 
 
 int parse_args(args_t* args, int argc, char* argv[]){
