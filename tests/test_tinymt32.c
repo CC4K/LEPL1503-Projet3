@@ -88,53 +88,53 @@ void test_gaussian() {
 
 
 }
-void test_MLS() {
-    uint8_t** coeffs = malloc(sizeof(uint8_t*)*4);
-    coeffs[0][0] = 171;
-    coeffs[0][1] = 165;
-    coeffs[0][2] = 55;
-    coeffs[1][0] = 61;
-    coeffs[1][1] = 69;
-    coeffs[1][2] = 143;
-    coeffs[2][0] = 152;
-    coeffs[2][1] = 158;
-    coeffs[2][2] = 168;
-    coeffs[3][0] = 64;
-    coeffs[1][1] = 5;
-    coeffs[1][2] = 91;
-    uint8_t nb_unk = 1;
-    uint8_t block_size = 2;
-    uint8_t** current_block = malloc(sizeof(uint8_t*)*6);  // [[110,103,32],[0,0,0],[48,218,196],[135,164,243],[122,252,234],[80,117,232]];
-    uint8_t* unknown_indexes = malloc(sizeof(uint8_t*));
-    current_block[0][0] = 110;
-    current_block[0][1] = 103;
-    current_block[0][2] = 32;
-    current_block[1][0] = 0;
-    current_block[1][1] = 0;
-    current_block[1][2] = 0;
-    current_block[2][0] = 48;
-    current_block[2][1] = 218;
-    current_block[2][2] = 196;
-    current_block[3][0] = 135;
-    current_block[3][1] = 164;
-    current_block[3][2] = 243;
-    current_block[4][0] = 122;
-    current_block[4][1] = 252;
-    current_block[4][2] = 234;
-    current_block[5][0] = 80;
-    current_block[5][1] = 117;
-    current_block[5][2] = 232;
-    unknown_indexes[0] = 0;
-    unknown_indexes[1] = 1;
-    uint8_t** test = make_linear_system(unknown_indexes,nb_unk,current_block,block_size);
-    printf("A :\n");
-    for (int i = 0; i < 2; ++i) {
-        for (int j = 0; j < 2; ++j) {
-            printf("%" PRId8 "\t", test[i][j]);
-        }
-        printf("\n");
-    }
-}
+//void test_MLS() {
+//    uint8_t** coeffs = malloc(sizeof(uint8_t*)*4);
+//    coeffs[0][0] = 171;
+//    coeffs[0][1] = 165;
+//    coeffs[0][2] = 55;
+//    coeffs[1][0] = 61;
+//    coeffs[1][1] = 69;
+//    coeffs[1][2] = 143;
+//    coeffs[2][0] = 152;
+//    coeffs[2][1] = 158;
+//    coeffs[2][2] = 168;
+//    coeffs[3][0] = 64;
+//    coeffs[1][1] = 5;
+//    coeffs[1][2] = 91;
+//    uint8_t nb_unk = 1;
+//    uint8_t block_size = 2;
+//    uint8_t** current_block = malloc(sizeof(uint8_t*)*6);  // [[110,103,32],[0,0,0],[48,218,196],[135,164,243],[122,252,234],[80,117,232]];
+//    uint8_t* unknown_indexes = malloc(sizeof(uint8_t*));
+//    current_block[0][0] = 110;
+//    current_block[0][1] = 103;
+//    current_block[0][2] = 32;
+//    current_block[1][0] = 0;
+//    current_block[1][1] = 0;
+//    current_block[1][2] = 0;
+//    current_block[2][0] = 48;
+//    current_block[2][1] = 218;
+//    current_block[2][2] = 196;
+//    current_block[3][0] = 135;
+//    current_block[3][1] = 164;
+//    current_block[3][2] = 243;
+//    current_block[4][0] = 122;
+//    current_block[4][1] = 252;
+//    current_block[4][2] = 234;
+//    current_block[5][0] = 80;
+//    current_block[5][1] = 117;
+//    current_block[5][2] = 232;
+//    unknown_indexes[0] = 0;
+//    unknown_indexes[1] = 1;
+//    uint8_t** test = make_linear_system(unknown_indexes,nb_unk,current_block,block_size);
+//    printf("A :\n");
+//    for (int i = 0; i < 2; ++i) {
+//        for (int j = 0; j < 2; ++j) {
+//            printf("%" PRId8 "\t", test[i][j]);
+//        }
+//        printf("\n");
+//    }
+//}
 
 int main(){
     CU_initialize_registry();
@@ -142,5 +142,5 @@ int main(){
     CU_add_test(suite, "correct_coeffs", test_tinymt32_gen_42);
     CU_basic_run_tests();
     CU_basic_show_failures(CU_get_failure_list());
-    test_MLS();
+//    test_MLS();
 }

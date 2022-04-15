@@ -36,9 +36,16 @@ typedef struct {
 } file_data_t;
 
 
+typedef struct {
+    bool unknown_map;
+    uint8_t unknowns_amount;
+} unknowns_t;
+
+
 // Global variable for all file infos
 file_data_t* file_data;
 uint8_t** coeffs = NULL;
+uint8_t word_size = 0;
 
 
 /**
@@ -119,6 +126,44 @@ uint8_t** process_block(uint8_t** block, uint8_t size){
 }
 
 
+/**
+ * Sur base d'un bloc, trouve les symboles sources perdus et les répertorie dans `unknown_indexes`
+ * Un symbole est considéré comme perdu dans le bloc si le symbole ne contient que des 0
+ * @param block: le bloc en question
+ * @param size: la taille du bloc
+ * @return unknown_indexes: tableau de taille `size` faisant un mapping avec les symboles sources
+ *                          L'entrée `i` est `True` si le symbole source `i` est perdu
+ * @return unknowns: le nombre de symboles sources perdus
+ */
+unknowns_t* find_lost_words(uint8_t** block, uint8_t size){
+    // initialize boolean array to false * size & unknowns to 0
+    bool unknown_indexes[size];
+    for (int i = 0; i < size; i++) {
+        unknown_indexes[i] = false;
+    }
+    uint8_t unknowns = 0;
+
+    // mapping the locations with lost values and counting the unknowns
+    for (int i = 0; i < size; i++) {
+        uint8_t count = 0;
+        for (int j = 0; j < word_size; ++j) {
+            count += block[i][j];
+        }
+        if (count == 0){ // Un symbole avec uniquement des 0 est considéré comme perdu
+            unknown_indexes[i] = true;
+            unknowns += 1;
+        }
+    }
+
+    // return outputs in a struct
+    unknowns_t* output = malloc(sizeof(unknowns_t));
+    if (output == NULL) return NULL;
+    output->unknown_map = unknown_indexes;
+    output->unknowns_amount = unknowns;
+
+    return output;
+}
+
 
 /**
  *Fonction d'aide. Retourne un string stocké en binaire dans le bloc passé en argument
@@ -127,24 +172,25 @@ uint8_t** process_block(uint8_t** block, uint8_t size){
  *:param size: la taille du bloc
  *:return s: le string du bloc converti en binaire
  */
-char* block_to_string(uint8_t *block, uint32_t size){
-    //TODO: a Verifié
-    //fait par jacques le 13/04/22
-    char* str = malloc(sizeof(char)*(size* strlen(*block[0])));
-    if(str == NULL){return NULL;}
+//char* block_to_string(uint8_t *block, uint32_t size){
+//    //TODO: a Verifié (sans blague...)
+//    //fait par jacques le 13/04/22
+//    char* str = malloc(sizeof(char)*(size* strlen(*block[0])));
+//    if(str == NULL){return NULL;}
+//
+//    int index = 0;
+//    for (int i = 0; i < size; ++i) {
+//        for (int j = 0; j < strlen(*block[0]); ++j) {
+//            if(block[i][j] == 0){
+//                return str;
+//            }
+//            str[index] = (char) block[i][j];
+//            index++;
+//        }
+//    }
+//    return str;
+//}
 
-    int index = 0;
-    for (int i = 0; i < size; ++i) {
-        for (int j = 0; j < strlen(*block[0]); ++j) {
-            if(block[i][j] == 0){
-                return str;
-            }
-            str[index] = (char) block[i][j];
-            index++;
-        }
-    }
-    return str;
-}
 
 /**
  * Récupère les informations du bloc 'data', comme spécifiées dans l'énoncé
@@ -229,7 +275,6 @@ void usage(char* prog_name){
     fprintf(stderr, "    -n n_threads (default: 4): set the number of computing threads that will be used to execute the RLC algorithm\n");
     fprintf(stderr, "    -v : enable debugging messages. If not set, no such messages will be displayed (except error messages on failure)\n");
 }
-
 
 
 //Fonctionnel
