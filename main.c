@@ -172,26 +172,24 @@ unknowns_t* find_lost_words(uint8_t** block, uint8_t size){
  *:param size: la taille du bloc
  *:return s: le string du bloc converti en binaire
  */
-char* block_to_string(uint8_t **block, uint32_t size){
-    //Verifié et tester pour matrice carré
-    //TODO: a modifier si les block ne sont pas des matrices carré
-    //fait par jacques le 15/04/22
-    char* str = malloc(sizeof(char)* (size * size)); //verifié si bien une matrice carrée
-    if(str == NULL){return NULL;}
-
-    int index = 0;
-    for (int i = 0; i < size; ++i) {
-        for (int j = 0; j < size; ++j) { // la meme vérifié la taille de la matrice
-            if(block[i][j] == 0){
-                return str;
-            }
-            str[index] = (char) block[i][j];
-            index++;
-        }
-    }
-    str[index] = '\0';
-    return str;
-}
+//char* block_to_string(uint8_t *block, uint32_t size){
+//    //TODO: a Verifié (sans blague...)
+//    //fait par jacques le 13/04/22
+//    char* str = malloc(sizeof(char)*(size* strlen(*block[0])));
+//    if(str == NULL){return NULL;}
+//
+//    int index = 0;
+//    for (int i = 0; i < size; ++i) {
+//        for (int j = 0; j < strlen(*block[0]); ++j) {
+//            if(block[i][j] == 0){
+//                return str;
+//            }
+//            str[index] = (char) block[i][j];
+//            index++;
+//        }
+//    }
+//    return str;
+//}
 
 /**
 Ecrit dans le fichier `output_file` le bloc en binaire
@@ -211,12 +209,11 @@ void write_block(FILE *output_file, uint8_t **block, uint8_t size, uint8_t word_
             if ((output_file == stdout) || (output_file == stderr)) {
                 printf("%c", (char) block[i][j]);
             } else {
-                printf(output_file, "%d", (Byte) block[i][j]);
+                fprintf(output_file, "%d", (Byte) block[i][j]);
             }
         }
     }
 }
-
 /**
  * Récupère les informations du bloc 'data', comme spécifiées dans l'énoncé
  * @param filename: le Path Absulue du fichier
