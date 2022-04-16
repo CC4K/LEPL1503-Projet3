@@ -247,6 +247,41 @@ void write_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t word_
 
 
 /**
+ * Écrit dans le fichier `output_file` le bloc en binaire. Cette fonction se différencie de la précédente
+ * puisqu'elle doit gérer le cas où le dernier symbole du dernier bloc n'est pas de taille identique aux autres
+ * symboles de son bloc
+ * @param output_file: le descripteur de fichier de sortie
+ * @param block: le bloc en question
+ * @param size: la taille d'un bloc
+ * @param word_size: la taille d'un symbole dit 'complet'
+ * @param last_word_size: la taille du dernier mot du dernier bloc
+ */
+void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t word_size, uint8_t last_word_size) {
+    typedef unsigned char Byte;
+
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < word_size; j++) {
+            if ((output_file == stdout) || (output_file == stderr)) {
+                printf("%c", (char) block[i][j]);
+            }
+            else {
+                fprintf(output_file, "%d", (Byte) block[i][j]);
+            }
+        }
+    }
+
+    for (int i = 0; i < last_word_size; i++) {
+        if ((output_file == stdout) || (output_file == stderr)) {
+            printf("%c", (char) block[size - 1][i]);
+        }
+        else {
+            fprintf(output_file, "%d", (Byte) block[size - 1][i]);
+        }
+    }
+}
+
+
+/**
  * Récupère les informations du bloc 'data', comme spécifiées dans l'énoncé
  * @param filename: le Path Absulue du fichier
  * @return output: un structure qui contient des pointeurs vers la seed, le word_size, block_size, redundancy et message_size
