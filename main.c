@@ -1,7 +1,7 @@
-//
-// LEPL1503-Projet_3
-// Created by Jacques, Romain, Cédric & Pierre on 15/03/22.
-//
+//===========================================================//
+// LEPL1503-Projet_3                                         //
+// Created by Jacques, Romain, Cédric & Pierre on 15/03/22.  //
+//===========================================================//
 
 // Includes
 #include <stdio.h>
@@ -22,7 +22,9 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 
-// Structures
+// ============================= Structures ========================//
+
+//stucture pour les arguments donné au Prgm
 typedef struct {
     DIR* input_dir;
     char input_dir_path[PATH_MAX];
@@ -32,6 +34,7 @@ typedef struct {
     uint8_t** coeffs;
 } args_t;
 
+//Structure pour les infos du fichiers
 typedef struct {
     uint32_t* seed;
     uint32_t* block_size;
@@ -40,15 +43,21 @@ typedef struct {
     uint64_t* message_size;
 } file_data_t;
 
+// Structure pour les mots manquants
 typedef struct {
     bool* unknown_map;
     uint8_t unknowns_amount;
 } unknowns_t;
 
-// Global variable for all file infos
+// ======================= Variable Globales ========================//
+
 file_data_t* file_data;
 uint8_t** coeffs = NULL;
 uint8_t word_size = 0;
+
+
+
+// ========================== Fonctions ============================//
 
 
 /**
@@ -239,7 +248,7 @@ void write_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t word_
                 printf("%c", (char) block[i][j]);
             }
             else {
-                fprintf(output_file, "%d", (Byte) block[i][j]);
+                printf(output_file, "%d", (Byte) block[i][j]);
             }
         }
     }
@@ -352,8 +361,6 @@ file_data_t* get_file_info(char* filename){
 
 
 // fonctions ci-dessous initialement dans main.c
-
-
 void usage(char* prog_name){
     fprintf(stderr, "USAGE:\n");
     fprintf(stderr, "    %s [OPTIONS] input_dir\n", prog_name);
@@ -364,7 +371,6 @@ void usage(char* prog_name){
 }
 
 
-//Fonctionnel
 int parse_args(args_t* args, int argc, char* argv[]){
     memset(args, 0, sizeof(args_t));
 
@@ -417,6 +423,8 @@ int parse_args(args_t* args, int argc, char* argv[]){
 }
 
 
+// ================================== FONCTION MAIN =============================//
+
 int main(int argc, char* argv[]){
     args_t args;
     int err = parse_args(&args, argc, argv);
@@ -466,16 +474,16 @@ int main(int argc, char* argv[]){
         file_data = get_file_info(full_path);
 
         if(args.verbose){
-            printf("Information sur le fichier :");
+            printf("Information of the file :");
             printf("Seed : %d", *file_data->seed);
             printf("Block_size : %d", *file_data->block_size);
             printf("Word_size : %d", *file_data->word_size);
-            printf("Seed : %d", *file_data->redundancy);
+            printf("Redundancy : %d", *file_data->redundancy);
         }
 
-        //
+        coeffs = gen_coefs(*file_data->seed,nss, nrs);
 
-        // You may modify or delete the following lines. This is just an example of how to use tinymt32
+/*        // You may modify or delete the following lines. This is just an example of how to use tinymt32
         uint32_t seed = 42; // Replace with the seed from the instance file!
 
         tinymt32_t prng;
@@ -493,7 +501,7 @@ int main(int argc, char* argv[]){
         if (args.verbose)
         {
             printf("Coefficient: %u\n", coef);
-        }
+        }*/
 
         // Close this instance file
         fclose(input_file);
