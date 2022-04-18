@@ -144,7 +144,7 @@ uint8_t*** make_linear_system(bool* unknown_indexes,uint8_t nb_unk,uint8_t** cur
     }
     uint8_t **b = malloc(sizeof(uint8_t * ) * nb_unk);
     for (size_t i = 0; i < nb_unk; ++i) {
-        b[i] = malloc(sizeof(uint8_t)*3);
+        b[i] = malloc(sizeof(uint8_t)*word_size);
     }
 
     for (int i = 0; i < nb_unk; ++i) {
