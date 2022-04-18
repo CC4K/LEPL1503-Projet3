@@ -21,6 +21,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include "headers/gf256_tables.h"
 
 // Structures
 typedef struct {
@@ -128,32 +129,38 @@ unknowns_t* find_lost_words(uint8_t** block, uint8_t size){
  * @return A: la matrice de coefficients
  * @return B: le vecteur de termes indépendants. Chaque élément de B est de la même taille qu'un vecteur de données (paquet)
  */
-uint8_t** make_linear_system(bool* unknown_indexes,uint8_t nb_unk,uint8_t** current_block,uint8_t block_size) {
+uint8_t*** make_linear_system(bool* unknown_indexes,uint8_t nb_unk,uint8_t** current_block,uint8_t block_size) {
     // Crée par Romain le 15/04/22
-    // TODO: à vérifier
 
-    uint8_t** A = malloc(sizeof(uint8_t*) * nb_unk);
-    uint8_t** b = malloc(sizeof(uint8_t*) * nb_unk);
-
-    for (int i = 0; i < nb_unk; i++) {
-        b[i] = current_block[block_size + 1];
+    uint8_t **A = malloc(sizeof(uint8_t * ) * nb_unk);
+    for (size_t i = 0; i < nb_unk; ++i) {
+        A[i] = malloc(sizeof(uint8_t)*block_size);
+    }
+    uint8_t **b = malloc(sizeof(uint8_t * ) * nb_unk);
+    for (size_t i = 0; i < nb_unk; ++i) {
+        b[i] = malloc(sizeof(uint8_t)*3);
     }
 
-    for (int i = 0; i < nb_unk; i++) {
+    for (int i = 0; i < nb_unk; ++i) {
+        b[i] = current_block[block_size + i];
+    }
+
+    for (int i = 0; i < nb_unk; ++i) {
         int temp = 0;
-        for (int j = 0; j < block_size; j++) {
-            if (unknown_indexes[j]) {
+        for (int j = 0; j < block_size; ++j) {
+            if (unknown_indexes[j] == true) {
                 A[i][temp] = coeffs[i][j];
                 temp += 1;
-            }
-            else {
+            } else {
                 b[i] = gf_256_full_add_vector(b[i], gf_256_mul_vector(current_block[j], coeffs[i][j], block_size),block_size);
             }
 
         }
     }
-    uint8_t** return_array[2] = {A, b};
-    return *return_array;
+    uint8_t ***return_array = malloc(sizeof(uint8_t**)*2);
+    return_array[0] = A;
+    return_array[1] = b;
+    return return_array;
 }
 
 
@@ -382,7 +389,7 @@ int parse_args(args_t* args, int argc, char* argv[]){
 }
 
 
-int main(int argc, char* argv[]){
+int main(){
     args_t args;
     int err = parse_args(&args, argc, argv);
     if (err == -1){
@@ -474,7 +481,7 @@ int main(int argc, char* argv[]){
     }
     return 0;
 
-file_read_error:
+    file_read_error:
     err = closedir(args.input_dir);
     if (err < 0){
         fprintf(stderr, "Error while closing the input directory containing the instance files\n");
