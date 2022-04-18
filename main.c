@@ -466,7 +466,24 @@ int main(int argc, char* argv[]) {
             printf("Redundancy : %d", *file_data->redundancy);
         }
 
+        // Malloc inside function
+        // TODO: nss & nrs not allocate
+        uint32_t nss;
+        uint32_t nrs;
         coeffs = gen_coefs(*file_data->seed,nss, nrs);
+        if(args.verbose){
+            printf("Coefficient: \n");
+            printf("[");
+            for (int i = 0; i < nss; ++i) {
+                printf("[");
+                for (int j = 0; j < nrs; ++j) {
+                    printf("%d ", coeffs[i][j]);
+                }
+                printf("]\n");
+            }
+            printf("]\n");
+        }
+
 
         /*
         // You may modify or delete the following lines. This is just an example of how to use tinymt32
@@ -489,6 +506,11 @@ int main(int argc, char* argv[]) {
             printf("Coefficient: %u\n", coef);
         }
         */
+
+        //Free variables
+        //TODO: mettre au bon endrois dés que on utilise plus la variable
+        free(file_data);
+        free(coeffs);
 
         // Close this instance file
         fclose(input_file);
