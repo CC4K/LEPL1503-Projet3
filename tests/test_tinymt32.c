@@ -4,7 +4,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <inttypes.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
 
+// test_tinymt32
+/*
 void test_tinymt32_gen_42()
 {
     tinymt32_t prng;
@@ -24,7 +29,10 @@ void test_tinymt32_gen_42()
         CU_ASSERT_EQUAL(coef, expected_res[i]);
     }
 }
+*/
 
+// gauss_elimin
+/*
 void test_gaussian() {
     uint8_t** A = malloc(sizeof(int*)*2);
     uint8_t** b = malloc(sizeof(int*)*2);
@@ -88,76 +96,453 @@ void test_gaussian() {
 
 
 }
-//void test_MLS() {
-//    uint8_t** coeffs = malloc(sizeof(uint8_t*)*4);
-//    coeffs[0][0] = 171;
-//    coeffs[0][1] = 165;
-//    coeffs[0][2] = 55;
-//    coeffs[1][0] = 61;
-//    coeffs[1][1] = 69;
-//    coeffs[1][2] = 143;
-//    coeffs[2][0] = 152;
-//    coeffs[2][1] = 158;
-//    coeffs[2][2] = 168;
-//    coeffs[3][0] = 64;
-//    coeffs[1][1] = 5;
-//    coeffs[1][2] = 91;
-//    uint8_t nb_unk = 1;
-//    uint8_t block_size = 2;
-//    uint8_t** current_block = malloc(sizeof(uint8_t*)*6);  // [[110,103,32],[0,0,0],[48,218,196],[135,164,243],[122,252,234],[80,117,232]];
-//    uint8_t* unknown_indexes = malloc(sizeof(uint8_t*));
-//    current_block[0][0] = 110;
-//    current_block[0][1] = 103;
-//    current_block[0][2] = 32;
-//    current_block[1][0] = 0;
-//    current_block[1][1] = 0;
-//    current_block[1][2] = 0;
-//    current_block[2][0] = 48;
-//    current_block[2][1] = 218;
-//    current_block[2][2] = 196;
-//    current_block[3][0] = 135;
-//    current_block[3][1] = 164;
-//    current_block[3][2] = 243;
-//    current_block[4][0] = 122;
-//    current_block[4][1] = 252;
-//    current_block[4][2] = 234;
-//    current_block[5][0] = 80;
-//    current_block[5][1] = 117;
-//    current_block[5][2] = 232;
-//    unknown_indexes[0] = 0;
-//    unknown_indexes[1] = 1;
-//    uint8_t** test = make_linear_system(unknown_indexes,nb_unk,current_block,block_size);
-//    printf("A :\n");
-//    for (int i = 0; i < 2; ++i) {
-//        for (int j = 0; j < 2; ++j) {
-//            printf("%" PRId8 "\t", test[i][j]);
-//        }
-//        printf("\n");
-//    }
-//}
+*/
 
+// make_linear_system
+/*
+void test_MLS() {
+    uint8_t** coeffs = malloc(sizeof(uint8_t*)*4);
+    coeffs[0][0] = 171;
+    coeffs[0][1] = 165;
+    coeffs[0][2] = 55;
+    coeffs[1][0] = 61;
+    coeffs[1][1] = 69;
+    coeffs[1][2] = 143;
+    coeffs[2][0] = 152;
+    coeffs[2][1] = 158;
+    coeffs[2][2] = 168;
+    coeffs[3][0] = 64;
+    coeffs[1][1] = 5;
+    coeffs[1][2] = 91;
+    uint8_t nb_unk = 1;
+    uint8_t block_size = 2;
+    uint8_t** current_block = malloc(sizeof(uint8_t*)*6);  // [[110,103,32],[0,0,0],[48,218,196],[135,164,243],[122,252,234],[80,117,232]];
+    uint8_t* unknown_indexes = malloc(sizeof(uint8_t*));
+    current_block[0][0] = 110;
+    current_block[0][1] = 103;
+    current_block[0][2] = 32;
+    current_block[1][0] = 0;
+    current_block[1][1] = 0;
+    current_block[1][2] = 0;
+    current_block[2][0] = 48;
+    current_block[2][1] = 218;
+    current_block[2][2] = 196;
+    current_block[3][0] = 135;
+    current_block[3][1] = 164;
+    current_block[3][2] = 243;
+    current_block[4][0] = 122;
+    current_block[4][1] = 252;
+    current_block[4][2] = 234;
+    current_block[5][0] = 80;
+    current_block[5][1] = 117;
+    current_block[5][2] = 232;
+    unknown_indexes[0] = 0;
+    unknown_indexes[1] = 1;
+    uint8_t** test = make_linear_system(unknown_indexes,nb_unk,current_block,block_size);
+    printf("A :\n");
+    for (int i = 0; i < 2; ++i) {
+        for (int j = 0; j < 2; ++j) {
+            printf("%" PRId8 "\t", test[i][j]);
+        }
+        printf("\n");
+    }
+}
+*/
 
+// gen_coeffs
+/*
 void test_gen_coefs(){
     uint32_t seed = 12345;
     uint32_t block_size = 10;
     uint32_t redudancy = 2;
     uint8_t** caca = gen_coefs(seed,redudancy, block_size);
-    printf("[");
     for (int i = 0; i < redudancy; ++i) {
-        printf("[ ");
         for (int j = 0; j < block_size; ++j) {
             printf("%d ", caca[i][j]);
+
         }
-        printf(" ]\n");
+        printf("\n");
     }
-    printf("]");
 }
+*/
+
+// find_lost_words
+/*
+typedef struct {
+    bool* unknown_map;
+    uint8_t unknowns_amount;
+} unknowns_t;
+
+uint8_t word_size;
+
+unknowns_t* find_lost_words(uint8_t** block, uint8_t size) {
+    // Initialize an array of boolean of size 'size' to false & the unknowns to 0
+    bool unknown_indexes[size];
+    for (int i = 0; i < size; i++) {
+        unknown_indexes[i] = false;
+    }
+    uint8_t unknowns = 0;
+
+    // Mapping the locations with lost values and counting the unknowns
+    for (int i = 0; i < size; i++) {
+        uint8_t count = 0;
+        for (int j = 0; j < word_size; j++) {
+            count += block[i][j];
+        }
+        // A symbol with only 0's is considered as lost
+        if (count == 0) {
+            unknown_indexes[i] = true;
+            unknowns += 1;
+        }
+    }
+
+    // Allocate memory to store the results in a struct and return it
+    unknowns_t* output = malloc(sizeof(unknowns_t));
+    if (output == NULL) return NULL;
+    output->unknown_map = unknown_indexes;
+    output->unknowns_amount = unknowns;
+
+    return output;
+}
+
+void test_find_lost_1(){
+    uint8_t size_1 = 3;
+    word_size = 3;
+    uint8_t** block_1 = malloc(sizeof(uint8_t*) * 7);
+    for (int i = 0; i < 7; i++) {
+        block_1[i] = malloc(sizeof(uint8_t) * size_1);
+    }
+    block_1[0][0] = 0;
+    block_1[0][1] = 0;
+    block_1[0][2] = 0;
+    block_1[1][0] = 111;
+    block_1[1][1] = 118;
+    block_1[1][2] = 101;
+    block_1[2][0] = 0;
+    block_1[2][1] = 0;
+    block_1[2][2] = 0;
+    block_1[3][0] = 151;
+    block_1[3][1] = 140;
+    block_1[3][2] = 120;
+    block_1[4][0] = 15;
+    block_1[4][1] = 96;
+    block_1[4][2] = 173;
+    block_1[5][0] = 70;
+    block_1[5][1] = 82;
+    block_1[5][2] = 203;
+    block_1[6][0] = 214;
+    block_1[6][1] = 245;
+    block_1[6][2] = 65;
+
+    unknowns_t* out_1 = find_lost_words(block_1, size_1);
+    bool* mapping_1 = out_1->unknown_map;
+    uint8_t amount_1 = out_1->unknowns_amount;
+
+    printf("Mapping_1:\n[");
+    for (int i = 0; i < size_1; i++) {
+        if (mapping_1[i]) {
+            printf("true");
+        }
+        else {
+            printf("false");
+        }
+        if (i != size_1 - 1) {
+            printf(" ");
+        }
+    }
+    printf("]\n");
+    printf("Amount_1: %d\n", amount_1);
+}
+
+void test_find_lost_2(){
+    uint8_t size_2 = 10;
+    word_size = 20;
+    uint8_t** block_2 = malloc(sizeof(uint8_t*) * 12);
+    for (int i = 0; i < 12; i++) {
+        block_2[i] = malloc(sizeof(uint8_t) * size_2);
+    }
+    block_2[0][0] = 110;
+    block_2[0][1] = 115;
+    block_2[0][2] = 117;
+    block_2[0][3] = 105;
+    block_2[0][4] = 116;
+    block_2[0][5] = 101;
+    block_2[0][6] = 44;
+    block_2[0][7] = 32;
+    block_2[0][8] = 97;
+    block_2[0][9] = 106;
+    block_2[0][10] = 111;
+    block_2[0][11] = 117;
+    block_2[0][12] = 116;
+    block_2[0][13] = 101;
+    block_2[0][14] = 114;
+    block_2[0][15] = 32;
+    block_2[0][16] = 117;
+    block_2[0][17] = 110;
+    block_2[0][18] = 101;
+    block_2[0][19] = 32;
+
+    block_2[1][0] = 99;
+    block_2[1][1] = 111;
+    block_2[1][2] = 117;
+    block_2[1][3] = 99;
+    block_2[1][4] = 104;
+    block_2[1][5] = 101;
+    block_2[1][6] = 32;
+    block_2[1][7] = 100;
+    block_2[1][8] = 101;
+    block_2[1][9] = 32;
+    block_2[1][10] = 109;
+    block_2[1][11] = 195;
+    block_2[1][12] = 169;
+    block_2[1][13] = 108;
+    block_2[1][14] = 97;
+    block_2[1][15] = 110;
+    block_2[1][16] = 103;
+    block_2[1][17] = 101;
+    block_2[1][18] = 32;
+    block_2[1][19] = 97;
+
+    block_2[2][0] = 117;
+    block_2[2][1] = 32;
+    block_2[2][2] = 109;
+    block_2[2][3] = 97;
+    block_2[2][4] = 115;
+    block_2[2][5] = 99;
+    block_2[2][6] = 97;
+    block_2[2][7] = 114;
+    block_2[2][8] = 112;
+    block_2[2][9] = 111;
+    block_2[2][10] = 110;
+    block_2[2][11] = 101;
+    block_2[2][12] = 44;
+    block_2[2][13] = 32;
+    block_2[2][14] = 112;
+    block_2[2][15] = 117;
+    block_2[2][16] = 105;
+    block_2[2][17] = 115;
+    block_2[2][18] = 32;
+    block_2[2][19] = 112;
+
+    block_2[3][0] = 97;
+    block_2[3][1] = 114;
+    block_2[3][2] = 32;
+    block_2[3][3] = 100;
+    block_2[3][4] = 101;
+    block_2[3][5] = 115;
+    block_2[3][6] = 115;
+    block_2[3][7] = 117;
+    block_2[3][8] = 115;
+    block_2[3][9] = 44;
+    block_2[3][10] = 32;
+    block_2[3][11] = 108;
+    block_2[3][12] = 101;
+    block_2[3][13] = 115;
+    block_2[3][14] = 32;
+    block_2[3][15] = 102;
+    block_2[3][16] = 114;
+    block_2[3][17] = 117;
+    block_2[3][18] = 105;
+    block_2[3][19] = 116;
+
+    block_2[4][0] = 115;
+    block_2[4][1] = 32;
+    block_2[4][2] = 114;
+    block_2[4][3] = 111;
+    block_2[4][4] = 117;
+    block_2[4][5] = 103;
+    block_2[4][6] = 101;
+    block_2[4][7] = 115;
+    block_2[4][8] = 46;
+    block_2[4][9] = 10;
+    block_2[4][10] = 195;
+    block_2[4][11] = 137;
+    block_2[4][12] = 116;
+    block_2[4][13] = 97;
+    block_2[4][14] = 112;
+    block_2[4][15] = 101;
+    block_2[4][16] = 32;
+    block_2[4][17] = 56;
+    block_2[4][18] = 10;
+    block_2[4][19] = 10;
+
+    block_2[5][0] = 82;
+    block_2[5][1] = 195;
+    block_2[5][2] = 169;
+    block_2[5][3] = 112;
+    block_2[5][4] = 195;
+    block_2[5][5] = 169;
+    block_2[5][6] = 116;
+    block_2[5][7] = 101;
+    block_2[5][8] = 114;
+    block_2[5][9] = 32;
+    block_2[5][10] = 108;
+    block_2[5][11] = 39;
+    block_2[5][12] = 111;
+    block_2[5][13] = 112;
+    block_2[5][14] = 195;
+    block_2[5][15] = 169;
+    block_2[5][16] = 114;
+    block_2[5][17] = 97;
+    block_2[5][18] = 116;
+    block_2[5][19] = 105;
+
+    block_2[6][0] = 0;
+    block_2[6][1] = 0;
+    block_2[6][2] = 0;
+    block_2[6][3] = 0;
+    block_2[6][4] = 0;
+    block_2[6][5] = 0;
+    block_2[6][6] = 0;
+    block_2[6][7] = 0;
+    block_2[6][8] = 0;
+    block_2[6][9] = 0;
+    block_2[6][10] = 0;
+    block_2[6][11] = 0;
+    block_2[6][12] = 0;
+    block_2[6][13] = 0;
+    block_2[6][14] = 0;
+    block_2[6][15] = 0;
+    block_2[6][16] = 0;
+    block_2[6][17] = 0;
+    block_2[6][18] = 0;
+    block_2[6][19] = 0;
+
+    block_2[7][0] = 118;
+    block_2[7][1] = 111;
+    block_2[7][2] = 116;
+    block_2[7][3] = 114;
+    block_2[7][4] = 101;
+    block_2[7][5] = 32;
+    block_2[7][6] = 112;
+    block_2[7][7] = 108;
+    block_2[7][8] = 97;
+    block_2[7][9] = 116;
+    block_2[7][10] = 44;
+    block_2[7][11] = 32;
+    block_2[7][12] = 101;
+    block_2[7][13] = 116;
+    block_2[7][14] = 32;
+    block_2[7][15] = 102;
+    block_2[7][16] = 105;
+    block_2[7][17] = 110;
+    block_2[7][18] = 105;
+    block_2[7][19] = 114;
+
+    block_2[8][0] = 32;
+    block_2[8][1] = 112;
+    block_2[8][2] = 97;
+    block_2[8][3] = 114;
+    block_2[8][4] = 32;
+    block_2[8][5] = 108;
+    block_2[8][6] = 101;
+    block_2[8][7] = 115;
+    block_2[8][8] = 32;
+    block_2[8][9] = 102;
+    block_2[8][10] = 114;
+    block_2[8][11] = 117;
+    block_2[8][12] = 105;
+    block_2[8][13] = 116;
+    block_2[8][14] = 115;
+    block_2[8][15] = 32;
+    block_2[8][16] = 114;
+    block_2[8][17] = 111;
+    block_2[8][18] = 117;
+    block_2[8][19] = 103;
+
+    block_2[9][0] = 101;
+    block_2[9][1] = 115;
+    block_2[9][2] = 46;
+    block_2[9][3] = 0;
+    block_2[9][4] = 0;
+    block_2[9][5] = 0;
+    block_2[9][6] = 0;
+    block_2[9][7] = 0;
+    block_2[9][8] = 0;
+    block_2[9][9] = 0;
+    block_2[9][10] = 0;
+    block_2[9][11] = 0;
+    block_2[9][12] = 0;
+    block_2[9][13] = 0;
+    block_2[9][14] = 0;
+    block_2[9][15] = 0;
+    block_2[9][16] = 0;
+    block_2[9][17] = 0;
+    block_2[9][18] = 0;
+    block_2[9][19] = 0;
+
+    block_2[10][0] = 162;
+    block_2[10][1] = 156;
+    block_2[10][2] = 193;
+    block_2[10][3] = 244;
+    block_2[10][4] = 155;
+    block_2[10][5] = 195;
+    block_2[10][6] = 239;
+    block_2[10][7] = 229;
+    block_2[10][8] = 112;
+    block_2[10][9] = 56;
+    block_2[10][10] = 28;
+    block_2[10][11] = 119;
+    block_2[10][12] = 197;
+    block_2[10][13] = 243;
+    block_2[10][14] = 245;
+    block_2[10][15] = 253;
+    block_2[10][16] = 189;
+    block_2[10][17] = 147;
+    block_2[10][18] = 251;
+    block_2[10][19] = 113;
+
+    block_2[11][0] = 175;
+    block_2[11][1] = 146;
+    block_2[11][2] = 62;
+    block_2[11][3] = 139;
+    block_2[11][4] = 247;
+    block_2[11][5] = 229;
+    block_2[11][6] = 35;
+    block_2[11][7] = 227;
+    block_2[11][8] = 247;
+    block_2[11][9] = 101;
+    block_2[11][10] = 134;
+    block_2[11][11] = 72;
+    block_2[11][12] = 183;
+    block_2[11][13] = 17;
+    block_2[11][14] = 211;
+    block_2[11][15] = 206;
+    block_2[11][16] = 214;
+    block_2[11][17] = 164;
+    block_2[11][18] = 101;
+    block_2[11][19] = 127;
+
+    unknowns_t* out_2 = find_lost_words(block_2, size_2);
+    bool* mapping_2 = out_2->unknown_map;
+    uint8_t amount_2 = out_2->unknowns_amount;
+
+    printf("Mapping_2:\n[");
+    for (int i = 0; i < size_2; i++) {
+        if (mapping_2[i]) {
+            printf("true");
+        }
+        else {
+            printf("false");
+        }
+        if (i != size_2 - 1) {
+            printf(" ");
+        }
+    }
+    printf("]\n");
+    printf("Amount_2: %d\n", amount_2);
+}
+*/
+
 int main(){
-    CU_initialize_registry();
-    CU_pSuite suite = CU_add_suite("tinymt32", 0, 0);
-    CU_add_test(suite, "correct_coeffs", test_tinymt32_gen_42);
-    CU_basic_run_tests();
-    CU_basic_show_failures(CU_get_failure_list());
+//    CU_initialize_registry();
+//    CU_pSuite suite = CU_add_suite("tinymt32", 0, 0);
+//    CU_add_test(suite, "correct_coeffs", test_tinymt32_gen_42);
+//    CU_basic_run_tests();
+//    CU_basic_show_failures(CU_get_failure_list());
 //    test_MLS();
 //    test_gen_coefs();
+//    test_find_lost_1();
+//    test_find_lost_2();
+    printf("end of tests");
 }
