@@ -442,6 +442,7 @@ int main(int argc, char* argv[]) {
     struct dirent *directory_entry;
     FILE *input_file;
     while ((directory_entry = readdir(args.input_dir))) {
+        printf("\n======================================================\n");
         // Ignore parent and current directory
         if (!strcmp(directory_entry->d_name, ".")) continue;
 
@@ -465,68 +466,61 @@ int main(int argc, char* argv[]) {
         }
 
         // TODO: parse the input binary file, decode the encoded message with RLC and write the output in the output stream following the statement
-        // retourne structure avec seed, word_size ...
+        // Get file info: Seed, block_size ...
         // TODO: vérifié si c'est bien de faire une variable global ou si on fait le malloc ici
         file_data = get_file_info(full_path);
 
         if (args.verbose) {
-            printf("Information of the file :");
-            printf("Seed : %d", *file_data->seed);
-            printf("Block_size : %d", *file_data->block_size);
-            printf("Word_size : %d", *file_data->word_size);
-            printf("Redundancy : %d", *file_data->redundancy);
+            printf("Information of the file :\n");
+            printf("Seed : %d \n", *file_data->seed);
+            printf("Block_size : %d \n", *file_data->block_size);
+            printf("Word_size : %d \n", *file_data->word_size);
+            printf("Redundancy : %d \n", *file_data->redundancy);
+            printf("Message_size : %lu\n", *file_data->message_size);
         }
 
         //TODO: avancer le curseur du fichier apres les 24 premiers Bytes
 
+        fseek(input_file,0,SEEK_END);
+        long filelen = ftell(input_file);
+        rewind(input_file);
+        uint8_t* buf = malloc(sizeof(char)*filelen);
+        fread(buf,filelen,1, input_file);
+
+        /*
+        printf("buffer = \n");
+        for (int i = 0; i < filelen; ++i) {
+            printf("%c",buf[i]);
+        }*/
 
         // Malloc inside function
-        // TODO: nss & nrs not allocate
-        uint32_t nss;
-        uint32_t nrs;
+        uint32_t nss = *file_data->redundancy;
+        uint32_t nrs = *file_data->block_size;
         coeffs = gen_coefs(*file_data->seed,nss, nrs);
         if(args.verbose){
             if(coeffs == NULL){
-                printf("You have to generate coefficients before printing them!");
-            }
-            printf("Coefficient: \n");
-            printf("[");
-            for (int i = 0; i < nss; ++i) {
+                printf("You have to generate coefficients before printing them!\n");
+            } else {
+                printf("\n Coefficient: \n");
                 printf("[");
-                for (int j = 0; j < nrs; ++j) {
-                    printf("%d ", coeffs[i][j]);
+                for (int i = 0; i < nss; ++i) {
+                    printf("[");
+                    for (int j = 0; j < nrs; ++j) {
+                        printf("%d ", coeffs[i][j]);
+                    }
+                    printf("]\n");
                 }
                 printf("]\n");
             }
-            printf("]\n");
         }
 
+        uint32_t step = (*file_data->word_size) * (file_data->block_size + file_data->redundancy);
 
-        /*
-        // You may modify or delete the following lines. This is just an example of how to use tinymt32
-        uint32_t seed = 42; // Replace with the seed from the instance file!
-
-        tinymt32_t prng;
-        memset(&prng, 0, sizeof(tinymt32_t));
-        // Do not modify these values!
-        prng.mat1 = 0x8f7011ee;
-        prng.mat2 = 0xfc78ff1f;
-        prng.tmat = 0x3793fdff;
-        tinymt32_init(&prng, seed);
-
-        // You can generate coefficients by calling this function
-        // Do not forget that we use byte values, so we have to
-        // cast the uint32_t returned value to only keep the last 8 bits.
-        uint8_t coef = (uint8_t)tinymt32_generate_uint32(&prng);
-        if (args.verbose)
-        {
-            printf("Coefficient: %u\n", coef);
-        }
-        */
 
         //Free variables
         //TODO: mettre au bon endrois dés que on utilise plus la variable
         free(file_data);
+        free(buf);
         free(coeffs);
 
         // Close this instance file

@@ -142,13 +142,15 @@ void test_gen_coefs(){
     uint32_t block_size = 10;
     uint32_t redudancy = 2;
     uint8_t** caca = gen_coefs(seed,redudancy, block_size);
+    printf("[");
     for (int i = 0; i < redudancy; ++i) {
+        printf("[ ");
         for (int j = 0; j < block_size; ++j) {
             printf("%d ", caca[i][j]);
-
         }
-        printf("\n");
+        printf(" ]\n");
     }
+    printf("]");
 }
 int main(){
     CU_initialize_registry();
