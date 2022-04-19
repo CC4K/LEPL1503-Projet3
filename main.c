@@ -49,6 +49,12 @@ typedef struct {
     uint8_t unknowns_amount;
 } unknowns_t;
 
+// Structure for linear system
+typedef struct {
+    uint8_t** A;
+    uint8_t** B;
+} linear_system_t;
+
 //================== Global Variables =======================//
 file_data_t* file_data;
 uint8_t** coeffs = NULL;
@@ -83,6 +89,7 @@ uint8_t** make_block(uint8_t* data, uint8_t size) {
     }
     return block;
 }
+
 /**
  * Based on a block, find the lost source symbols et index them in 'unknown_indexes'
  * A symbol is considered as lost in the block if the symbol only contains 0's
@@ -132,42 +139,46 @@ unknowns_t* find_lost_words(uint8_t** block, uint8_t size) {
  * @param current_block: the block of symbols to solve
  * @param block_size: the amount of source symbols in the block
  * @return A: the coefficients matrix
- * @return B: the independants terms vector. Each element of B is the same size as a data vector (packet)
+ * @return B: the independents terms vector. Each element of B is the same size as a data vector (packet)
  */
-uint8_t*** make_linear_system(bool* unknown_indexes,uint8_t nb_unk,uint8_t** current_block,uint8_t block_size) {
+linear_system_t* make_linear_system(bool* unknown_indexes,uint8_t nb_unk,uint8_t** current_block,uint8_t block_size) {
     // Crée par Romain le 15/04/22
 
     // Allocate memory for the two matrices
-    uint8_t **A = malloc(sizeof(uint8_t * ) * nb_unk);
+    uint8_t** A = malloc(sizeof(uint8_t * ) * nb_unk);
     for (size_t i = 0; i < nb_unk; ++i) {
         A[i] = malloc(sizeof(uint8_t)*block_size);
     }
-    uint8_t **b = malloc(sizeof(uint8_t * ) * nb_unk);
+    uint8_t** B = malloc(sizeof(uint8_t * ) * nb_unk);
     for (size_t i = 0; i < nb_unk; ++i) {
-        b[i] = malloc(sizeof(uint8_t)*word_size);
+        B[i] = malloc(sizeof(uint8_t)*word_size);
     }
 
-    for (int i = 0; i < nb_unk; ++i) {
-        b[i] = current_block[block_size + i];
+    for (int i = 0; i < nb_unk; i++) {
+        B[i] = current_block[block_size + i];
     }
 
-    for (int i = 0; i < nb_unk; ++i) {
+    for (int i = 0; i < nb_unk; i++) {
         int temp = 0;
-        for (int j = 0; j < block_size; ++j) {
+        for (int j = 0; j < block_size; j++) {
             if (unknown_indexes[j] == true) {
                 A[i][temp] = coeffs[i][j];
                 temp += 1;
-            } else {
-                b[i] = gf_256_full_add_vector(b[i], gf_256_mul_vector(current_block[j], coeffs[i][j], block_size),block_size);
+            }
+            else {
+                B[i] = gf_256_full_add_vector(B[i], gf_256_mul_vector(current_block[j], coeffs[i][j], block_size),block_size);
             }
 
         }
     }
-    // Store the matrices in an array and return it
-    uint8_t ***return_array = malloc(sizeof(uint8_t**)*2);
-    return_array[0] = A;
-    return_array[1] = b;
-    return return_array;
+
+    // Allocate memory to store the results in a struct and return it
+    linear_system_t* output = malloc(sizeof(linear_system_t));
+    if (output == NULL) return NULL;
+    output->A = A;
+    output->B = B;
+
+    return output;
 }
 
 /**
@@ -186,9 +197,9 @@ uint8_t** process_block(uint8_t** block, uint8_t size) {
     unknowns_t* input_unknowns = find_lost_words(block, size);
     bool* unknown_indexes = input_unknowns->unknown_map;
     uint8_t unknowns = input_unknowns->unknowns_amount;
-    uint8_t** input_linear_system = make_linear_system(unknown_indexes, unknowns, block, size);
-    uint8_t** A = &input_linear_system[0];
-    uint8_t** B = &input_linear_system[1];
+    linear_system_t* input_linear_system = make_linear_system(unknown_indexes, unknowns, block, size);
+    uint8_t** A = input_linear_system->A;
+    uint8_t** B = input_linear_system->B;
 
     // Gaussian elimination 'in place'
     gf_256_gaussian_elimination(A, B, word_size, size);
@@ -454,8 +465,8 @@ int main(int argc, char* argv[]) {
         }
 
         // TODO: parse the input binary file, decode the encoded message with RLC and write the output in the output stream following the statement
-        //retounr structure avec seed, word_size ...
-        //TODO: vérifié si c'est bien de faire une variable global ou si on fait le malloc ici
+        // retourne structure avec seed, word_size ...
+        // TODO: vérifié si c'est bien de faire une variable global ou si on fait le malloc ici
         file_data = get_file_info(full_path);
 
         if (args.verbose) {
