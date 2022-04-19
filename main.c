@@ -74,7 +74,7 @@ uint8_t** make_block(uint8_t* data, uint8_t size) {
     // TODO: à verifier
 
     // Allocate memory for the returned block
-    uint8_t** block = malloc(sizeof(uint8_t) * (size + *(file_data->redundancy)));
+    uint8_t** block = malloc(sizeof(uint8_t*) * (size + *(file_data->redundancy)));
     if(block == NULL) return NULL;
 
     for (int i = 0; i < (size + *(file_data->redundancy)); i++) {

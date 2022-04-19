@@ -138,14 +138,16 @@ void test_gaussian() {
 
 
 void test_gen_coefs(){
-    uint32_t seed = 1;
-    uint32_t block_size = 20;
-    uint32_t redudancy = 20;
-    uint8_t** caca = gen_coefs(seed,block_size, redudancy);
-    for (int i = 0; i < block_size; ++i) {
-        for (int j = 0; j < redudancy; ++j) {
-            printf("%d", caca[i][j]);
+    uint32_t seed = 12345;
+    uint32_t block_size = 10;
+    uint32_t redudancy = 2;
+    uint8_t** caca = gen_coefs(seed,redudancy, block_size);
+    for (int i = 0; i < redudancy; ++i) {
+        for (int j = 0; j < block_size; ++j) {
+            printf("%d ", caca[i][j]);python3 main.py input_binary/ -f output.txt -v
+
         }
+        printf("\n");
     }
 }
 int main(){

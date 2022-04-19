@@ -91,15 +91,14 @@ void gf_256_gaussian_elimination(uint8_t** A, uint8_t** b, uint32_t symbol_size,
 /**
  * Generate all coefficients for a block
  * @param seed: the seed to generate the coefficients
- * @param nss: number of source symbols in a block
- * @param nrs: number of repair symbols in a block
+ * @param nss: number of source symbols in a block = redudancy
+ * @param nrs: number of repair symbols in a block = block_size
  * @return a nss * nrs array of coefficients
  */
 uint8_t** gen_coefs(uint32_t seed, uint32_t nss, uint32_t nrs) {
-    // TODO check si fonctionne correctement
 
     // Malloc for matrix
-    uint8_t** coefs = malloc(sizeof(uint8_t) * nss);
+    uint8_t** coefs = malloc(sizeof(uint8_t*) * nss);
     if(coefs == NULL) return NULL;
     // malloc vectors in matrix
     for (int i = 0; i < nss ; i++) {
