@@ -136,6 +136,18 @@ void test_gaussian() {
 //    }
 //}
 
+
+void test_gen_coefs(){
+    uint32_t seed = 1;
+    uint32_t block_size = 20;
+    uint32_t redudancy = 20;
+    uint8_t** caca = gen_coefs(seed,block_size, redudancy);
+    for (int i = 0; i < block_size; ++i) {
+        for (int j = 0; j < redudancy; ++j) {
+            printf("%d", caca[i][j]);
+        }
+    }
+}
 int main(){
     CU_initialize_registry();
     CU_pSuite suite = CU_add_suite("tinymt32", 0, 0);
@@ -143,4 +155,5 @@ int main(){
     CU_basic_run_tests();
     CU_basic_show_failures(CU_get_failure_list());
 //    test_MLS();
+    test_gen_coefs();
 }

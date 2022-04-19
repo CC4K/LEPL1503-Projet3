@@ -477,12 +477,18 @@ int main(int argc, char* argv[]) {
             printf("Redundancy : %d", *file_data->redundancy);
         }
 
+        //TODO: avancer le curseur du fichier apres les 24 premiers Bytes
+
+
         // Malloc inside function
         // TODO: nss & nrs not allocate
         uint32_t nss;
         uint32_t nrs;
         coeffs = gen_coefs(*file_data->seed,nss, nrs);
         if(args.verbose){
+            if(coeffs == NULL){
+                printf("You have to generate coefficients before printing them!");
+            }
             printf("Coefficient: \n");
             printf("[");
             for (int i = 0; i < nss; ++i) {
