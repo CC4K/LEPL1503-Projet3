@@ -144,7 +144,7 @@ void test_gen_coefs(){
     uint8_t** caca = gen_coefs(seed,redudancy, block_size);
     for (int i = 0; i < redudancy; ++i) {
         for (int j = 0; j < block_size; ++j) {
-            printf("%d ", caca[i][j]);python3 main.py input_binary/ -f output.txt -v
+            printf("%d ", caca[i][j]);
 
         }
         printf("\n");
@@ -157,5 +157,5 @@ int main(){
     CU_basic_run_tests();
     CU_basic_show_failures(CU_get_failure_list());
 //    test_MLS();
-    test_gen_coefs();
+//    test_gen_coefs();
 }
