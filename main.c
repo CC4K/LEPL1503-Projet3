@@ -15,6 +15,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <endian.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -262,7 +263,8 @@ void write_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t word_
                 printf("%c", (char) block[i][j]);
             }
             else {
-                fprintf(output_file, "%d", (Byte) block[i][j]);
+                printf("%d", (Byte) block[i][j]);
+                fprintf(output_file, "%d" PRIu16, htobe16((uint16_t) block[i][j]));
             }
         }
     }
