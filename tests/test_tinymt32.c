@@ -534,6 +534,108 @@ void test_find_lost_2(){
 }
 */
 
+// make_block
+/*
+uint32_t word_size = 3;
+uint32_t redundancy = 4;
+
+uint8_t** make_block(uint8_t* data, uint8_t size) {
+    // Allocate memory for the returned block
+    uint8_t** block = malloc(sizeof(uint8_t*) * (size + redundancy));
+    if(block == NULL) return NULL;
+
+    for (int i = 0; i < (size + redundancy); i++) {
+        block[i] = malloc(sizeof(uint8_t) * word_size);
+        if (block[i] == NULL) return NULL;
+    }
+
+    for (int i = 0; i < (size + redundancy) ; i++) {
+        for (int j = 0; j < word_size; j++) {
+            block[i][j] = data[i * word_size + j];
+        }
+    }
+    return block;
+}
+
+void test_make_block_1() {
+    // Initialize data, size, redundancy & word_size
+    uint8_t size_1 = 3;
+    uint8_t* data_1 = malloc(sizeof(uint8_t) * size_1);
+    data_1[0] = 0;
+    data_1[1] = 0;
+    data_1[2] = 0;
+    data_1[3] = 111;
+    data_1[4] = 118;
+    data_1[5] = 101;
+    data_1[6] = 0;
+    data_1[7] = 0;
+    data_1[8] = 0;
+    data_1[9] = 151;
+    data_1[10] = 140;
+    data_1[11] = 120;
+    data_1[12] = 15;
+    data_1[13] = 96;
+    data_1[14] = 173;
+    data_1[15] = 70;
+    data_1[16] = 82;
+    data_1[17] = 203;
+    data_1[18] = 214;
+    data_1[19] = 245;
+    data_1[20] = 65;
+
+    uint8_t** out_1 = make_block(data_1, size_1);
+    printf("[");
+    for (int i = 0; i < size_1 + redundancy; i++) {
+        if (i == 0) printf("[");
+        else printf(" [");
+        for (int j = 0; j < word_size; j++) {
+            printf("%d\t", out_1[i][j]);
+        }
+        if (i == size_1 + redundancy - 1) printf("]");
+        else printf("]\n");
+    }
+    printf("]\n");
+}
+
+void test_make_block_2() {
+    // Initialize data, size, redundancy & word_size
+    uint8_t size_2 = 2;
+    uint8_t* data_2 = malloc(sizeof(uint8_t) * size_2);
+
+    data_2[0] = 0;
+    data_2[1] = 0;
+    data_2[2] = 0;
+    data_2[3] = 58;
+    data_2[4] = 41;
+    data_2[5] = 0;
+    data_2[6] = 48;
+    data_2[7] = 218;
+    data_2[8] = 196;
+    data_2[9] = 135;
+    data_2[10] = 164;
+    data_2[11] = 243;
+    data_2[12] = 122;
+    data_2[13] = 252;
+    data_2[14] = 234;
+    data_2[15] = 80;
+    data_2[16] = 117;
+    data_2[17] = 232;
+
+    uint8_t** out_2 = make_block(data_2, size_2);
+    printf("[");
+    for (int i = 0; i < size_2 + redundancy; i++) {
+        if (i == 0) printf("[");
+        else printf(" [");
+        for (int j = 0; j < word_size; j++) {
+            printf("%d\t", out_2[i][j]);
+        }
+        if (i == size_2 + redundancy - 1) printf("]");
+        else printf("]\n");
+    }
+    printf("]\n");
+}
+*/
+
 int main(){
 //    CU_initialize_registry();
 //    CU_pSuite suite = CU_add_suite("tinymt32", 0, 0);
@@ -544,5 +646,7 @@ int main(){
 //    test_gen_coefs();
 //    test_find_lost_1();
 //    test_find_lost_2();
-    printf("end of tests");
+//    test_make_block_1();
+//    test_make_block_2();
+    printf("THE END\n");
 }
