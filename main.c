@@ -516,8 +516,8 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        uint32_t step = (*file_data->word_size) * (*file_data->block_size + *file_data->redundancy);
-
+//        uint32_t step = (*file_data->word_size) * (*file_data->block_size + *file_data->redundancy);
+        // temporairement commenté
 
         //Free variables
         //TODO: mettre au bon endrois dés que on utilise plus la variable

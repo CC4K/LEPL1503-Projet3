@@ -25,5 +25,9 @@ tests_short: tests/test_tinymt32.c
 	$(CC) -Wall -Werror -o main main.c system.c tinymt32.c
 	./test_tinymt32
 
+main: main.c
+	$(CC) -Wall -Werror -o main main.c system.c tinymt32.c
+	./main input_binary/ -v
+
 # a .PHONY target forces make to execute the command even if the target already exists
 .PHONY: clean tests
