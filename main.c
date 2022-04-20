@@ -255,7 +255,6 @@ char* block_to_string(uint8_t** block, uint32_t size) {
  * @param word_size: the size of each symbol in the block
  */
 void write_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t word_size) {
-    typedef unsigned char Byte;
 
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < word_size; j++) {
@@ -280,7 +279,6 @@ void write_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t word_
  * @param last_word_size: the size of the very last word of the last block
  */
 void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t word_size, uint8_t last_word_size) {
-    typedef unsigned char Byte;
 
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < word_size; j++) {
@@ -288,7 +286,7 @@ void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t 
                 printf("%c", (char) block[i][j]);
             }
             else {
-                fprintf(output_file, "%d", (Byte) block[i][j]);
+                fprintf(output_file, "%d" PRIu16, htobe16((uint16_t) block[i][j]));
             }
         }
     }
@@ -298,7 +296,7 @@ void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t 
             printf("%c", (char) block[size - 1][i]);
         }
         else {
-            fprintf(output_file, "%d", (Byte) block[size - 1][i]);
+            fprintf(output_file, "%d" PRIu16, htobe16((uint16_t) block[i][j]));
         }
     }
 }
