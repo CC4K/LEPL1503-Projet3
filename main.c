@@ -22,6 +22,7 @@
 #include <sys/mman.h>
 #include "headers/tinymt32.h"
 #include "headers/system.h"
+#include "math.h"
 
 //====================== Structures =========================//
 
@@ -72,7 +73,6 @@ uint8_t word_size = 0;
  */
 uint8_t** make_block(uint8_t* data, uint8_t size) {
     // Fait par Jacques le 12/04/22
-    // TODO: à verifier
 
     // Allocate memory for the returned block
     uint8_t** block = malloc(sizeof(uint8_t*) * (size + *(file_data->redundancy)));
@@ -454,6 +454,8 @@ int main(int argc, char* argv[]) {
         strcat(full_path, "/");
         strcat(full_path, directory_entry->d_name);
 
+        //==================================Open input File==========================//
+
         input_file = fopen(full_path, "r");
         if (input_file == NULL) {
             fprintf(stderr, "Failed to open the input file %s: %s\n", full_path, strerror(errno));
@@ -464,10 +466,17 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "Successfully opened the file %s\n", full_path);
         }
 
+
         // TODO: parse the input binary file, decode the encoded message with RLC and write the output in the output stream following the statement
-        // Get file info: Seed, block_size ...
-        // TODO: vérifié si c'est bien de faire une variable global ou si on fait le malloc ici
+
+        //==============================Get File Infos===============================//
+
         file_data = get_file_info(full_path);
+
+        if(file_data == NULL){
+            printf("Can't get file Infos");
+            return -1;
+        }
 
         if (args.verbose) {
             printf("Information of the file :\n");
@@ -476,21 +485,28 @@ int main(int argc, char* argv[]) {
             printf("Word_size : %d \n", *file_data->word_size);
             printf("Redundancy : %d \n", *file_data->redundancy);
             printf("Message_size : %lu\n", *file_data->message_size);
+            printf("\n");
         }
 
-        //TODO: avancer le curseur du fichier apres les 24 premiers Bytes
+        //
+        //TODO: avancer le curseur du fichier apres les 24 premiers Bytes (A voir finalement car peut etre que BigEndian pas de la buf)
 
+        //===================Create Buffeur of the readed file=========================//
         fseek(input_file,0,SEEK_END);
         long filelen = ftell(input_file);
         rewind(input_file);
         uint8_t* buf = malloc(sizeof(char)*filelen);
         fread(buf,filelen,1, input_file);
 
-        /*
-        printf("buffer = \n");
-        for (int i = 0; i < filelen; ++i) {
-            printf("%c",buf[i]);
-        }*/
+        if(args.verbose){
+            printf(">>> Brut Binary file : \n");
+            for (int i = 0; i < filelen; ++i) {
+                printf("%c",buf[i]);
+            }
+            printf("\n");
+        }
+
+        //==========================Generate Matrix of coefficients====================//
 
         // Malloc inside function
         uint32_t nss = *file_data->redundancy;
@@ -500,7 +516,7 @@ int main(int argc, char* argv[]) {
             if(coeffs == NULL){
                 printf("You have to generate coefficients before printing them!\n");
             } else {
-                printf("\n Coefficient: \n");
+                printf("\n>>> Coefficient: \n");
                 printf("[");
                 for (int i = 0; i < nss; ++i) {
                     printf("[");
@@ -513,16 +529,56 @@ int main(int argc, char* argv[]) {
             }
         }
 
-//        uint32_t step = (*file_data->word_size) * (*file_data->block_size + *file_data->redundancy);
-        // temporairement commenté
+        uint32_t step = (*file_data->word_size) * (*file_data->block_size + *file_data->redundancy);
 
-        //Free variables
-        //TODO: mettre au bon endrois dés que on utilise plus la variable
+
+        //================Write the name of the file in the output file================//
+        //TODO: A FAIRE
+
+        //============================Full or Uncompleted_block========================//
+        uint32_t nb_blocks = ceil(filelen / (*file_data->word_size * (*file_data->block_size + *file_data->redundancy)));
+        bool contains_uncomplete_block = false;
+
+        if(*file_data->message_size != (nb_blocks * (*file_data->block_size) * (*file_data->word_size))){
+            nb_blocks--;
+            contains_uncomplete_block = true;
+            if(args.verbose){
+                printf("\n This file contain uncomplete blocks \n");
+            }
+        }
+        if(!contains_uncomplete_block){
+            printf("\n This file don't contain uncomplete blocks \n");
+        }
+
+
+        //=======================Write completes blocks in output file=================//
+        int32_t readed = 0;
+        for (int i = 0; i < nb_blocks; ++i) {
+
+            //TODO: attention slicing buf
+            uint8_t** current_block = make_block(buf, *file_data->block_size);
+            uint8_t** response = process_block(current_block,*file_data->block_size);
+            if(args.verbose){
+                printf("%s", block_to_string(response, *file_data->block_size));
+                //TODO:print current_block
+            }
+            write_block(args.output_stream,response,*file_data->block_size,*file_data->word_size);
+
+            readed += step;
+            free(temp_buf);
+        }
+
+        //================Calculate lost symbols and write it to output================//
+        //uint32_t readed_symbols = (*file_data->block_size) * (*file_data->word_size) * nb_blocks;
+
+
+        //==============================Free variables=================================//
+        //TODO: mettre au bon endroits dés que on utilise plus la variable
         free(file_data);
         free(buf);
         free(coeffs);
 
-        // Close this instance file
+        //==============================Close files====================================//
         fclose(input_file);
     }
 
