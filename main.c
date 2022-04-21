@@ -262,7 +262,6 @@ void write_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t word_
                 printf("%c", (char) block[i][j]);
             }
             else {
-                printf("%d", (Byte) block[i][j]);
                 fprintf(output_file, "%d" PRIu16, htobe16((uint16_t) block[i][j]));
             }
         }
@@ -296,7 +295,7 @@ void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t 
             printf("%c", (char) block[size - 1][i]);
         }
         else {
-            fprintf(output_file, "%d" PRIu16, htobe16((uint16_t) block[i][j]));
+            fprintf(output_file, "%d" PRIu16, htobe16((uint16_t) block[size - 1][i]));
         }
     }
 }
