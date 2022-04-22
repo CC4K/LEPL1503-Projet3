@@ -554,9 +554,11 @@ int main(int argc, char* argv[]) {
         //=======================Write completes blocks in output file=================//
         int32_t readed = 0;
         for (int i = 0; i < nb_blocks; ++i) {
+            uint8_t* temps_buf = malloc(sizeof(uint8_t) * step);
+            memcpy(temps_buf, buf, sizeof(uint8_t) * step);
 
             //TODO: attention slicing buf
-            uint8_t** current_block = make_block(buf, *file_data->block_size);
+            uint8_t** current_block = make_block(temps_buf, *file_data->block_size);
             uint8_t** response = process_block(current_block,*file_data->block_size);
             if(args.verbose){
                 printf("%s", block_to_string(response, *file_data->block_size));
@@ -565,11 +567,20 @@ int main(int argc, char* argv[]) {
             write_block(args.output_stream,response,*file_data->block_size,*file_data->word_size);
 
             readed += step;
-            free(temp_buf);
+            free(temps_buf);
         }
 
         //================Calculate lost symbols and write it to output================//
-        //uint32_t readed_symbols = (*file_data->block_size) * (*file_data->word_size) * nb_blocks;
+/*        uint32_t readed_symbols = (*file_data->block_size) * (*file_data->word_size) * nb_blocks;
+        uint32_t nb_remaining_symbols; //TODO
+        if (contains_uncomplete_block){
+            uint8_t** last_block = make_block(buf, nb_remaining_symbols); //TODO buffer
+            uint8_t** decoded = process_block(last_block,nb_remaining_symbols);
+            uint8_t padding = readed_symbols + nb_remaining_symbols * (*file_data->word_size) - (*file_data->message_size);
+            uint8_t true_length_last_symbol = (*file_data->word_size) - padding;
+
+            write_last_block(args.output_stream,decoded,nb_remaining_symbols,(*file_data->word_size),true_length_last_symbol);
+        }*/
 
 
         //==============================Free variables=================================//
