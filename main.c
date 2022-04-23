@@ -91,15 +91,7 @@ uint8_t** make_block(uint8_t* data, uint8_t size) {
     return block;
 }
 
-/**
- * Based on a block, find the lost source symbols et index them in 'unknown_indexes'
- * A symbol is considered as lost in the block if the symbol only contains 0's
- * @param block: the said block
- * @param size: the size of the block
- * @return unknown_indexes: table of size 'size' mapping with source symbols
- *                          The input 'i' is 'true' if the source symbol 'i' is lost
- * @return unknwowns: the number of lost source symbols
- */
+
 unknowns_t* find_lost_words(uint8_t** block, uint8_t size) {
     // Crée par Cédric le 15/04/22
     // TODO: à vérifier
@@ -555,23 +547,42 @@ int main(int argc, char* argv[]) {
         int32_t readed = 0;
         for (int i = 0; i < nb_blocks; ++i) {
             uint8_t* temps_buf = malloc(sizeof(uint8_t) * step);
-            memcpy(temps_buf, buf, sizeof(uint8_t) * step);
-
-            //TODO: attention slicing buf
+            for (int j = 0; j < step; ++j) {
+                temps_buf[j] = buf[(i*step) + j];
+            }
             uint8_t** current_block = make_block(temps_buf, *file_data->block_size);
-            uint8_t** response = process_block(current_block,*file_data->block_size);
+            if(args.verbose){
+                printf("\n >>>Make_block \n");
+                printf("[");
+                for (int j = 0; j < *file_data->block_size + *file_data->redundancy; ++j) {
+                    printf("[");
+                    for (int k = 0; k < *file_data->word_size; ++k) {
+                        printf("%c", current_block[j][k]);
+                    }
+                    printf("]\n");
+                }
+                printf("]");
+            }
+            /*uint8_t** response = process_block(current_block,*file_data->block_size);
+            printf("\n\n\n reponses \n\n\n");
+            for (int j = 0; j < 3; ++j) {
+                for (int k = 0; k < 3; ++k) {
+                    printf("%c", response[j][k]);
+                }
+            }
             if(args.verbose){
                 printf("%s", block_to_string(response, *file_data->block_size));
                 //TODO:print current_block
             }
             write_block(args.output_stream,response,*file_data->block_size,*file_data->word_size);
-
+             */
             readed += step;
             free(temps_buf);
         }
 
         //================Calculate lost symbols and write it to output================//
-/*        uint32_t readed_symbols = (*file_data->block_size) * (*file_data->word_size) * nb_blocks;
+
+        /*uint32_t readed_symbols = (*file_data->block_size) * (*file_data->word_size) * nb_blocks;
         uint32_t nb_remaining_symbols; //TODO
         if (contains_uncomplete_block){
             uint8_t** last_block = make_block(buf, nb_remaining_symbols); //TODO buffer
@@ -585,12 +596,12 @@ int main(int argc, char* argv[]) {
 
         //==============================Free variables=================================//
         //TODO: mettre au bon endroits dés que on utilise plus la variable
-        free(file_data);
-        free(buf);
-        free(coeffs);
+        //free(file_data);
+        //free(buf);
+        //free(coeffs);
 
         //==============================Close files====================================//
-        fclose(input_file);
+        //fclose(input_file);
     }
 
     // Close the input directory and the output file
@@ -603,7 +614,7 @@ int main(int argc, char* argv[]) {
     }
     return 0;
 
-    file_read_error:
+file_read_error:
     err = closedir(args.input_dir);
     if (err < 0) {
         fprintf(stderr, "Error while closing the input directory containing the instance files\n");
