@@ -138,13 +138,17 @@ linear_system_t* make_linear_system(bool* unknown_indexes,uint8_t nb_unk,uint8_t
     // Crée par Romain le 15/04/22
 
     // Allocate memory for the two matrices
-    uint8_t** A = malloc(sizeof(uint8_t * ) * nb_unk);
+    uint8_t** A = malloc(sizeof(uint8_t*) * nb_unk);
+    if (A == NULL) return NULL;
     for (size_t i = 0; i < nb_unk; ++i) {
-        A[i] = malloc(sizeof(uint8_t)*block_size);
+        A[i] = malloc(sizeof(uint8_t) * nb_unk);
+        if (A[i] == NULL) return NULL;
     }
-    uint8_t** B = malloc(sizeof(uint8_t * ) * nb_unk);
+    uint8_t** B = malloc(sizeof(uint8_t*) * nb_unk);
+    if (B == NULL) return NULL;
     for (size_t i = 0; i < nb_unk; ++i) {
-        B[i] = malloc(sizeof(uint8_t)*word_size);
+        B[i] = malloc(sizeof(uint8_t) * word_size);
+        if (B[i] == NULL) return NULL;
     }
 
     for (int i = 0; i < nb_unk; i++) {
@@ -154,14 +158,13 @@ linear_system_t* make_linear_system(bool* unknown_indexes,uint8_t nb_unk,uint8_t
     for (int i = 0; i < nb_unk; i++) {
         int temp = 0;
         for (int j = 0; j < block_size; j++) {
-            if (unknown_indexes[j] == true) {
+            if (unknown_indexes[j]) {
                 A[i][temp] = coeffs[i][j];
                 temp += 1;
             }
             else {
                 B[i] = gf_256_full_add_vector(B[i], gf_256_mul_vector(current_block[j], coeffs[i][j], block_size),block_size);
             }
-
         }
     }
 
@@ -170,7 +173,6 @@ linear_system_t* make_linear_system(bool* unknown_indexes,uint8_t nb_unk,uint8_t
     if (output == NULL) return NULL;
     output->A = A;
     output->B = B;
-
     return output;
 }
 
