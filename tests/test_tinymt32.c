@@ -679,13 +679,6 @@ linear_system_t* make_linear_system(bool* unknown_indexes,uint8_t nb_unk,uint8_t
     }
 
     for (int i = 0; i < nb_unk; i++) {
-        //=============================================================//
-        printf("current_block[block_size+i]: [");
-        for (int j = 0; j < 3; j++) {
-            printf("%d ", current_block[block_size+i][j]);
-        }
-        printf("]\n");
-        //=============================================================//
         B[i] = current_block[block_size + i];
     }
 
@@ -749,36 +742,21 @@ uint8_t** process_block(uint8_t** block, uint8_t size) {
     unknowns_t* input_unknowns = find_lost_words(block, size);
     bool* unknown_indexes = input_unknowns->unknown_map;
     uint8_t unknowns = input_unknowns->unknowns_amount;
-    //=============================================================//
-//    printf("unknown_indexes:\n[");
-//    for (int i = 0; i < size; i++) {
-//        if (unknown_indexes[i]) {
-//            printf("true");
-//        }
-//        else {
-//            printf("false");
-//        }
-//        if (i != size - 1) {
-//            printf(" ");
-//        }
-//    }
-//    printf("]\n");
-//    printf("unknowns:\n%d\n", unknowns);
-    //=============================================================//
-
     linear_system_t* input_linear_system = make_linear_system(unknown_indexes, unknowns, block, size);
     uint8_t** A = input_linear_system->A;
     uint8_t** B = input_linear_system->B;
-    //=============================================================//
-    printf("A:\n");
-    printf_matrix(A, 2, 2);
-    printf("B:\n");
-    printf_matrix(B, 2, 3);
-    //=============================================================//
 
     // Gaussian elimination 'in place'
-    gf_256_gaussian_elimination(A, B, size, word_size);
+    gf_256_gaussian_elimination(A, B, word_size, unknowns);
 
+    //=============================================================//
+    printf("unknown_indexes: [");
+    for (int i = 0; i < size; i++) {
+        if (unknown_indexes[i]) printf("true ");
+        else printf("false ");
+    }
+    printf("]\n");
+    //=============================================================//
     // For each index marked as 'true', replace the data
     uint8_t temp = 0;
     for (int i = 0; i < size; i++) {
@@ -786,6 +764,10 @@ uint8_t** process_block(uint8_t** block, uint8_t size) {
             block[i] = B[temp];
             temp += 1;
         }
+        printf("unknown_indexes[%d]: ", i);
+        if (unknown_indexes[i] == true) printf("true ");
+        else printf("false ");
+        printf("\n");
     }
 
     // Return the solved block
@@ -810,10 +792,6 @@ void test_process_block(){
     coeffs[3][0] = 64;
     coeffs[3][1] = 5;
     coeffs[3][2] = 91;
-    //=============================================================//
-//    printf("coeffs:\n");
-//    printf_matrix(coeffs, 4, 3);
-    //=============================================================//
 
     uint8_t size = 3;
     word_size = 3;
@@ -851,7 +829,7 @@ void test_process_block(){
 
     uint8_t** out = process_block(block, size);
     //=============================================================//
-    printf("processed_block:\n");
+    printf("\nprocessed_block:\n");
     printf_matrix(out, 7, 3);
     //=============================================================//
 }
@@ -870,5 +848,5 @@ int main(){
 //    test_make_block_1();
 //    test_make_block_2();
     test_process_block();
-    printf("THE END\n");
+    printf("\nTHE END\n");
 }
