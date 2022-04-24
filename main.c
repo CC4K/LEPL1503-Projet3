@@ -77,7 +77,6 @@ uint8_t** make_block(uint8_t* data, uint8_t size) {
     // Allocate memory for the returned block
     uint8_t** block = malloc(sizeof(uint8_t*) * (size + *(file_data->redundancy)));
     if(block == NULL) return NULL;
-
     for (int i = 0; i < (size + *(file_data->redundancy)); i++) {
         block[i] = malloc(sizeof(uint8_t) * (*(file_data->word_size)));
         if (block[i] == NULL) return NULL;
@@ -91,11 +90,16 @@ uint8_t** make_block(uint8_t* data, uint8_t size) {
     return block;
 }
 
-
+/**
+ * Based on a block, find the lost source symbols et index them in 'unknown_indexes'
+ * A symbol is considered as lost in the block if the symbol only contains 0's
+ * @param block: the said block
+ * @param size: the size of the block
+ * @return unknown_indexes: table of size 'size' mapping with source symbols
+ *                          The input 'i' is 'true' if the source symbol 'i' is lost
+ * @return unknwowns: the number of lost source symbols
+ */
 unknowns_t* find_lost_words(uint8_t** block, uint8_t size) {
-    // Crée par Cédric le 15/04/22
-    // TODO: à vérifier
-
     // Initialize an array of boolean of size 'size' to false & the unknowns to 0
     bool unknown_indexes[size];
     for (int i = 0; i < size; i++) {
@@ -134,7 +138,7 @@ unknowns_t* find_lost_words(uint8_t** block, uint8_t size) {
  * @return A: the coefficients matrix
  * @return B: the independents terms vector. Each element of B is the same size as a data vector (packet)
  */
-linear_system_t* make_linear_system(bool* unknown_indexes,uint8_t nb_unk,uint8_t** current_block,uint8_t block_size) {
+linear_system_t* make_linear_system(bool* unknown_indexes, uint8_t nb_unk, uint8_t** current_block, uint8_t block_size) {
     // Crée par Romain le 15/04/22
 
     // Allocate memory for the two matrices
@@ -186,7 +190,6 @@ linear_system_t* make_linear_system(bool* unknown_indexes,uint8_t nb_unk,uint8_t
  */
 uint8_t** process_block(uint8_t** block, uint8_t size) {
     // Crée par Cédric le 13/04/22
-    // TODO: à vérifier
 
     // Import the data from the other functions
     unknowns_t* input_unknowns = find_lost_words(block, size);
@@ -197,7 +200,7 @@ uint8_t** process_block(uint8_t** block, uint8_t size) {
     uint8_t** B = input_linear_system->B;
 
     // Gaussian elimination 'in place'
-    gf_256_gaussian_elimination(A, B, word_size, size);
+    gf_256_gaussian_elimination(A, B, word_size, unknowns);
 
     // For each index marked as 'true', replace the data
     uint8_t temp = 0;
@@ -473,12 +476,11 @@ int main(int argc, char* argv[]) {
         }
 
         if (args.verbose) {
-            printf("Information of the file :\n");
-            printf("Seed : %d \n", *file_data->seed);
-            printf("Block_size : %d \n", *file_data->block_size);
-            printf("Word_size : %d \n", *file_data->word_size);
-            printf("Redundancy : %d \n", *file_data->redundancy);
-            printf("Message_size : %lu\n", *file_data->message_size);
+            printf("\n>> seed : %d \n", *file_data->seed);
+            printf(">> block_size : %d \n", *file_data->block_size);
+            printf(">> word_size : %d \n", *file_data->word_size);
+            printf(">> redundancy : %d \n", *file_data->redundancy);
+            printf(">> message_size : %lu\n", *file_data->message_size);
             printf("\n");
         }
 
@@ -493,11 +495,10 @@ int main(int argc, char* argv[]) {
         fread(buf,filelen,1, input_file);
 
         if(args.verbose){
-            printf(">>> Brut Binary file : \n");
-            for (int i = 0; i < filelen; ++i) {
-                printf("%c",buf[i]);
+            printf(">> brut binary data : \n");
+            for (int i = 24; i < filelen; i++) {
+                printf("%d ",buf[i]);
             }
-            printf("\n");
         }
 
         //==========================Generate Matrix of coefficients====================//
@@ -510,14 +511,16 @@ int main(int argc, char* argv[]) {
             if(coeffs == NULL){
                 printf("You have to generate coefficients before printing them!\n");
             } else {
-                printf("\n>>> Coefficient: \n");
+                printf("\n>> coefficients :\n");
                 printf("[");
                 for (int i = 0; i < nss; ++i) {
-                    printf("[");
+                    if (i != 0) printf(" [");
+                    else printf("[");
                     for (int j = 0; j < nrs; ++j) {
                         printf("%d ", coeffs[i][j]);
                     }
-                    printf("]\n");
+                    if (i != nss-1) printf("]\n");
+                    else printf("]");
                 }
                 printf("]\n");
             }
@@ -537,11 +540,11 @@ int main(int argc, char* argv[]) {
             nb_blocks--;
             contains_uncomplete_block = true;
             if(args.verbose){
-                printf("\n This file contain uncomplete blocks \n");
+                printf("\n------------------------------------\nThis file contain uncomplete blocks\n");
             }
         }
         if(!contains_uncomplete_block){
-            printf("\n This file don't contain uncomplete blocks \n");
+            printf("\nThis file don't contain uncomplete blocks\n");
         }
 
 
@@ -554,16 +557,25 @@ int main(int argc, char* argv[]) {
             }
             uint8_t** current_block = make_block(temps_buf, *file_data->block_size);
             if(args.verbose){
-                printf("\n >>>Make_block \n");
+                printf("\n>> make_block %d :\n", i);
                 printf("[");
                 for (int j = 0; j < *file_data->block_size + *file_data->redundancy; ++j) {
-                    printf("[");
+                    if (j != 0) printf(" [");
+                    else printf("[");
+                    for (int k = 0; k < *file_data->word_size; ++k) {
+                        printf("%d ", current_block[j][k]);
+                    }
+                    if (j != (*file_data->block_size + *file_data->redundancy) - 1) printf("]\n");
+                    else printf("]");
+                }
+                printf("]\n");
+                printf(">> to_string :\n");
+                for (int j = 0; j < *file_data->block_size + *file_data->redundancy; ++j) {
                     for (int k = 0; k < *file_data->word_size; ++k) {
                         printf("%c", current_block[j][k]);
                     }
-                    printf("]\n");
                 }
-                printf("]");
+                printf("\n");
             }
             /*uint8_t** response = process_block(current_block,*file_data->block_size);
             printf("\n\n\n reponses \n\n\n");

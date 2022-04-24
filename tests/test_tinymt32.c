@@ -654,7 +654,7 @@ void test_make_block_2() {
 */
 
 // process_block
-
+/*
 uint8_t word_size;
 uint8_t** coeffs;
 typedef struct {
@@ -749,25 +749,19 @@ uint8_t** process_block(uint8_t** block, uint8_t size) {
     // Gaussian elimination 'in place'
     gf_256_gaussian_elimination(A, B, word_size, unknowns);
 
-    //=============================================================//
-    printf("unknown_indexes: [");
-    for (int i = 0; i < size; i++) {
-        if (unknown_indexes[i]) printf("true ");
-        else printf("false ");
-    }
-    printf("]\n");
-    //=============================================================//
     // For each index marked as 'true', replace the data
     uint8_t temp = 0;
     for (int i = 0; i < size; i++) {
         if (unknown_indexes[i]) {
+            //=============================================================//
+//            printf("unknown_indexes[%d]: true\n", i);
+            //=============================================================//
             block[i] = B[temp];
             temp += 1;
         }
-        printf("unknown_indexes[%d]: ", i);
-        if (unknown_indexes[i] == true) printf("true ");
-        else printf("false ");
-        printf("\n");
+        //=============================================================//
+//        else printf("unknown_indexes[%d]: false\n", i);
+        //=============================================================//
     }
 
     // Return the solved block
@@ -833,7 +827,7 @@ void test_process_block(){
     printf_matrix(out, 7, 3);
     //=============================================================//
 }
-
+*/
 
 int main(){
 //    CU_initialize_registry();
@@ -847,6 +841,6 @@ int main(){
 //    test_find_lost_2();
 //    test_make_block_1();
 //    test_make_block_2();
-    test_process_block();
+//    test_process_block();
     printf("\nTHE END\n");
 }
