@@ -1,12 +1,30 @@
-#include "../headers/tinymt32.h"
 #include <CUnit/Basic.h>
-#include "../headers/system.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include "../headers/gf256_tables.h"
+#include "../headers/system.h"
+#include "../headers/tinymt32.h"
+
+//=============================================================//
+void printf_matrix(uint8_t** matrix, uint8_t n, uint8_t m) {
+    printf("[");
+    for (int i = 0; i < n; i++) {
+        if (i != 0) printf(" [");
+        else printf("[");
+        for (int j = 0; j < m; j++) {
+            if (j != m-1) printf("%d ", matrix[i][j]);
+            else printf("%d", matrix[i][j]);
+        }
+        if (i != n-1) printf("]\n");
+        else printf("]");
+    }
+    printf("]\n");
+}
+
 
 // test_tinymt32
 /*
@@ -543,7 +561,6 @@ uint8_t** make_block(uint8_t* data, uint8_t size) {
     // Allocate memory for the returned block
     uint8_t** block = malloc(sizeof(uint8_t*) * (size + redundancy));
     if(block == NULL) return NULL;
-
     for (int i = 0; i < (size + redundancy); i++) {
         block[i] = malloc(sizeof(uint8_t) * word_size);
         if (block[i] == NULL) return NULL;
@@ -636,6 +653,210 @@ void test_make_block_2() {
 }
 */
 
+// process_block
+
+uint8_t word_size;
+uint8_t** coeffs;
+typedef struct {
+    uint8_t** A;
+    uint8_t** B;
+} linear_system_t;
+linear_system_t* make_linear_system(bool* unknown_indexes,uint8_t nb_unk,uint8_t** current_block,uint8_t block_size) {
+    // Crée par Romain le 15/04/22
+
+    // Allocate memory for the two matrices
+    uint8_t** A = malloc(sizeof(uint8_t*) * nb_unk);
+    if (A == NULL) return NULL;
+    for (size_t i = 0; i < nb_unk; ++i) {
+        A[i] = malloc(sizeof(uint8_t) * nb_unk);
+        if (A[i] == NULL) return NULL;
+    }
+    uint8_t** B = malloc(sizeof(uint8_t*) * nb_unk);
+    if (B == NULL) return NULL;
+    for (size_t i = 0; i < nb_unk; ++i) {
+        B[i] = malloc(sizeof(uint8_t) * word_size);
+        if (B[i] == NULL) return NULL;
+    }
+
+    for (int i = 0; i < nb_unk; i++) {
+        //=============================================================//
+        printf("current_block[block_size+i]: [");
+        for (int j = 0; j < 3; j++) {
+            printf("%d ", current_block[block_size+i][j]);
+        }
+        printf("]\n");
+        //=============================================================//
+        B[i] = current_block[block_size + i];
+    }
+
+    for (int i = 0; i < nb_unk; i++) {
+        int temp = 0;
+        for (int j = 0; j < block_size; j++) {
+            if (unknown_indexes[j]) {
+                A[i][temp] = coeffs[i][j];
+                temp += 1;
+            }
+            else {
+                B[i] = gf_256_full_add_vector(B[i], gf_256_mul_vector(current_block[j], coeffs[i][j], block_size),block_size);
+            }
+        }
+    }
+
+    // Allocate memory to store the results in a struct and return it
+    linear_system_t* output = malloc(sizeof(linear_system_t));
+    if (output == NULL) return NULL;
+    output->A = A;
+    output->B = B;
+    return output;
+}
+typedef struct {
+    bool* unknown_map;
+    uint8_t unknowns_amount;
+} unknowns_t;
+unknowns_t* find_lost_words(uint8_t** block, uint8_t size) {
+    // Initialize an array of boolean of size 'size' to false & the unknowns to 0
+    bool unknown_indexes[size];
+    for (int i = 0; i < size; i++) {
+        unknown_indexes[i] = false;
+    }
+    uint8_t unknowns = 0;
+
+    // Mapping the locations with lost values and counting the unknowns
+    for (int i = 0; i < size; i++) {
+        uint8_t count = 0;
+        for (int j = 0; j < word_size; j++) {
+            count += block[i][j];
+        }
+        // A symbol with only 0's is considered as lost
+        if (count == 0) {
+            unknown_indexes[i] = true;
+            unknowns += 1;
+        }
+    }
+
+    // Allocate memory to store the results in a struct and return it
+    unknowns_t* output = malloc(sizeof(unknowns_t));
+    if (output == NULL) return NULL;
+    output->unknown_map = unknown_indexes;
+    output->unknowns_amount = unknowns;
+
+    return output;
+}
+uint8_t** process_block(uint8_t** block, uint8_t size) {
+    // Crée par Cédric le 13/04/22
+
+    // Import the data from the other functions
+    unknowns_t* input_unknowns = find_lost_words(block, size);
+    bool* unknown_indexes = input_unknowns->unknown_map;
+    uint8_t unknowns = input_unknowns->unknowns_amount;
+    //=============================================================//
+//    printf("unknown_indexes:\n[");
+//    for (int i = 0; i < size; i++) {
+//        if (unknown_indexes[i]) {
+//            printf("true");
+//        }
+//        else {
+//            printf("false");
+//        }
+//        if (i != size - 1) {
+//            printf(" ");
+//        }
+//    }
+//    printf("]\n");
+//    printf("unknowns:\n%d\n", unknowns);
+    //=============================================================//
+
+    linear_system_t* input_linear_system = make_linear_system(unknown_indexes, unknowns, block, size);
+    uint8_t** A = input_linear_system->A;
+    uint8_t** B = input_linear_system->B;
+    //=============================================================//
+    printf("A:\n");
+    printf_matrix(A, 2, 2);
+    printf("B:\n");
+    printf_matrix(B, 2, 3);
+    //=============================================================//
+
+    // Gaussian elimination 'in place'
+    gf_256_gaussian_elimination(A, B, size, word_size);
+
+    // For each index marked as 'true', replace the data
+    uint8_t temp = 0;
+    for (int i = 0; i < size; i++) {
+        if (unknown_indexes[i]) {
+            block[i] = B[temp];
+            temp += 1;
+        }
+    }
+
+    // Return the solved block
+    return block;
+}
+void test_process_block(){
+    coeffs = malloc(sizeof(uint8_t*) * 4);
+    if (coeffs == NULL) return;
+    for (int i = 0; i < 4; i++) {
+        coeffs[i] = malloc(sizeof(uint8_t) * 3);
+        if (coeffs[i] == NULL) return;
+    }
+    coeffs[0][0] = 171;
+    coeffs[0][1] = 165;
+    coeffs[0][2] = 55;
+    coeffs[1][0] = 61;
+    coeffs[1][1] = 69;
+    coeffs[1][2] = 143;
+    coeffs[2][0] = 152;
+    coeffs[2][1] = 158;
+    coeffs[2][2] = 168;
+    coeffs[3][0] = 64;
+    coeffs[3][1] = 5;
+    coeffs[3][2] = 91;
+    //=============================================================//
+//    printf("coeffs:\n");
+//    printf_matrix(coeffs, 4, 3);
+    //=============================================================//
+
+    uint8_t size = 3;
+    word_size = 3;
+    uint8_t** block = malloc(sizeof(uint8_t*) * 7);
+    if (block == NULL) return;
+    for (int i = 0; i < 7; i++) {
+        block[i] = malloc(sizeof(uint8_t) * size);
+        if (block[i] == NULL) return;
+    }
+    block[0][0] = 0;
+    block[0][1] = 0;
+    block[0][2] = 0;
+    block[1][0] = 111;
+    block[1][1] = 118;
+    block[1][2] = 101;
+    block[2][0] = 0;
+    block[2][1] = 0;
+    block[2][2] = 0;
+    block[3][0] = 151;
+    block[3][1] = 140;
+    block[3][2] = 120;
+    block[4][0] = 15;
+    block[4][1] = 96;
+    block[4][2] = 173;
+    block[5][0] = 70;
+    block[5][1] = 82;
+    block[5][2] = 203;
+    block[6][0] = 214;
+    block[6][1] = 245;
+    block[6][2] = 65;
+    //=============================================================//
+    printf("block:\n");
+    printf_matrix(block, 7, 3);
+    //=============================================================//
+
+    uint8_t** out = process_block(block, size);
+    //=============================================================//
+    printf("processed_block:\n");
+    printf_matrix(out, 7, 3);
+    //=============================================================//
+}
+
+
 int main(){
 //    CU_initialize_registry();
 //    CU_pSuite suite = CU_add_suite("tinymt32", 0, 0);
@@ -648,5 +869,6 @@ int main(){
 //    test_find_lost_2();
 //    test_make_block_1();
 //    test_make_block_2();
+    test_process_block();
     printf("THE END\n");
 }
