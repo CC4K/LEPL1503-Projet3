@@ -345,7 +345,7 @@ file_data_t* get_file_info(char* filename) {
     *output->block_size = be32toh((uint32_t) * (buf+1));
     *output->word_size = be32toh((uint32_t) * (buf+2));
     *output->redundancy = be32toh((uint32_t) * (buf+3));
-    *output->message_size = be64toh((uint64_t) * (buf+2));
+    *output->message_size = be64toh(*((uint64_t *) buf+2));
 
     // Close the file
     fclose(fileptr);
