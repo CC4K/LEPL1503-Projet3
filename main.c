@@ -22,7 +22,7 @@
 #include <sys/mman.h>
 #include "headers/tinymt32.h"
 #include "headers/system.h"
-#include "math.h"
+#include <math.h>
 
 //====================== Structures =========================//
 
@@ -202,7 +202,6 @@ uint8_t** process_block(uint8_t** block, uint8_t size) {
 
     // Gaussian elimination 'in place'
     gf_256_gaussian_elimination(A, B, word_size, unknowns);
-
     // For each index marked as 'true', replace the data
     uint8_t temp = 0;
     for (int i = 0; i < size; i++) {
@@ -536,7 +535,8 @@ int main(int argc, char* argv[]) {
         //TODO: A FAIRE
 
         //============================Full or Uncompleted_block========================//
-        uint32_t nb_blocks = ceil(filelen / (*file_data->word_size * (*file_data->block_size + *file_data->redundancy)));
+        uint32_t nb_blocks = ceil(filelen / (*file_data->word_size * (*file_data->block_size + *file_data->redundancy)))-1; //TODO:
+        printf("\n ICI NB BLOCKS : %d\n",nb_blocks);
         bool contains_uncomplete_block = false;
 
         if(*file_data->message_size != (nb_blocks * (*file_data->block_size) * (*file_data->word_size))){
@@ -546,13 +546,14 @@ int main(int argc, char* argv[]) {
                 printf("------------------------------------\nThis file contain uncomplete blocks\n");
             }
         }
+        printf("\n ICI NB BLOCKS : %d\n",nb_blocks);
         if(!contains_uncomplete_block){
             printf("\nThis file doesn't contain uncomplete blocks\n");
         }
 
 
         //=======================Write completes blocks in output file=================//
-//        int32_t readed = 0;
+        int32_t readed = 0;
         for (int i = 0; i < nb_blocks; ++i) {
             uint8_t* temps_buf = malloc(sizeof(uint8_t) * step);
             for (int j = 0; j < step; ++j) {
@@ -596,22 +597,60 @@ int main(int argc, char* argv[]) {
             write_block(args.output_stream,response,*file_data->block_size,*file_data->word_size);
             printf("\n");
 
-//            readed += step;
+            readed += step;
             free(temps_buf);
         }
+        printf("\n ICI NB BLOCKS : %d\n",nb_blocks);
+
+
 
         //================Calculate lost symbols and write it to output================//
 
-        /*uint32_t readed_symbols = (*file_data->block_size) * (*file_data->word_size) * nb_blocks;
-        uint32_t nb_remaining_symbols; //TODO
+        uint32_t readed_symbols = (*file_data->block_size) * (*file_data->word_size) * nb_blocks;
+        printf("\n ICI NB BLOCKS : %d\n",readed_symbols);
+        uint8_t* temps_buf = malloc(sizeof(uint8_t) * filelen-24-readed);
+        for (int j = 0; j < filelen-24-readed; ++j) {
+            temps_buf[j] = buf[(readed*step) + j + 24];
+
+        }
+        for (int i = 0; i < filelen; ++i) {
+            printf("%d ",buf[i]);
+        }
+
+        uint32_t nb_remaining_symbols = ((filelen-24-readed)/word_size)-(*file_data->redundancy);
         if (contains_uncomplete_block){
-            uint8_t** last_block = make_block(buf, nb_remaining_symbols); //TODO buffer
+            uint8_t** last_block = make_block(temps_buf, nb_remaining_symbols); //TODO buffer
+            printf("\n>> make_block :\n");
+            printf("[");
+            for (int j = 0; j < *file_data->block_size + *file_data->redundancy; ++j) {
+                if (j != 0) printf(" [");
+                else printf("[");
+                for (int k = 0; k < *file_data->word_size; ++k) {
+                    printf("%d ", last_block[j][k]);
+                }
+                if (j != (*file_data->block_size + *file_data->redundancy) - 1) printf("]\n");
+                else printf("]");
+            }
+            printf("]\n");
+
             uint8_t** decoded = process_block(last_block,nb_remaining_symbols);
+            printf(">> processed_block:\n");
+            printf("[");
+            for (int j = 0; j < *file_data->block_size + *file_data->redundancy; ++j) {
+                if (j != 0) printf(" [");
+                else printf("[");
+                for (int k = 0; k < *file_data->word_size; ++k) {
+                    printf("%d ", decoded[j][k]);
+                }
+                if (j != (*file_data->block_size + *file_data->redundancy) - 1) printf("]\n");
+                else printf("]");
+            }
+            printf("]\n");
             uint8_t padding = readed_symbols + nb_remaining_symbols * (*file_data->word_size) - (*file_data->message_size);
             uint8_t true_length_last_symbol = (*file_data->word_size) - padding;
 
             write_last_block(args.output_stream,decoded,nb_remaining_symbols,(*file_data->word_size),true_length_last_symbol);
-        }*/
+        }
 
 
         //==============================Free variables=================================//
