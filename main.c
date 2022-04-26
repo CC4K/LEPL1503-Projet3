@@ -149,6 +149,7 @@ linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, ui
         A[i] = malloc(sizeof(uint8_t) * nb_unk);
         if (A[i] == NULL) return NULL;
     }
+
     uint8_t** B = malloc(sizeof(uint8_t*) * nb_unk);
     if (B == NULL) return NULL;
     for (size_t i = 0; i < nb_unk; ++i) {
@@ -189,17 +190,30 @@ linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, ui
  * @param size: the size of the block
  * @return block: the solved block
  */
-uint8_t** process_block(uint8_t** block, uint8_t size) {
+uint8_t**   process_block(uint8_t** block, uint8_t size) {
     // Crée par Cédric le 13/04/22
 
     // Import the data from the other functions
     unknowns_t* input_unknowns = find_lost_words(block, size);
     uint8_t* unknown_indexes = input_unknowns->unknown_map;
     uint8_t unknowns = input_unknowns->unknowns_amount;
+    printf("%d", unknowns);
     linear_system_t* input_linear_system = make_linear_system(unknown_indexes, unknowns, block, size);
     uint8_t** A = input_linear_system->A;
     uint8_t** B = input_linear_system->B;
 
+
+    for (int i = 0; i < 1; ++i) {
+        for (int j = 0; j < 1; ++j) {
+            printf("%d ",A[i][j]);
+        }
+    }
+
+    for (int i = 0; i < 1; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            printf("%d ",B[i][j]);
+        }
+    }
     // Gaussian elimination 'in place'
     gf_256_gaussian_elimination(A, B, word_size, unknowns);
     // For each index marked as 'true', replace the data
@@ -600,32 +614,26 @@ int main(int argc, char* argv[]) {
             readed += step;
             free(temps_buf);
         }
-        printf("\n ICI NB BLOCKS : %d\n",nb_blocks);
 
 
 
         //================Calculate lost symbols and write it to output================//
 
         uint32_t readed_symbols = (*file_data->block_size) * (*file_data->word_size) * nb_blocks;
-        printf("\n ICI NB BLOCKS : %d\n",readed_symbols);
         uint8_t* temps_buf = malloc(sizeof(uint8_t) * filelen-24-readed);
         for (int j = 0; j < filelen-24-readed; ++j) {
-            temps_buf[j] = buf[(readed*step) + j + 24];
-
-        }
-        for (int i = 0; i < filelen; ++i) {
-            printf("%d ",buf[i]);
+            temps_buf[j] = buf[24+readed + j];
         }
 
         uint32_t nb_remaining_symbols = ((filelen-24-readed)/word_size)-(*file_data->redundancy);
         if (contains_uncomplete_block){
-            uint8_t** last_block = make_block(temps_buf, nb_remaining_symbols); //TODO buffer
-            printf("\n>> make_block :\n");
+            uint8_t** last_block = make_block(temps_buf, nb_remaining_symbols);
+            printf("\n>> Last_make_block :\n");
             printf("[");
-            for (int j = 0; j < *file_data->block_size + *file_data->redundancy; ++j) {
+            for (int j = 0; j < (filelen-24-readed)/ *file_data->word_size; ++j) {
                 if (j != 0) printf(" [");
                 else printf("[");
-                for (int k = 0; k < *file_data->word_size; ++k) {
+                for (int k = 0; k <  *file_data->word_size; ++k) {
                     printf("%d ", last_block[j][k]);
                 }
                 if (j != (*file_data->block_size + *file_data->redundancy) - 1) printf("]\n");
@@ -634,9 +642,9 @@ int main(int argc, char* argv[]) {
             printf("]\n");
 
             uint8_t** decoded = process_block(last_block,nb_remaining_symbols);
-            printf(">> processed_block:\n");
+            printf(">> Last_processed_block:\n");
             printf("[");
-            for (int j = 0; j < *file_data->block_size + *file_data->redundancy; ++j) {
+            for (int j = 0; j < (filelen-24-readed)/ *file_data->word_size; ++j) {
                 if (j != 0) printf(" [");
                 else printf("[");
                 for (int k = 0; k < *file_data->word_size; ++k) {
