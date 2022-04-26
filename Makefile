@@ -24,6 +24,10 @@ testsMLS: tests/test_make_linear_system.c
 	$(CC) -o testmls tests/test_make_linear_system.c system.c tinymt32.c -lcunit
 	valgrind --track-origins=yes ./testmls
 
+testsGenCoeffs: tests/test_gen_coeffs.c
+	$(CC) -o testgencoeffs tests/test_gen_coeffs.c system.c tinymt32.c -lcunit
+	valgrind --track-origins=yes ./testgencoeffs
+
 tests_short: tests/test_tinymt32.c
 	$(CC) -Wall -Werror -o test_tinymt32 tests/test_tinymt32.c system.c tinymt32.c -lcunit
 	$(CC) -Wall -Werror -o main main.c system.c tinymt32.c
