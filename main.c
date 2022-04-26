@@ -159,64 +159,21 @@ linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, ui
     for (int i = 0; i < nb_unk; i++) {
         B[i] = current_block[block_size + i];
     }
-    printf("\n\n>>> f*cking_B with partial current_block:\n");
-    for (int i = 0; i < nb_unk; i++) {
-        printf("[");
-        for (int j = 0; j < word_size; j++) {
-            printf("%d ", B[i][j]);
-        }
-        printf("]\n");
-    }
-    printf("unknown_indexes: [");
-    for (int i = 0; i < block_size; i++) {
-        printf("%d ", unknown_indexes[i]);
-    }
-    printf("]\n\n");
 
     for (int i = 0; i < nb_unk; i++) {
         int temp = 0;
         for (int j = 0; j < block_size; j++) {
-            printf("étape[%d][%d] ===========================\n", i, j);
             if (unknown_indexes[j] == 1) {
                 A[i][temp] = coeffs[i][j];
-                printf("A[%d][%d] now equal to: %d bcs of found unknown\n", i, temp, A[i][temp]);
                 temp += 1;
             }
             else {
                 uint8_t* vec_mul = gf_256_mul_vector(current_block[j], coeffs[i][j], word_size);
-                printf("size: %d\n", word_size);
-                printf("mul_vector: [");
-                for (int k = 0; k < 2*block_size; k++) {
-                    printf("%d ", vec_mul[k]);
-                }
-                printf("]\n");
                 B[i] = gf_256_full_add_vector(B[i], vec_mul,word_size);
-                printf("B[%d] now equal to: [", i);
-                for (int k = 0; k < word_size; k++) {
-                    printf("%d ", B[i][k]);
-                }
-                printf("]\n");
             }
         }
     }
 
-    printf(">> Système linéaire:\n");
-    for (int i = 0; i < nb_unk; i++) {
-        printf("[");
-        for (int j = 0; j < nb_unk; j++) {
-            printf("%d ", A[i][j]);
-        }
-        printf("]\n");
-    }
-    printf("\n");
-    for (int i = 0; i < nb_unk; i++) {
-        printf("[");
-        for (int j = 0; j < word_size; j++) {
-            printf("%d ", B[i][j]);
-        }
-        printf("]\n");
-    }
-    printf("\n");
 
     // Allocate memory to store the results in a struct and return it
     linear_system_t* output = malloc(sizeof(linear_system_t));
