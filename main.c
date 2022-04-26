@@ -149,7 +149,6 @@ linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, ui
         A[i] = malloc(sizeof(uint8_t) * nb_unk);
         if (A[i] == NULL) return NULL;
     }
-
     uint8_t** B = malloc(sizeof(uint8_t*) * nb_unk);
     if (B == NULL) return NULL;
     for (size_t i = 0; i < nb_unk; ++i) {
@@ -197,23 +196,30 @@ uint8_t**   process_block(uint8_t** block, uint8_t size) {
     unknowns_t* input_unknowns = find_lost_words(block, size);
     uint8_t* unknown_indexes = input_unknowns->unknown_map;
     uint8_t unknowns = input_unknowns->unknowns_amount;
-    printf("%d", unknowns);
+//    printf("unknowns: %d\n", unknowns);
+//    for (int i = 0; i < size; i++) {
+//        printf("%d ", unknown_indexes[i]);
+//    }
+//    printf("\n");
     linear_system_t* input_linear_system = make_linear_system(unknown_indexes, unknowns, block, size);
     uint8_t** A = input_linear_system->A;
     uint8_t** B = input_linear_system->B;
 
 
-    for (int i = 0; i < 1; ++i) {
-        for (int j = 0; j < 1; ++j) {
-            printf("%d ",A[i][j]);
-        }
-    }
+//    for (int i = 0; i < 1; ++i) {
+//        for (int j = 0; j < 1; ++j) {
+//            printf("%d ",A[i][j]);
+//        }
+//    }
+//    printf("B:\n");
+//    for (int i = 0; i < unknowns; ++i) {
+//        for (int j = 0; j < word_size; ++j) {
+//            printf("%d ",B[i][j]);
+//        }
+//        printf("\n");
+//    }
+//    printf("\n");
 
-    for (int i = 0; i < 1; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            printf("%d ",B[i][j]);
-        }
-    }
     // Gaussian elimination 'in place'
     gf_256_gaussian_elimination(A, B, word_size, unknowns);
     // For each index marked as 'true', replace the data
@@ -292,7 +298,7 @@ void write_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t word_
  */
 void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t word_size, uint8_t last_word_size) {
 
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < size-1; i++) {
         for (int j = 0; j < word_size; j++) {
             if ((output_file == stdout) || (output_file == stderr)) {
                 printf("%c", (char) block[i][j]);
