@@ -326,7 +326,7 @@ void write_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t word_
                 printf("%c", (char) block[i][j]);
             }
             else {
-                fprintf(output_file, "%d" PRIu16, htobe16((uint16_t) block[i][j]));
+                fprintf(output_file, "%c", (char)(block[i][j]));
             }
         }
     }
@@ -349,7 +349,7 @@ void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t 
                 printf("%c", (char) block[i][j]);
             }
             else {
-                fprintf(output_file, "%d" PRIu16, htobe16((uint16_t) block[i][j]));
+                fprintf(output_file, "%c",  block[i][j]);
             }
         }
     }
@@ -359,7 +359,7 @@ void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t 
             printf("%c", (char) block[size - 1][i]);
         }
         else {
-            fprintf(output_file, "%d" PRIu16, htobe16((uint16_t) block[size - 1][i]));
+            fprintf(output_file, "%c", (char) block[size - 1][i]);
         }
     }
 }
@@ -578,7 +578,7 @@ int main(int argc, char* argv[]) {
                 printf("You have to generate coefficients before printing them!\n");
             }
             else {
-                printf(">> coefficients :\n");
+                printf("\n\n>> coefficients :\n");
                 printf("[");
                 for (int i = 0; i < nss; ++i) {
                     if (i != 0) printf(" [");
@@ -600,8 +600,9 @@ int main(int argc, char* argv[]) {
         //TODO: A FAIRE
 
         //============================Full or Uncompleted_block========================//
-        uint32_t nb_blocks = ceil(filelen / (*file_data->word_size * (*file_data->block_size + *file_data->redundancy)))-1; //TODO:
-        printf("\n ICI NB BLOCKS : %d\n",nb_blocks);
+        double num = (double) (filelen - 24);
+        double den = (double)*file_data->word_size * ((double)*file_data->block_size + (double) *file_data->redundancy);
+        uint32_t nb_blocks = ceil(num/den); //TODO
         bool contains_uncomplete_block = false;
 
         if(*file_data->message_size != (nb_blocks * (*file_data->block_size) * (*file_data->word_size))){
@@ -611,7 +612,6 @@ int main(int argc, char* argv[]) {
                 printf("------------------------------------\nThis file contain uncomplete blocks\n");
             }
         }
-        printf("\n ICI NB BLOCKS : %d\n",nb_blocks);
         if(!contains_uncomplete_block){
             printf("\nThis file doesn't contain uncomplete blocks\n");
         }
