@@ -156,22 +156,72 @@ linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, ui
         if (B[i] == NULL) return NULL;
     }
 
+    printf("\n\nsize in MLS: %d", block_size);
+
     for (int i = 0; i < nb_unk; i++) {
         B[i] = current_block[block_size + i];
     }
+    printf("\n\nsize after current_block: %d\n", block_size);
+    printf("\n\n>>> f*cking_B with partial current_block:\n");
+    for (int i = 0; i < nb_unk; i++) {
+        printf("[");
+        for (int j = 0; j < word_size; j++) {
+            printf("%d ", B[i][j]);
+        }
+        printf("]\n");
+    }
+    printf("unknown_indexes: [");
+    for (int i = 0; i < block_size; i++) {
+        printf("%d ", unknown_indexes[i]);
+    }
+    printf("]\n\n");
 
     for (int i = 0; i < nb_unk; i++) {
         int temp = 0;
         for (int j = 0; j < block_size; j++) {
+            printf("étape[%d][%d] ===========================\n", i, j);
+            printf("\n\nsize at this step: %d\n", block_size);
             if (unknown_indexes[j] == 1) {
                 A[i][temp] = coeffs[i][j];
+                printf("A[%d][%d] now equal to: %d bcs of found unknown\n", i, temp, A[i][temp]);
                 temp += 1;
+//                printf("symbol_size in first if: %d\n", block_size);
             }
             else {
-                B[i] = gf_256_full_add_vector(B[i], gf_256_mul_vector(current_block[j], coeffs[i][j], block_size),block_size);
+                uint8_t* vec_mul = gf_256_mul_vector(current_block[j], coeffs[i][j], block_size);
+                printf("symbol_size: %d\n", block_size);
+                printf("mul_vector: [");
+                for (int k = 0; k < block_size; k++) {
+                    printf("%d ", vec_mul[k]);
+                }
+                printf("]\n");
+                B[i] = gf_256_full_add_vector(B[i], vec_mul,block_size);
+                printf("B[%d] now equal to: [", i);
+                for (int k = 0; k < word_size; k++) {
+                    printf("%d ", B[i][k]);
+                }
+                printf("]\n");
             }
         }
     }
+
+    printf(">> Système linéaire:\n");
+    for (int i = 0; i < nb_unk; i++) {
+        printf("[");
+        for (int j = 0; j < nb_unk; j++) {
+            printf("%d ", A[i][j]);
+        }
+        printf("]\n");
+    }
+    printf("\n");
+    for (int i = 0; i < nb_unk; i++) {
+        printf("[");
+        for (int j = 0; j < word_size; j++) {
+            printf("%d ", B[i][j]);
+        }
+        printf("]\n");
+    }
+    printf("\n");
 
     // Allocate memory to store the results in a struct and return it
     linear_system_t* output = malloc(sizeof(linear_system_t));
@@ -189,7 +239,7 @@ linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, ui
  * @param size: the size of the block
  * @return block: the solved block
  */
-uint8_t**   process_block(uint8_t** block, uint8_t size) {
+uint8_t** process_block(uint8_t** block, uint8_t size) {
     // Crée par Cédric le 13/04/22
 
     // Import the data from the other functions
@@ -583,7 +633,7 @@ int main(int argc, char* argv[]) {
             if(args.verbose){
                 printf("\n>> make_block %d :\n", i);
                 printf("[");
-                for (int j = 0; j < *file_data->block_size + *file_data->redundancy; ++j) {
+                for (int j = 0; j < (*file_data->block_size + *file_data->redundancy); ++j) {
                     if (j != 0) printf(" [");
                     else printf("[");
                     for (int k = 0; k < *file_data->word_size; ++k) {
@@ -594,7 +644,6 @@ int main(int argc, char* argv[]) {
                 }
                 printf("]\n");
             }
-            printf("block_size: %d\n", *file_data->block_size);
             uint8_t** response = process_block(current_block,*file_data->block_size);
 
             printf(">> processed_block %d :\n", i);
@@ -634,21 +683,22 @@ int main(int argc, char* argv[]) {
         uint32_t nb_remaining_symbols = ((filelen-24-readed)/word_size)-(*file_data->redundancy);
         if (contains_uncomplete_block){
             uint8_t** last_block = make_block(temps_buf, nb_remaining_symbols);
-            printf("\n>> Last_make_block :\n");
+            printf("\n>> last_block_size: %d\n", nb_remaining_symbols);
+            printf(">> last_make_block :\n");
             printf("[");
-            for (int j = 0; j < (filelen-24-readed)/ *file_data->word_size; ++j) {
+            for (int j = 0; j < ((filelen-24-readed)/ *file_data->word_size); ++j) {
                 if (j != 0) printf(" [");
                 else printf("[");
                 for (int k = 0; k <  *file_data->word_size; ++k) {
                     printf("%d ", last_block[j][k]);
                 }
-                if (j != (*file_data->block_size + *file_data->redundancy) - 1) printf("]\n");
+                if (j != ((filelen-24-readed)/ *file_data->word_size) - 1) printf("]\n");
                 else printf("]");
             }
             printf("]\n");
 
             uint8_t** decoded = process_block(last_block,nb_remaining_symbols);
-            printf(">> Last_processed_block:\n");
+            printf(">> last_processed_block:\n");
             printf("[");
             for (int j = 0; j < (filelen-24-readed)/ *file_data->word_size; ++j) {
                 if (j != 0) printf(" [");
@@ -656,7 +706,7 @@ int main(int argc, char* argv[]) {
                 for (int k = 0; k < *file_data->word_size; ++k) {
                     printf("%d ", decoded[j][k]);
                 }
-                if (j != (*file_data->block_size + *file_data->redundancy) - 1) printf("]\n");
+                if (j != ((filelen-24-readed)/ *file_data->word_size) - 1) printf("]\n");
                 else printf("]");
             }
             printf("]\n");

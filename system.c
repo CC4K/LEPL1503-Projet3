@@ -20,7 +20,7 @@
  * @return a new vector of `symbol_size` byte containing the result of symbol_1 + symbol_2 in GF(256)
  */
 uint8_t* gf_256_full_add_vector(uint8_t* symbol_1, uint8_t* symbol_2, uint32_t symbol_size) {
-    uint8_t* output = malloc(sizeof(symbol_size));
+    uint8_t* output = malloc(sizeof(uint8_t) * symbol_size);
     for (int i = 0; i < symbol_size; i++) {
         output[i] = (symbol_1[i] ^ symbol_2[i]);
     }
@@ -35,7 +35,7 @@ uint8_t* gf_256_full_add_vector(uint8_t* symbol_1, uint8_t* symbol_2, uint32_t s
  * @return a new vector of `symbol_size` byte containing the result of symbol * coef in GF(256)
  */
 uint8_t* gf_256_mul_vector(uint8_t* symbol, uint8_t coef, uint32_t symbol_size) {
-    uint8_t* output = malloc(sizeof(symbol_size));
+    uint8_t* output = malloc(sizeof(uint8_t) * symbol_size);
     for (int i = 0; i < symbol_size; i++) {
         output[i] = gf256_mul_table[(int) symbol[i]][coef];
     }
@@ -50,7 +50,7 @@ uint8_t* gf_256_mul_vector(uint8_t* symbol, uint8_t coef, uint32_t symbol_size) 
  * @return a new vector of `symbol_size` byte containing the result of symbol / coef in GF(256)
  */
 uint8_t* gf_256_inv_vector(uint8_t* symbol, uint8_t coef, uint32_t symbol_size) {
-    uint8_t* output = malloc(sizeof(symbol_size));
+    uint8_t* output = malloc(sizeof(uint8_t) * symbol_size);
     for (int i = 0; i < symbol_size; i++) {
         output[i] = gf256_mul_table[(int) symbol[i]][gf256_inv_table[coef]];
     }
