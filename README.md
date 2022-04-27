@@ -41,6 +41,7 @@ To run the executable 'main', use `./main input_binary/` which will give your ou
 Here are some of the parameters you can use with the base command :
 - `-f output.txt` : to get your output in a .txt file name "output"
 - `-v` : to set verbose mode to 'true' and show steps of the program in your terminal
+- `-n 4` : to run the code with 4 threads
 ## Threads
 
 TODO : TODO
