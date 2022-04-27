@@ -615,9 +615,9 @@ int main(int argc, char* argv[]) {
                 printf(">> processed block %d :\n", i);
                 printf_matrix(response, (*file_data->block_size + *file_data->redundancy), word_size);
                 printf(">> to_string :\n");
-                char* str = block_to_string(response, *file_data->block_size);
-                printf("%s", str);
-                free(str);
+//                char* str = block_to_string(response, *file_data->block_size);
+//                printf("%s", str);
+//                free(str);
                 printf("\n\n--------------------------------------------------------------------------------------------------------\n");
             }
 
@@ -646,9 +646,9 @@ int main(int argc, char* argv[]) {
                 printf(">> last processed block :\n");
                 printf_matrix(last_block, (filelen-24-readed)/ word_size, word_size);
                 printf(">> to_string :\n");
-                char* str = block_to_string(decoded, *file_data->block_size);
-                printf("%s", str);
-                free(str);
+//                char* str = block_to_string(decoded, *file_data->block_size);
+//                printf("%s", str);
+//                free(str);
                 printf("\n========================================================================================================\n");
             }
 
