@@ -65,6 +65,26 @@ uint64_t word_size = 0;
 bool verbose = false;
 
 //====================== Functions ==========================//
+/**
+ * A function to help print n x m matrices in verbose mode
+ * @param matrix: the matrix to print
+ * @param n: number of lines
+ * @param m: number of columns
+ */
+void printf_matrix(uint8_t** matrix, uint8_t n, uint8_t m) {
+    printf("[");
+    for (int i = 0; i < n; i++) {
+        if (i != 0) printf(" [");
+        else printf("[");
+        for (int j = 0; j < m; j++) {
+            if (j != m-1) printf("%d ", matrix[i][j]);
+            else printf("%d", matrix[i][j]);
+        }
+        if (i != n-1) printf("]\n");
+        else printf("]");
+    }
+    printf("]\n");
+}
 
 /**
  * A function to print the linear systems A x B in verbose mode
@@ -98,8 +118,6 @@ uint8_t** make_block(uint8_t* data, uint8_t size) {
     // Fait par Jacques le 12/04/22
 
     // Allocate memory for the returned block
-    printf("data %d\n",*data);
-    printf("size %d\n",size);
     uint8_t** block = malloc(sizeof(uint8_t*) * (size + *(file_data->redundancy)));
     if(block == NULL) return NULL;
     for (int i = 0; i < (size + *(file_data->redundancy)); i++) {
@@ -112,12 +130,14 @@ uint8_t** make_block(uint8_t* data, uint8_t size) {
             block[i][j] = data[i * word_size + j];
         }
     }
-    for (int i = 0; i < (size + (*(file_data->redundancy))); ++i) {
-        for (int j = 0; j < word_size; ++j) {
-            printf("block: %d\n",block[i][j]);
-        }
-        printf("\n");
-    }
+
+    //=================================================================================
+    //TODO: ToDelete
+    printf("data : %d\n",*data);
+    printf("size : %d\n",size);
+    printf("block :\n");
+    printf_matrix(block, (size + (*(file_data->redundancy))), word_size);
+    //=================================================================================
 
     return block;
 }
@@ -378,27 +398,6 @@ file_data_t* get_file_info(char* filename) {
     return output;
 }
 
-/**
- * A function to help print n x m matrices in verbose mode
- * @param matrix: the matrix to print
- * @param n: number of lines
- * @param m: number of columns
- */
-void printf_matrix(uint8_t** matrix, uint8_t n, uint8_t m) {
-    printf("[");
-    for (int i = 0; i < n; i++) {
-        if (i != 0) printf(" [");
-        else printf("[");
-        for (int j = 0; j < m; j++) {
-            if (j != m-1) printf("%d ", matrix[i][j]);
-            else printf("%d", matrix[i][j]);
-        }
-        if (i != n-1) printf("]\n");
-        else printf("]");
-    }
-    printf("]\n");
-}
-
 // TODO: Sort une erreur de malloc !!!
 /**
  * Help function. Returns a string stored in binary in the given block
@@ -507,8 +506,8 @@ int main(int argc, char* argv[]) {
     else if (err == 1) exit(EXIT_SUCCESS);
 
     // The following lines (and every code already present in this skeleton) can be removed, it is just an example to show you how to use the program arguments
-    fprintf(stderr, "\tnumber of threads executing the RLC decoding algorithm in parallel: %" PRIu32 "\n", args.nb_threads);
-    fprintf(stderr, "\tverbose mode: %s\n", args.verbose ? "enabled" : "disabled");
+    fprintf(stderr, "number of threads executing the RLC decoding algorithm in parallel: %" PRIu32 "\n", args.nb_threads);
+    fprintf(stderr, "verbose mode: %s\n", args.verbose ? "enabled" : "disabled");
 
     // This is an example of how to open the instance files of the input directory. You may move/edit it during the project
     struct dirent *directory_entry;
@@ -545,7 +544,7 @@ int main(int argc, char* argv[]) {
 
         //==============================Get File Infos===============================//
         file_data = get_file_info(full_path);
-        if(file_data == NULL){
+        if (file_data == NULL) {
             printf("Can't get file Infos");
             return -1;
         }
@@ -600,7 +599,7 @@ int main(int argc, char* argv[]) {
         uint32_t nb_blocks = ceil(num/den);
         bool contains_uncomplete_block = false;
 
-        if(*file_data->message_size != (nb_blocks * (*file_data->block_size) * word_size)){
+        if (*file_data->message_size != (nb_blocks * (*file_data->block_size) * word_size)) {
             nb_blocks--;
             contains_uncomplete_block = true;
             if(args.verbose){
@@ -617,13 +616,20 @@ int main(int argc, char* argv[]) {
         int32_t readed = 0;
         for (int i = 0; i < nb_blocks; ++i) {
             uint8_t* temps_buf = malloc(sizeof(uint8_t) * step);
-            printf(">>temps_buf\n");
             for (int j = 0; j < step; ++j) {
                 temps_buf[j] = buf[(i * step) + j + 24];
-                printf("%" PRIu8 "\n", temps_buf[j]);
             }
             uint8_t** current_block = make_block(temps_buf, *file_data->block_size);
             uint8_t** response = process_block(current_block,*file_data->block_size);
+            
+            //=================================================================================
+            //TODO: ToDelete
+            printf("temps_buf\n[");
+            for (int j = 0; j < step; ++j) {
+                printf(" %" PRIu8, temps_buf[j]);
+            }
+            printf(" ]\n");
+            //=================================================================================
 
             if (args.verbose) {
                 printf(">> processed block %d :\n", i);
@@ -682,7 +688,7 @@ int main(int argc, char* argv[]) {
     t = clock() - t;
     double time_taken = ((double) t)/CLOCKS_PER_SEC;
 
-    printf("The programme took %f second to execute\n", time_taken);
+    printf("The program took %f seconds to execute\n", time_taken);
 
     // Close the input directory and the output file
     err = closedir(args.input_dir);
