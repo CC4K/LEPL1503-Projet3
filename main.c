@@ -97,6 +97,8 @@ uint8_t** make_block(uint8_t* data, uint8_t size) {
     // Fait par Jacques le 12/04/22
 
     // Allocate memory for the returned block
+    printf("data %d\n",*data);
+    printf("size %d\n",size);
     uint8_t** block = malloc(sizeof(uint8_t*) * (size + *(file_data->redundancy)));
     if(block == NULL) return NULL;
     for (int i = 0; i < (size + *(file_data->redundancy)); i++) {
@@ -108,6 +110,12 @@ uint8_t** make_block(uint8_t* data, uint8_t size) {
         for (int j = 0; j < word_size; j++) {
             block[i][j] = data[i * word_size + j];
         }
+    }
+    for (int i = 0; i < (size + (*(file_data->redundancy))); ++i) {
+        for (int j = 0; j < word_size; ++j) {
+            printf("block: %d\n",block[i][j]);
+        }
+        printf("\n");
     }
 
     return block;
@@ -605,8 +613,10 @@ int main(int argc, char* argv[]) {
         int32_t readed = 0;
         for (int i = 0; i < nb_blocks; ++i) {
             uint8_t* temps_buf = malloc(sizeof(uint8_t) * step);
+            printf(">>temps_buf\n");
             for (int j = 0; j < step; ++j) {
-                temps_buf[j] = buf[(i*step) + j + 24];
+                temps_buf[j] = buf[(i * step) + j + 24];
+                printf("%" PRIu8 "\n", temps_buf[j]);
             }
             uint8_t** current_block = make_block(temps_buf, *file_data->block_size);
             uint8_t** response = process_block(current_block,*file_data->block_size);

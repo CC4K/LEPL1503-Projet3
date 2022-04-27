@@ -30,6 +30,10 @@ testsGenCoeffs: tests/test_gen_coeffs.c
 	$(CC) -o testgencoeffs tests/test_gen_coeffs.c system.c tinymt32.c -lcunit
 	valgrind --track-origins=yes ./testgencoeffs
 
+testsMakeBlock: tests/test_make_block.c
+	$(CC) -o testmakeblock tests/test_make_block.c system.c tinymt32.c -lcunit
+	valgrind --track-origins=yes ./testmakeblock
+
 tests_short: tests/test_tinymt32.c
 	$(CC) -Wall -Werror -o test_tinymt32 tests/test_tinymt32.c system.c tinymt32.c -lcunit -lm
 	$(CC) -Wall -Werror -o main main.c system.c tinymt32.c
