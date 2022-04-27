@@ -18,7 +18,7 @@ typedef struct {
     uint8_t** B;
 } linear_system_t;
 
-uint8_t word_size = 0;
+uint8_t word_size = 3;
 uint8_t** coeffs = NULL;
 
 linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, uint8_t** current_block, uint8_t block_size) {
@@ -50,10 +50,13 @@ linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, ui
                 temp += 1;
             }
             else {
-                B[i] = gf_256_full_add_vector(B[i], gf_256_mul_vector(current_block[j], coeffs[i][j], block_size),block_size);
+                uint8_t* vec_mul = gf_256_mul_vector(current_block[j], coeffs[i][j], word_size);
+                B[i] = gf_256_full_add_vector(B[i], vec_mul,word_size);
             }
         }
     }
+
+
     // Allocate memory to store the results in a struct and return it
     linear_system_t* output = malloc(sizeof(linear_system_t));
     if (output == NULL) return NULL;
