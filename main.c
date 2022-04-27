@@ -23,6 +23,7 @@
 #include "headers/tinymt32.h"
 #include "headers/system.h"
 #include <math.h>
+#include <time.h>
 
 //====================== Structures =========================//
 
@@ -497,6 +498,9 @@ int parse_args(args_t* args, int argc, char* argv[]){
 //===================== MAIN FUNCTION =======================//
 
 int main(int argc, char* argv[]) {
+    clock_t t;
+    t = clock();
+
     args_t args;
     int err = parse_args(&args, argc, argv);
     if (err == -1) exit(EXIT_FAILURE);
@@ -675,6 +679,10 @@ int main(int argc, char* argv[]) {
         //==============================Close files====================================//
         //fclose(input_file);
     }
+    t = clock() - t;
+    double time_taken = ((double) t)/CLOCKS_PER_SEC;
+
+    printf("The programme took %f second to execute\n", time_taken);
 
     // Close the input directory and the output file
     err = closedir(args.input_dir);
