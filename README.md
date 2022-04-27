@@ -3,6 +3,7 @@
 ### P3-2022-Group Y2
 
 ---
+---
 ## Project goals
 
 This project is an **Forward Erasure Correction** (FEC) algorithm capable of fixing packet loss in network transmissions.
