@@ -60,9 +60,31 @@ typedef struct {
 //================== Global Variables =======================//
 file_data_t* file_data;
 uint8_t** coeffs = NULL;
-uint8_t word_size = 0;
+uint64_t word_size = 0;
+bool verbose = false;
 
 //====================== Functions ==========================//
+
+/**
+ * A function to print the linear systems A x B in verbose mode
+ * @param A: first matrix
+ * @param B: second matrix
+ * @param nb_unk: size of A
+ */
+void printf_linear_system(uint8_t** A, uint8_t** B, uint8_t nb_unk) {
+    printf(">> linear_system :\n");
+    for (int i = 0; i < nb_unk; i++) {
+        printf("[ ");
+        for (int j = 0; j < nb_unk; j++) {
+            printf("%d ", A[i][j]);
+        }
+        printf("]\t[ ");
+        for (int j = 0; j < word_size; j++) {
+            printf("%d ", B[i][j]);
+        }
+        printf("]\n");
+    }
+}
 
 /**
  * Build the block based on the data and the size of a block
@@ -78,15 +100,16 @@ uint8_t** make_block(uint8_t* data, uint8_t size) {
     uint8_t** block = malloc(sizeof(uint8_t*) * (size + *(file_data->redundancy)));
     if(block == NULL) return NULL;
     for (int i = 0; i < (size + *(file_data->redundancy)); i++) {
-        block[i] = malloc(sizeof(uint8_t) * (*(file_data->word_size)));
+        block[i] = malloc(sizeof(uint8_t) * word_size);
         if (block[i] == NULL) return NULL;
     }
 
     for (int i = 0; i < (size + (*(file_data->redundancy))) ; i++) {
-        for (int j = 0; j < (*(file_data->word_size)); j++) {
-            block[i][j] = data[i * (*(file_data->word_size)) + j];
+        for (int j = 0; j < word_size; j++) {
+            block[i][j] = data[i * word_size + j];
         }
     }
+
     return block;
 }
 
@@ -126,6 +149,16 @@ unknowns_t* find_lost_words(uint8_t** block, uint8_t size) {
     if (output == NULL) return NULL;
     output->unknown_map = unknown_indexes;
     output->unknowns_amount = unknowns;
+
+    // Verbose
+    if (verbose) {
+        printf(">> unknown_indexes : [");
+        for (int i = 0; i < size; i++) {
+            if (unknown_indexes[i] == 0) printf(" false");
+            else printf(" true");
+        }
+        printf(" ]\n");
+    }
 
     return output;
 }
@@ -174,6 +207,11 @@ linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, ui
         }
     }
 
+    // Verbose
+    if (verbose) {
+        printf_linear_system(A, B, nb_unk);
+        printf(">> size : %d\n", nb_unk);
+    }
 
     // Allocate memory to store the results in a struct and return it
     linear_system_t* output = malloc(sizeof(linear_system_t));
@@ -198,32 +236,16 @@ uint8_t** process_block(uint8_t** block, uint8_t size) {
     unknowns_t* input_unknowns = find_lost_words(block, size);
     uint8_t* unknown_indexes = input_unknowns->unknown_map;
     uint8_t unknowns = input_unknowns->unknowns_amount;
-//    printf("unknowns: %d\n", unknowns);
-//    for (int i = 0; i < size; i++) {
-//        printf("%d ", unknown_indexes[i]);
-//    }
-//    printf("\n");
     linear_system_t* input_linear_system = make_linear_system(unknown_indexes, unknowns, block, size);
     uint8_t** A = input_linear_system->A;
     uint8_t** B = input_linear_system->B;
 
-
-//    for (int i = 0; i < 1; ++i) {
-//        for (int j = 0; j < 1; ++j) {
-//            printf("%d ",A[i][j]);
-//        }
-//    }
-//    printf("B:\n");
-//    for (int i = 0; i < unknowns; ++i) {
-//        for (int j = 0; j < word_size; ++j) {
-//            printf("%d ",B[i][j]);
-//        }
-//        printf("\n");
-//    }
-//    printf("\n");
-
     // Gaussian elimination 'in place'
     gf_256_gaussian_elimination(A, B, word_size, unknowns);
+
+    // Verbose
+    if (verbose) printf_linear_system(A, B, unknowns);
+
     // For each index marked as 'true', replace the data
     uint8_t temp = 0;
     for (int i = 0; i < size; i++) {
@@ -238,37 +260,6 @@ uint8_t** process_block(uint8_t** block, uint8_t size) {
 }
 
 /**
- * Help function. Returns a string stored in binary in the given block
- * @param block: the said block
- * @param size: the size of the block
- * @return str: the block's string converted into binary
- */
-char* block_to_string(uint8_t** block, uint32_t size) {
-    // Fait par jacques le 13/04/22
-
-    // Allocate memory for the returned string
-    char* str = malloc(sizeof(char) * (size*word_size));
-    if(str == NULL) return NULL;
-
-    // Record block elements in the string array
-    int index = 0;
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < word_size; j++) {
-            if (block[i][j] == 0) {
-                return str;
-            }
-            str[index] = (char) block[i][j];
-            index++;
-        }
-    }
-
-    // Add end of string
-    str[index] = '\0';
-
-    return str;
-}
-
-/**
  * Writes the block in binary in 'output_file'
  * @param output_file: the output file
  * @param block: the said block
@@ -276,7 +267,6 @@ char* block_to_string(uint8_t** block, uint32_t size) {
  * @param word_size: the size of each symbol in the block
  */
 void write_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t word_size) {
-
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < word_size; j++) {
             if ((output_file == stdout) || (output_file == stderr)) {
@@ -299,7 +289,6 @@ void write_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t word_
  * @param last_word_size: the size of the very last word of the last block
  */
 void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t word_size, uint8_t last_word_size) {
-
     for (int i = 0; i < size-1; i++) {
         for (int j = 0; j < word_size; j++) {
             if ((output_file == stdout) || (output_file == stderr)) {
@@ -381,6 +370,59 @@ file_data_t* get_file_info(char* filename) {
 }
 
 /**
+ * A function to help print n x m matrices in verbose mode
+ * @param matrix: the matrix to print
+ * @param n: number of lines
+ * @param m: number of columns
+ */
+void printf_matrix(uint8_t** matrix, uint8_t n, uint8_t m) {
+    printf("[");
+    for (int i = 0; i < n; i++) {
+        if (i != 0) printf(" [");
+        else printf("[");
+        for (int j = 0; j < m; j++) {
+            if (j != m-1) printf("%d ", matrix[i][j]);
+            else printf("%d", matrix[i][j]);
+        }
+        if (i != n-1) printf("]\n");
+        else printf("]");
+    }
+    printf("]\n");
+}
+
+// TODO: Sort une erreur de malloc !!!
+/**
+ * Help function. Returns a string stored in binary in the given block
+ * @param block: the said block
+ * @param size: the size of the block
+ * @return str: the block's string converted into binary
+ */
+char* block_to_string(uint8_t** block, uint32_t size) {
+    // Fait par jacques le 13/04/22
+
+    // Allocate memory for the returned string
+    char* str = malloc(sizeof(char) * (size * word_size));
+    if(str == NULL) return NULL;
+
+    // Record block elements in the string array
+    int index = 0;
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < word_size; j++) {
+            if (block[i][j] == 0) {
+                return str;
+            }
+            str[index] = (char) block[i][j];
+            index++;
+        }
+    }
+
+    // Add end of string
+    str[index] = '\0';
+
+    return str;
+}
+
+/**
  * Shows how to run a program
  * @param prog_name
  */
@@ -393,7 +435,6 @@ void usage(char* prog_name) {
     fprintf(stderr, "    -v : enable debugging messages. If not set, no such messages will be displayed (except error messages on failure)\n");
 }
 
-// TODO : déterminer à quoi sert cette fonction inutile (découverte de la fontion Neil ?)
 int parse_args(args_t* args, int argc, char* argv[]){
     memset(args, 0, sizeof(args_t));
 
@@ -461,7 +502,6 @@ int main(int argc, char* argv[]) {
     struct dirent *directory_entry;
     FILE *input_file;
     while ((directory_entry = readdir(args.input_dir))) {
-        printf("\n=============================================================================\n");
         // Ignore parent and current directory
         if (!strcmp(directory_entry->d_name, ".")) continue;
         if (!strcmp(directory_entry->d_name, "..")) continue;
@@ -473,30 +513,30 @@ int main(int argc, char* argv[]) {
         strcat(full_path, "/");
         strcat(full_path, directory_entry->d_name);
 
-        //==================================Open input File==========================//
+        // Setup verbose global variable
+        verbose = args.verbose;
 
+        //==================================Open input File==========================//
         input_file = fopen(full_path, "r");
         if (input_file == NULL) {
+            printf("\n========================================================================================================\n");
             fprintf(stderr, "Failed to open the input file %s: %s\n", full_path, strerror(errno));
             goto file_read_error;
         }
         if (args.verbose) {
             // This is a simple example of how to use the verbose mode
+            printf("\n========================================================================================================\n");
             fprintf(stderr, "Successfully opened the file %s\n", full_path);
         }
-
 
         // TODO: parse the input binary file, decode the encoded message with RLC and write the output in the output stream following the statement
 
         //==============================Get File Infos===============================//
-
         file_data = get_file_info(full_path);
-
         if(file_data == NULL){
             printf("Can't get file Infos");
             return -1;
         }
-
         if (args.verbose) {
             printf(">> seed : %d \n", *file_data->seed);
             printf(">> block_size : %d \n", *file_data->block_size);
@@ -507,25 +547,7 @@ int main(int argc, char* argv[]) {
 
         word_size = *file_data->word_size;
 
-        //
-        //TODO: avancer le curseur du fichier apres les 24 premiers Bytes (A voir finalement car peut etre que BigEndian pas de la buf)
-
-        //===================Create Buffeur of the readed file=========================//
-        fseek(input_file,0,SEEK_END);
-        long filelen = ftell(input_file);
-        rewind(input_file);
-        uint8_t* buf = malloc(sizeof(char)*filelen);
-        fread(buf,filelen,1, input_file);
-
-        if(args.verbose){
-            printf(">> brut binary data : \n");
-            for (int i = 24; i < filelen; i++) {
-                printf("%d ",buf[i]);
-            }
-        }
-
         //==========================Generate Matrix of coefficients====================//
-
         // Malloc inside function
         uint32_t nss = *file_data->redundancy;
         uint32_t nrs = *file_data->block_size;
@@ -535,44 +557,49 @@ int main(int argc, char* argv[]) {
                 printf("You have to generate coefficients before printing them!\n");
             }
             else {
-                printf("\n\n>> coefficients :\n");
-                printf("[");
-                for (int i = 0; i < nss; ++i) {
-                    if (i != 0) printf(" [");
-                    else printf("[");
-                    for (int j = 0; j < nrs; ++j) {
-                        printf("%d ", coeffs[i][j]);
-                    }
-                    if (i != nss-1) printf("]\n");
-                    else printf("]");
-                }
-                printf("]\n");
+                printf(">> coefficients :\n");
+                printf_matrix(coeffs, nss, nrs);
             }
         }
 
-        uint32_t step = (*file_data->word_size) * (*file_data->block_size + *file_data->redundancy);
+        uint32_t step = word_size * (*file_data->block_size + *file_data->redundancy);
 
+        //===================Create Buffeur of the readed file=========================//
+        fseek(input_file,0,SEEK_END);
+        long filelen = ftell(input_file);
+        rewind(input_file);
+        uint8_t* buf = malloc(sizeof(char)*filelen);
+        fread(buf,filelen,1, input_file);
+
+        if(args.verbose){
+            printf(">> binary data : \n");
+            for (int i = 24; i < filelen; i++) {
+                printf("%d ",buf[i]);
+            }
+            printf("\n");
+        }
 
         //================Write the name of the file in the output file================//
         //TODO: A FAIRE
 
         //============================Full or Uncompleted_block========================//
         double num = (double) (filelen - 24);
-        double den = (double)*file_data->word_size * ((double)*file_data->block_size + (double) *file_data->redundancy);
-        uint32_t nb_blocks = ceil(num/den); //TODO
+        double den = (double) word_size * ((double)*file_data->block_size + (double) *file_data->redundancy);
+        uint32_t nb_blocks = ceil(num/den);
         bool contains_uncomplete_block = false;
 
-        if(*file_data->message_size != (nb_blocks * (*file_data->block_size) * (*file_data->word_size))){
+        if(*file_data->message_size != (nb_blocks * (*file_data->block_size) * word_size)){
             nb_blocks--;
             contains_uncomplete_block = true;
             if(args.verbose){
-                printf("------------------------------------\nThis file contain uncomplete blocks\n");
+                printf("--------------------------------------------------------------------------------------------------------\n");
+                printf("This file contain uncomplete blocks\n\n");
             }
         }
         if(!contains_uncomplete_block){
-            printf("\nThis file doesn't contain uncomplete blocks\n");
+            printf("--------------------------------------------------------------------------------------------------------\n");
+            printf("\nThis file doesn't contain uncomplete blocks\n\n");
         }
-
 
         //=======================Write completes blocks in output file=================//
         int32_t readed = 0;
@@ -582,51 +609,27 @@ int main(int argc, char* argv[]) {
                 temps_buf[j] = buf[(i*step) + j + 24];
             }
             uint8_t** current_block = make_block(temps_buf, *file_data->block_size);
-            if(args.verbose){
-                printf("\n>> make_block %d :\n", i);
-                printf("[");
-                for (int j = 0; j < (*file_data->block_size + *file_data->redundancy); ++j) {
-                    if (j != 0) printf(" [");
-                    else printf("[");
-                    for (int k = 0; k < *file_data->word_size; ++k) {
-                        printf("%d ", current_block[j][k]);
-                    }
-                    if (j != (*file_data->block_size + *file_data->redundancy) - 1) printf("]\n");
-                    else printf("]");
-                }
-                printf("]\n");
-            }
             uint8_t** response = process_block(current_block,*file_data->block_size);
 
-            printf(">> processed_block %d :\n", i);
-            printf("[");
-            for (int j = 0; j < *file_data->block_size + *file_data->redundancy; ++j) {
-                if (j != 0) printf(" [");
-                else printf("[");
-                for (int k = 0; k < *file_data->word_size; ++k) {
-                    printf("%d ", response[j][k]);
-                }
-                if (j != (*file_data->block_size + *file_data->redundancy) - 1) printf("]\n");
-                else printf("]");
-            }
-            printf("]\n");
-            /*===================*/
-            if(args.verbose){
+            if (args.verbose) {
+                printf(">> processed block %d :\n", i);
+                printf_matrix(response, (*file_data->block_size + *file_data->redundancy), word_size);
                 printf(">> to_string :\n");
-                //TODO:print current_block
+//                char* str = block_to_string(response, *file_data->block_size);
+//                printf("%s", str);
+//                free(str);
+                printf("\n\n--------------------------------------------------------------------------------------------------------\n");
             }
-            write_block(args.output_stream,response,*file_data->block_size,*file_data->word_size);
-            printf("\n");
+
+            write_block(args.output_stream,response,*file_data->block_size,word_size);
 
             readed += step;
             free(temps_buf);
         }
 
 
-
         //================Calculate lost symbols and write it to output================//
-
-        uint32_t readed_symbols = (*file_data->block_size) * (*file_data->word_size) * nb_blocks;
+        uint32_t readed_symbols = (*file_data->block_size) * word_size * nb_blocks;
         uint8_t* temps_buf = malloc(sizeof(uint8_t) * filelen-24-readed);
         for (int j = 0; j < filelen-24-readed; ++j) {
             temps_buf[j] = buf[24+readed + j];
@@ -635,37 +638,21 @@ int main(int argc, char* argv[]) {
         uint32_t nb_remaining_symbols = ((filelen-24-readed)/word_size)-(*file_data->redundancy);
         if (contains_uncomplete_block){
             uint8_t** last_block = make_block(temps_buf, nb_remaining_symbols);
-            printf("\n>> last_block_size: %d\n", nb_remaining_symbols);
-            printf(">> last_make_block :\n");
-            printf("[");
-            for (int j = 0; j < ((filelen-24-readed)/ *file_data->word_size); ++j) {
-                if (j != 0) printf(" [");
-                else printf("[");
-                for (int k = 0; k <  *file_data->word_size; ++k) {
-                    printf("%d ", last_block[j][k]);
-                }
-                if (j != ((filelen-24-readed)/ *file_data->word_size) - 1) printf("]\n");
-                else printf("]");
-            }
-            printf("]\n");
-
             uint8_t** decoded = process_block(last_block,nb_remaining_symbols);
-            printf(">> last_processed_block:\n");
-            printf("[");
-            for (int j = 0; j < (filelen-24-readed)/ *file_data->word_size; ++j) {
-                if (j != 0) printf(" [");
-                else printf("[");
-                for (int k = 0; k < *file_data->word_size; ++k) {
-                    printf("%d ", decoded[j][k]);
-                }
-                if (j != ((filelen-24-readed)/ *file_data->word_size) - 1) printf("]\n");
-                else printf("]");
-            }
-            printf("]\n");
-            uint8_t padding = readed_symbols + nb_remaining_symbols * (*file_data->word_size) - (*file_data->message_size);
-            uint8_t true_length_last_symbol = (*file_data->word_size) - padding;
+            uint8_t padding = readed_symbols + nb_remaining_symbols * word_size - (*file_data->message_size);
+            uint8_t true_length_last_symbol = word_size - padding;
 
-            write_last_block(args.output_stream,decoded,nb_remaining_symbols,(*file_data->word_size),true_length_last_symbol);
+            if (args.verbose) {
+                printf(">> last processed block :\n");
+                printf_matrix(last_block, (filelen-24-readed)/ word_size, word_size);
+                printf(">> to_string :\n");
+//                char* str = block_to_string(decoded, *file_data->block_size);
+//                printf("%s", str);
+//                free(str);
+                printf("\n========================================================================================================\n");
+            }
+
+            write_last_block(args.output_stream,decoded,nb_remaining_symbols,word_size,true_length_last_symbol);
         }
 
 
