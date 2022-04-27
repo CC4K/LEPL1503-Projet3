@@ -5,12 +5,10 @@
 ---
 ## Project goals
 
----
 This project is an **Forward Erasure Correction** (FEC) algorithm capable of fixing packet loss in network transmissions.
 Given the said algorithm in Python, we were tasked to translate it in C and use threads to improve it.
 ## How does this program works ?
 
----
 The program takes binary files in input.
 
 The 24 first bytes of the file gives us :
@@ -29,7 +27,6 @@ Then the same is done with the very last block (if there is one).
 Finally, the program can close the binary file.
 ## How to run the program ?
 
----
 First you must have your binary files in the `input_binary/` directory.
 You can then compile the code using these commands.
 
@@ -45,9 +42,7 @@ Here are some of the parameters you can use with the base command :
 - `-v` : to set verbose mode to 'true' and show steps of the program in your terminal
 ## Threads
 
----
 TODO : TODO
 ## Performance results
 
----
 TODO : TODO : TODO
