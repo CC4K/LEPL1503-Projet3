@@ -96,6 +96,9 @@ void test_make_block() {
             CU_ASSERT_EQUAL(current_block[i][j],correct_block[i][j]);
         }
     }
+    free(current_block);
+    free(correct_block);
+    free(temps_buf);
 }
 
 int main() {

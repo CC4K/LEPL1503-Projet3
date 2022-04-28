@@ -49,6 +49,8 @@ void test_gen_coefs(){
         }
         printf("\n");
     }
+    free(correct_coeffs);
+    free(coeffs);
 }
 
 int main() {
