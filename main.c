@@ -133,10 +133,10 @@ uint8_t** make_block(uint8_t* data, uint8_t size) {
 
     //=================================================================================
     //TODO: ToDelete
-    printf("data : %d\n",*data);
-    printf("size : %d\n",size);
-    printf("block :\n");
-    printf_matrix(block, (size + (*(file_data->redundancy))), word_size);
+//    printf("data : %d\n",*data);
+//    printf("size : %d\n",size);
+//    printf("block :\n");
+//    printf_matrix(block, (size + (*(file_data->redundancy))), word_size);
     //=================================================================================
 
     return block;
@@ -540,8 +540,6 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "Successfully opened the file %s\n", full_path);
         }
 
-        // TODO: parse the input binary file, decode the encoded message with RLC and write the output in the output stream following the statement
-
         //==============================Get File Infos===============================//
         file_data = get_file_info(full_path);
         if (file_data == NULL) {
@@ -582,16 +580,24 @@ int main(int argc, char* argv[]) {
         uint8_t* buf = malloc(sizeof(char)*filelen);
         fread(buf,filelen,1, input_file);
 
-        if(args.verbose){
+        if (args.verbose) {
             printf(">> binary data : \n");
             for (int i = 24; i < filelen; i++) {
-                printf("%d ",buf[i]);
+                printf("%d ", buf[i]);
             }
             printf("\n");
         }
 
         //================Write the name of the file in the output file================//
-        //TODO: A FAIRE
+
+        // TODO: C pas possible là
+//        uint32_t bytes1 = htobe32(strlen(directory_entry->d_name));
+//        uint64_t bytes2 = htobe64(*file_data->message_size);
+
+        fprintf(args.output_stream, "%c", htobe32(strlen(directory_entry->d_name)));
+        fprintf(args.output_stream, "%c", htobe32(*file_data->message_size));
+
+        fprintf(args.output_stream, "%s", directory_entry->d_name);
 
         //============================Full or Uncompleted_block========================//
         double num = (double) (filelen - 24);
@@ -621,14 +627,14 @@ int main(int argc, char* argv[]) {
             }
             uint8_t** current_block = make_block(temps_buf, *file_data->block_size);
             uint8_t** response = process_block(current_block,*file_data->block_size);
-            
+
             //=================================================================================
             //TODO: ToDelete
-            printf("temps_buf\n[");
-            for (int j = 0; j < step; ++j) {
-                printf(" %" PRIu8, temps_buf[j]);
-            }
-            printf(" ]\n");
+//            printf("temps_buf\n[");
+//            for (int j = 0; j < step; ++j) {
+//                printf(" %" PRIu8, temps_buf[j]);
+//            }
+//            printf(" ]\n");
             //=================================================================================
 
             if (args.verbose) {
