@@ -54,6 +54,10 @@ testsFLW: tests/test_find_lost_words.c
 	$(CC) -o testflw tests/test_find_lost_words.c system.c tinymt32.c -lcunit
 	valgrind ./testflw
 
+testsWriteBlock: tests/test_write_block.c
+	$(CC) -o testwriteblock tests/test_write_block.c system.c tinymt32.c -lcunit
+	./testwriteblock input_binary/ -f test.txt
+
 tests_short: tests/test_tinymt32.c
 	$(CC) -Wall -Werror -o test_tinymt32 tests/test_tinymt32.c system.c tinymt32.c -lcunit -lm
 	$(CC) -Wall -Werror -o main main.c system.c tinymt32.c

@@ -296,7 +296,6 @@ uint8_t** process_block(uint8_t** block, uint8_t size) {
  * @param word_size: the size of each symbol in the block
  */
 void write_block(FILE* output_file, uint8_t** block, uint32_t size, uint64_t word_size) {
-    printf("good1");
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < word_size; j++) {
             if ((output_file == stdout) || (output_file == stderr)) {
