@@ -295,9 +295,12 @@ uint8_t** process_block(uint8_t** block, uint8_t size) {
  * @param size: the size of the block
  * @param word_size: the size of each symbol in the block
  */
-void write_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t word_size) {
+void write_block(FILE* output_file, uint8_t** block, uint32_t size, uint64_t word_size) {
+    printf("good1");
     for (int i = 0; i < size; i++) {
+        printf("good for size %d", i);
         for (int j = 0; j < word_size; j++) {
+            printf("good for word_size %d", i);
             if ((output_file == stdout) || (output_file == stderr)) {
                 printf("%c", (char) block[i][j]);
             }
@@ -621,26 +624,19 @@ int main(int argc, char* argv[]) {
             }
             uint8_t** current_block = make_block(temps_buf, *file_data->block_size);
             uint8_t** response = process_block(current_block,*file_data->block_size);
-            
-            //=================================================================================
-            //TODO: ToDelete
-            printf("temps_buf\n[");
-            for (int j = 0; j < step; ++j) {
-                printf(" %" PRIu8, temps_buf[j]);
-            }
-            printf(" ]\n");
-            //=================================================================================
+
 
             if (args.verbose) {
                 printf(">> processed block %d :\n", i);
+                printf(">> block_size %d :\n", *file_data->block_size);
                 printf_matrix(response, (*file_data->block_size + *file_data->redundancy), word_size);
                 printf(">> to_string :\n");
 //                char* str = block_to_string(response, *file_data->block_size);
 //                printf("%s", str);
-//                free(str);
-                printf("\n\n--------------------------------------------------------------------------------------------------------\n");
+               printf("\n\n--------------------------------------------------------------------------------------------------------\n");
             }
-
+            printf("block size %" PRIu32 "\n",*file_data->block_size);
+            printf("word_size %" PRIu64 "\n", word_size);
             write_block(args.output_stream,response,*file_data->block_size,word_size);
 
             readed += step;
@@ -668,10 +664,8 @@ int main(int argc, char* argv[]) {
                 printf(">> to_string :\n");
 //                char* str = block_to_string(decoded, *file_data->block_size);
 //                printf("%s", str);
-//                free(str);
                 printf("\n========================================================================================================\n");
             }
-
             write_last_block(args.output_stream,decoded,nb_remaining_symbols,word_size,true_length_last_symbol);
         }
 

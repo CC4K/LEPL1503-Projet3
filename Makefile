@@ -17,10 +17,20 @@ clean:
 	rm -f main
 	rm -f output.txt
 
-tests: tests/test_tinymt32.c
+
+tests: tests/
 	$(CC) -o test_tinymt32 tests/test_tinymt32.c system.c tinymt32.c -lcunit
 	$(CC) -o main main.c system.c tinymt32.c -lm
+	$(CC) -o testmls tests/test_make_linear_system.c system.c tinymt32.c -lcunit
+	$(CC) -o testgencoeffs tests/test_gen_coeffs.c system.c tinymt32.c -lcunit
+	$(CC) -o testbts tests/test_block_to_string.c system.c tinymt32.c -lcunit
+	$(CC) -o testmakeblock tests/test_make_block.c system.c tinymt32.c -lcunit
+	valgrind ./testgencoeffs
+	valgrind ./testbts
+	valgrind ./testmls
+	valgrind ./testmakeblock
 	valgrind ./test_tinymt32
+
 
 testsMLS: tests/test_make_linear_system.c
 	$(CC) -o testmls tests/test_make_linear_system.c system.c tinymt32.c -lcunit

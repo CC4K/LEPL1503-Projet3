@@ -16,7 +16,6 @@ uint8_t** make_block(uint8_t* data, uint8_t size) {
     // Fait par Jacques le 12/04/22
 
     // Allocate memory for the returned block
-    printf("size %d\n",size);
     uint8_t** block = malloc(sizeof(uint8_t*) * (size + 4));
     if(block == NULL) return NULL;
     for (int i = 0; i < (size + 4); i++) {
@@ -28,12 +27,6 @@ uint8_t** make_block(uint8_t* data, uint8_t size) {
         for (int j = 0; j < 3; j++) {
             block[i][j] = data[i * 3 + j];
         }
-    }
-    for (int i = 0; i < (size + 4); ++i) {
-        for (int j = 0; j < 3; ++j) {
-            printf("block: %d\n",block[i][j]);
-        }
-        printf("\n");
     }
 
     return block;
