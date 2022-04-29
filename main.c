@@ -398,7 +398,6 @@ file_data_t* get_file_info(char* filename) {
     return output;
 }
 
-// TODO: Sort une erreur de malloc !!!
 /**
  * Help function. Returns a string stored in binary in the given block
  * @param block: the said block

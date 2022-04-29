@@ -38,6 +38,8 @@ tests: tests/
 	./testwlb input_binary/ -f
 	$(CC) -o testgaussian tests/test_gaussian.c system.c tinymt32.c -lcunit
 	./testgaussian
+	$(CC) -o testgfi tests/test_get_file_info.c system.c tinymt32.c -lcunit
+	./testgfi
 
 
 testsMLS: tests/test_make_linear_system.c
@@ -71,6 +73,10 @@ testsWLB: tests/test_write_last_block.c
 testsGaussian: tests/test_gaussian.c
 	$(CC) -o testgaussian tests/test_gaussian.c system.c tinymt32.c -lcunit
 	./testgaussian
+
+testsGFI: tests/test_get_file_info.c
+	$(CC) -o testgfi tests/test_get_file_info.c system.c tinymt32.c -lcunit
+	./testgfi
 
 tests_short: tests/test_tinymt32.c
 	$(CC) -Wall -Werror -o test_tinymt32 tests/test_tinymt32.c system.c tinymt32.c -lcunit -lm
