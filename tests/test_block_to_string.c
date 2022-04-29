@@ -16,12 +16,9 @@ uint32_t word_size = 3;
 
 
 char* block_to_string(uint8_t** block, uint32_t size) {
-    // Fait par jacques le 13/04/22
 
     // Allocate memory for the returned string
-    printf(">>>Size from block_to_string:\n");
-    printf("%" PRIu32 "\n", size);
-    char* str = malloc(sizeof(char) * (size * word_size));
+    char* str = malloc(sizeof(char) * ((size * word_size)+1));
     if(str == NULL) return NULL;
 
     // Record block elements in the string array
@@ -39,7 +36,6 @@ char* block_to_string(uint8_t** block, uint32_t size) {
 
     // Add end of string
     str[index] = '\0';
-    printf("Return str: %s",str);
     return str;
 }
 
@@ -77,7 +73,6 @@ void test_BTS() {
         CU_ASSERT_EQUAL(str[i],correct_str[i]);
     }
     free(current_block);
-    free(correct_str);
     free(str);
 
 }

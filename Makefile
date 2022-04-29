@@ -20,18 +20,22 @@ clean:
 
 tests: tests/
 	$(CC) -o test_tinymt32 tests/test_tinymt32.c system.c tinymt32.c -lcunit
+	./test_tinymt32
 	$(CC) -o main main.c system.c tinymt32.c -lm
 	$(CC) -o testmls tests/test_make_linear_system.c system.c tinymt32.c -lcunit
+	./testmls
 	$(CC) -o testgencoeffs tests/test_gen_coeffs.c system.c tinymt32.c -lcunit
+	./testgencoeffs
 	$(CC) -o testbts tests/test_block_to_string.c system.c tinymt32.c -lcunit
+	./testbts
 	$(CC) -o testmakeblock tests/test_make_block.c system.c tinymt32.c -lcunit
-	$(CC) -o testflw tests/test_find_lost_words.C system.c tinymt32.c -lcunit
-	valgrind ./testgencoeffs
-	valgrind ./testbts
-	valgrind ./testmls
-	valgrind ./testmakeblock
-	valgrind ./testflw
-	valgrind ./test_tinymt32
+	./testmakeblock
+	$(CC) -o testflw tests/test_find_lost_words.c system.c tinymt32.c -lcunit
+	./testflw
+	$(CC) -o testwriteblock tests/test_write_block.c system.c tinymt32.c -lcunit
+	./testwriteblock input_binary/ -f
+	$(CC) -o testwlb tests/test_write_last_block.c system.c tinymt32.c -lcunit
+	./testwlb input_binary/ -f
 
 
 testsMLS: tests/test_make_linear_system.c
@@ -48,7 +52,7 @@ testsMakeBlock: tests/test_make_block.c
 
 testsBTS: tests/test_block_to_string.c
 	$(CC) -o testbts tests/test_block_to_string.c system.c tinymt32.c -lcunit
-	valgrind ./testbts
+	valgrind --leak-check=full --track-origins=yes ./testbts
 
 testsFLW: tests/test_find_lost_words.c
 	$(CC) -o testflw tests/test_find_lost_words.c system.c tinymt32.c -lcunit
@@ -56,7 +60,11 @@ testsFLW: tests/test_find_lost_words.c
 
 testsWriteBlock: tests/test_write_block.c
 	$(CC) -o testwriteblock tests/test_write_block.c system.c tinymt32.c -lcunit
-	./testwriteblock input_binary/ -f test.txt
+	./testwriteblock input_binary/ -f
+
+testsWLB: tests/test_write_last_block.c
+	$(CC) -o testwlb tests/test_write_last_block.c system.c tinymt32.c -lcunit
+	./testwlb input_binary/ -f
 
 tests_short: tests/test_tinymt32.c
 	$(CC) -Wall -Werror -o test_tinymt32 tests/test_tinymt32.c system.c tinymt32.c -lcunit -lm
