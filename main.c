@@ -133,10 +133,10 @@ uint8_t** make_block(uint8_t* data, uint8_t size) {
 
     //=================================================================================
     //TODO: ToDelete
-    printf("data : %d\n",*data);
-    printf("size : %d\n",size);
-    printf("block :\n");
-    printf_matrix(block, (size + (*(file_data->redundancy))), word_size);
+//    printf("data : %d\n",*data);
+//    printf("size : %d\n",size);
+//    printf("block :\n");
+//    printf_matrix(block, (size + (*(file_data->redundancy))), word_size);
     //=================================================================================
 
     return block;
@@ -298,9 +298,7 @@ uint8_t** process_block(uint8_t** block, uint8_t size) {
 void write_block(FILE* output_file, uint8_t** block, uint32_t size, uint64_t word_size) {
     printf("good1");
     for (int i = 0; i < size; i++) {
-        printf("good for size %d", i);
         for (int j = 0; j < word_size; j++) {
-            printf("good for word_size %d", i);
             if ((output_file == stdout) || (output_file == stderr)) {
                 printf("%c", (char) block[i][j]);
             }
@@ -594,7 +592,15 @@ int main(int argc, char* argv[]) {
         }
 
         //================Write the name of the file in the output file================//
-        //TODO: A FAIRE
+
+        // TODO: C pas possible là
+//        uint32_t bytes1 = htobe32(strlen(directory_entry->d_name));
+//        uint64_t bytes2 = htobe64(*file_data->message_size);
+
+        fprintf(args.output_stream, "%c", htobe32(strlen(directory_entry->d_name)));
+        fprintf(args.output_stream, "%c", htobe32(*file_data->message_size));
+
+        fprintf(args.output_stream, "%s", directory_entry->d_name);
 
         //============================Full or Uncompleted_block========================//
         double num = (double) (filelen - 24);
@@ -628,15 +634,14 @@ int main(int argc, char* argv[]) {
 
             if (args.verbose) {
                 printf(">> processed block %d :\n", i);
-                printf(">> block_size %d :\n", *file_data->block_size);
                 printf_matrix(response, (*file_data->block_size + *file_data->redundancy), word_size);
                 printf(">> to_string :\n");
 //                char* str = block_to_string(response, *file_data->block_size);
 //                printf("%s", str);
-               printf("\n\n--------------------------------------------------------------------------------------------------------\n");
+//                free(str);
+                printf("\n\n--------------------------------------------------------------------------------------------------------\n");
             }
-            printf("block size %" PRIu32 "\n",*file_data->block_size);
-            printf("word_size %" PRIu64 "\n", word_size);
+
             write_block(args.output_stream,response,*file_data->block_size,word_size);
 
             readed += step;
@@ -664,8 +669,10 @@ int main(int argc, char* argv[]) {
                 printf(">> to_string :\n");
 //                char* str = block_to_string(decoded, *file_data->block_size);
 //                printf("%s", str);
+//                free(str);
                 printf("\n========================================================================================================\n");
             }
+
             write_last_block(args.output_stream,decoded,nb_remaining_symbols,word_size,true_length_last_symbol);
         }
 
