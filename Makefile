@@ -36,6 +36,8 @@ tests: tests/
 	./testwriteblock input_binary/ -f
 	$(CC) -o testwlb tests/test_write_last_block.c system.c tinymt32.c -lcunit
 	./testwlb input_binary/ -f
+	$(CC) -o testgaussian tests/test_gaussian.c system.c tinymt32.c -lcunit
+	./testgaussian
 
 
 testsMLS: tests/test_make_linear_system.c
@@ -65,6 +67,10 @@ testsWriteBlock: tests/test_write_block.c
 testsWLB: tests/test_write_last_block.c
 	$(CC) -o testwlb tests/test_write_last_block.c system.c tinymt32.c -lcunit
 	./testwlb input_binary/ -f
+
+testsGaussian: tests/test_gaussian.c
+	$(CC) -o testgaussian tests/test_gaussian.c system.c tinymt32.c -lcunit
+	./testgaussian
 
 tests_short: tests/test_tinymt32.c
 	$(CC) -Wall -Werror -o test_tinymt32 tests/test_tinymt32.c system.c tinymt32.c -lcunit -lm
