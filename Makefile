@@ -25,10 +25,12 @@ tests: tests/
 	$(CC) -o testgencoeffs tests/test_gen_coeffs.c system.c tinymt32.c -lcunit
 	$(CC) -o testbts tests/test_block_to_string.c system.c tinymt32.c -lcunit
 	$(CC) -o testmakeblock tests/test_make_block.c system.c tinymt32.c -lcunit
+	$(CC) -o testflw tests/test_find_lost_words.C system.c tinymt32.c -lcunit
 	valgrind ./testgencoeffs
 	valgrind ./testbts
 	valgrind ./testmls
 	valgrind ./testmakeblock
+	valgrind ./testflw
 	valgrind ./test_tinymt32
 
 
@@ -47,6 +49,10 @@ testsMakeBlock: tests/test_make_block.c
 testsBTS: tests/test_block_to_string.c
 	$(CC) -o testbts tests/test_block_to_string.c system.c tinymt32.c -lcunit
 	valgrind ./testbts
+
+testsFLW: tests/test_find_lost_words.c
+	$(CC) -o testflw tests/test_find_lost_words.c system.c tinymt32.c -lcunit
+	valgrind ./testflw
 
 tests_short: tests/test_tinymt32.c
 	$(CC) -Wall -Werror -o test_tinymt32 tests/test_tinymt32.c system.c tinymt32.c -lcunit -lm
