@@ -31,7 +31,7 @@ void write_block(FILE* output_file, uint8_t** block, uint32_t size, uint64_t wor
 
 void test_write_block() {
 
-    FILE* output = fopen("testwriteblock.txt", "w+");
+    FILE* output = fopen("tests/test_write_block.txt", "w+");
     uint8_t** current_block = malloc(sizeof(uint8_t*)*7);
     for (int i = 0; i < 7; ++i) {
         current_block[i] = malloc(sizeof(uint8_t)*3);

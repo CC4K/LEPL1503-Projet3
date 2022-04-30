@@ -6,9 +6,9 @@
 //================= Libraries and imports ===================//
 #include <malloc.h>
 #include <string.h>
-#include "headers/system.h"
-#include "headers/gf256_tables.h"
-#include "headers/tinymt32.h"
+#include "../headers/system.h"
+#include "../headers/gf256_tables.h"
+#include "../headers/tinymt32.h"
 
 //====================== Functions ==========================//
 

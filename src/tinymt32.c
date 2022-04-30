@@ -14,7 +14,7 @@
  * The 3-clause BSD License is applied to this software, see
  * LICENSE.txt
  */
-#include "headers/tinymt32.h"
+#include "../headers/tinymt32.h"
 #include <stdint.h>
 #include <inttypes.h>
 

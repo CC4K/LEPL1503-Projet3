@@ -39,7 +39,7 @@ void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t 
 
 void test_WLB() {
 
-    FILE* output = fopen("testwritelastblock.txt", "w+");
+    FILE* output = fopen("tests/test_write_last_block.txt", "w+");
     uint8_t** current_block = malloc(sizeof(uint8_t*)*6);
     for (int i = 0; i < 6; ++i) {
         current_block[i] = malloc(sizeof(uint8_t)*3);
