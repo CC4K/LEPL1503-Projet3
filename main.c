@@ -12,21 +12,14 @@
 #include <errno.h>
 #include <getopt.h>
 #include <limits.h>
-#include <inttypes.h>
 #include <stdbool.h>
-#include <unistd.h>
 #include <endian.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
-#include <sys/mman.h>
-#include "headers/tinymt32.h"
-#include "headers/system.h"
 #include <math.h>
 #include <time.h>
+#include "headers/system.h"
 
 //====================== Structures =========================//
-
 // Structure for program args
 typedef struct {
     DIR* input_dir;
@@ -37,7 +30,7 @@ typedef struct {
     uint8_t** coeffs;
 } args_t;
 
-// Structure for file informations
+// Structure to store file information
 typedef struct {
     uint32_t* seed;
     uint32_t* block_size;
@@ -46,13 +39,13 @@ typedef struct {
     uint64_t* message_size;
 } file_data_t;
 
-// Structure for missing words
+// Structure to store missing words emplacements
 typedef struct {
     uint8_t* unknown_map;
     uint8_t unknowns_amount;
 } unknowns_t;
 
-// Structure for linear system
+// Structure to store linear system matrices
 typedef struct {
     uint8_t** A;
     uint8_t** B;
@@ -72,6 +65,8 @@ bool verbose = false;
  * @param m: number of columns
  */
 void printf_matrix(uint8_t** matrix, uint8_t n, uint8_t m) {
+    // Made by Cédric
+
     printf("[");
     for (int i = 0; i < n; i++) {
         if (i != 0) printf(" [");
@@ -93,6 +88,8 @@ void printf_matrix(uint8_t** matrix, uint8_t n, uint8_t m) {
  * @param nb_unk: size of A
  */
 void printf_linear_system(uint8_t** A, uint8_t** B, uint8_t nb_unk) {
+    // Made by Cédric
+
     printf(">> linear_system :\n");
     for (int i = 0; i < nb_unk; i++) {
         printf("[ ");
@@ -115,7 +112,7 @@ void printf_linear_system(uint8_t** A, uint8_t** B, uint8_t nb_unk) {
  * @return block: the built block in the form of a matrix (one line = one symbol)
  */
 uint8_t** make_block(uint8_t* data, uint8_t size) {
-    // Fait par Jacques le 12/04/22
+    // Made by Jacques
 
     // Allocate memory for the returned block
     uint8_t** block = malloc(sizeof(uint8_t*) * (size + *(file_data->redundancy)));
@@ -131,14 +128,6 @@ uint8_t** make_block(uint8_t* data, uint8_t size) {
         }
     }
 
-    //=================================================================================
-    //TODO: ToDelete
-//    printf("data : %d\n",*data);
-//    printf("size : %d\n",size);
-//    printf("block :\n");
-//    printf_matrix(block, (size + (*(file_data->redundancy))), word_size);
-    //=================================================================================
-
     return block;
 }
 
@@ -152,7 +141,9 @@ uint8_t** make_block(uint8_t* data, uint8_t size) {
  * @return unknwowns: the number of lost source symbols
  */
 unknowns_t* find_lost_words(uint8_t** block, uint8_t size) {
-    // Initialize an array of boolean of size 'size' to false & the unknowns to 0
+    // Made by Cédric
+
+    // Initialize an array of boolean of size 'size' to false & the amount of unknowns to 0
     uint8_t* unknown_indexes = malloc(sizeof(uint8_t) * size);
     if (unknown_indexes == NULL) return NULL;
     for (int i = 0; i < size; i++) {
@@ -202,9 +193,9 @@ unknowns_t* find_lost_words(uint8_t** block, uint8_t size) {
  * @return B: the independents terms vector. Each element of B is the same size as a data vector (packet)
  */
 linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, uint8_t** current_block, uint8_t block_size) {
-    // Crée par Romain le 15/04/22
+    // Made by Romain
 
-    // Allocate memory for the two matrices
+    // Allocate memory for the two matrices A and B
     uint8_t** A = malloc(sizeof(uint8_t*) * nb_unk);
     if (A == NULL) return NULL;
     for (size_t i = 0; i < nb_unk; ++i) {
@@ -242,7 +233,7 @@ linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, ui
         printf(">> size : %d\n", nb_unk);
     }
 
-    // Allocate memory to store the results in a struct and return it
+    // Allocate memory to the structure that stores the results and return it
     linear_system_t* output = malloc(sizeof(linear_system_t));
     if (output == NULL) return NULL;
     output->A = A;
@@ -259,7 +250,7 @@ linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, ui
  * @return block: the solved block
  */
 uint8_t** process_block(uint8_t** block, uint8_t size) {
-    // Crée par Cédric le 13/04/22
+    // Made by Cédric
 
     // Import the data from the other functions
     unknowns_t* input_unknowns = find_lost_words(block, size);
@@ -284,7 +275,6 @@ uint8_t** process_block(uint8_t** block, uint8_t size) {
         }
     }
 
-    // Return the solved block
     return block;
 }
 
@@ -299,7 +289,7 @@ void write_block(FILE* output_file, uint8_t** block, uint32_t size, uint64_t wor
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < word_size; j++) {
             if ((output_file == stdout) || (output_file == stderr)) {
-                printf("%c", (char) block[i][j]);
+                if (!verbose) printf("%c", (char) block[i][j]);
             }
             else {
                 fprintf(output_file, "%c", (char)(block[i][j]));
@@ -317,21 +307,21 @@ void write_block(FILE* output_file, uint8_t** block, uint32_t size, uint64_t wor
  * @param word_size: the size of a 'full' symbol
  * @param last_word_size: the size of the very last word of the last block
  */
-void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t word_size, uint8_t last_word_size) {
+void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint64_t word_size, uint8_t last_word_size) {
     for (int i = 0; i < size-1; i++) {
         for (int j = 0; j < word_size; j++) {
             if ((output_file == stdout) || (output_file == stderr)) {
-                printf("%c", (char) block[i][j]);
+                if (!verbose) printf("%c", (char) block[i][j]);
             }
             else {
-                fprintf(output_file, "%c",  block[i][j]);
+                fprintf(output_file, "%c", (char) block[i][j]);
             }
         }
     }
 
     for (int i = 0; i < last_word_size; i++) {
         if ((output_file == stdout) || (output_file == stderr)) {
-            printf("%c", (char) block[size - 1][i]);
+            if (!verbose) printf("%c", (char) block[size - 1][i]);
         }
         else {
             fprintf(output_file, "%c", (char) block[size - 1][i]);
@@ -352,7 +342,7 @@ void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t 
  *                                 nor the data listed above
  */
 file_data_t* get_file_info(char* filename) {
-    // Fait par Jacques le 15/04/22
+    // Made by Jacques
 
     // Allocate memory for the returned data
     file_data_t* output = malloc(sizeof(file_data_t));
@@ -405,7 +395,7 @@ file_data_t* get_file_info(char* filename) {
  * @return str: the block's string converted into binary
  */
 char* block_to_string(uint8_t** block, uint32_t size) {
-    // Fait par jacques le 13/04/22
+    // Made by Jacques
 
     // Allocate memory for the returned string
     char* str = malloc(sizeof(char) * ((size * word_size)+1));
@@ -415,7 +405,10 @@ char* block_to_string(uint8_t** block, uint32_t size) {
     int index = 0;
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < word_size; j++) {
+            // Stop at the first 0 we meet
             if (block[i][j] == 0) {
+                // Add end of string and return
+                str[index] = '\0';
                 return str;
             }
             str[index] = (char) block[i][j];
@@ -423,9 +416,8 @@ char* block_to_string(uint8_t** block, uint32_t size) {
         }
     }
 
-    // Add end of string
+    // Add end of string and return
     str[index] = '\0';
-
     return str;
 }
 
@@ -494,21 +486,17 @@ int parse_args(args_t* args, int argc, char* argv[]){
 }
 
 //===================== MAIN FUNCTION =======================//
-
 int main(int argc, char* argv[]) {
+    // Variables to calculate time taken by the program
     clock_t t;
     t = clock();
 
+    // Reading user arguments
     args_t args;
     int err = parse_args(&args, argc, argv);
     if (err == -1) exit(EXIT_FAILURE);
     else if (err == 1) exit(EXIT_SUCCESS);
 
-    // The following lines (and every code already present in this skeleton) can be removed, it is just an example to show you how to use the program arguments
-    fprintf(stderr, "number of threads executing the RLC decoding algorithm in parallel: %" PRIu32 "\n", args.nb_threads);
-    fprintf(stderr, "verbose mode: %s\n", args.verbose ? "enabled" : "disabled");
-
-    // This is an example of how to open the instance files of the input directory. You may move/edit it during the project
     struct dirent *directory_entry;
     FILE *input_file;
     while ((directory_entry = readdir(args.input_dir))) {
@@ -520,7 +508,6 @@ int main(int argc, char* argv[]) {
         char full_path[PATH_MAX];
         memset(full_path, 0, sizeof(char) * PATH_MAX);
         strcpy(full_path, args.input_dir_path);
-        strcat(full_path, "/");
         strcat(full_path, directory_entry->d_name);
 
         // Setup verbose global variable
@@ -529,17 +516,15 @@ int main(int argc, char* argv[]) {
         //==================================Open input File==========================//
         input_file = fopen(full_path, "r");
         if (input_file == NULL) {
-            printf("\n========================================================================================================\n");
+            printf("========================================================================================================\n");
             fprintf(stderr, "Failed to open the input file %s: %s\n", full_path, strerror(errno));
             goto file_read_error;
         }
-        if (args.verbose) {
+        if (verbose) {
             // This is a simple example of how to use the verbose mode
-            printf("\n========================================================================================================\n");
+            printf("========================================================================================================\n");
             fprintf(stderr, "Successfully opened the file %s\n", full_path);
         }
-
-        // TODO: parse the input binary file, decode the encoded message with RLC and write the output in the output stream following the statement
 
         //==============================Get File Infos===============================//
         file_data = get_file_info(full_path);
@@ -547,7 +532,7 @@ int main(int argc, char* argv[]) {
             printf("Can't get file Infos");
             return -1;
         }
-        if (args.verbose) {
+        if (verbose) {
             printf(">> seed : %d \n", *file_data->seed);
             printf(">> block_size : %d \n", *file_data->block_size);
             printf(">> word_size : %d \n", *file_data->word_size);
@@ -555,6 +540,7 @@ int main(int argc, char* argv[]) {
             printf(">> message_size : %lu\n", *file_data->message_size);
         }
 
+        // Setup word_size global variable
         word_size = *file_data->word_size;
 
         //==========================Generate Matrix of coefficients====================//
@@ -562,8 +548,8 @@ int main(int argc, char* argv[]) {
         uint32_t nss = *file_data->redundancy;
         uint32_t nrs = *file_data->block_size;
         coeffs = gen_coefs(*file_data->seed,nss, nrs);
-        if(args.verbose){
-            if(coeffs == NULL){
+        if(verbose){
+            if (coeffs == NULL) {
                 printf("You have to generate coefficients before printing them!\n");
             }
             else {
@@ -581,24 +567,13 @@ int main(int argc, char* argv[]) {
         uint8_t* buf = malloc(sizeof(char)*filelen);
         fread(buf,filelen,1, input_file);
 
-        if(args.verbose){
+        if(verbose){
             printf(">> binary data : \n");
             for (int i = 24; i < filelen; i++) {
                 printf("%d ",buf[i]);
             }
             printf("\n");
         }
-
-        //================Write the name of the file in the output file================//
-
-        // TODO: C pas possible là
-//        uint32_t bytes1 = htobe32(strlen(directory_entry->d_name));
-//        uint64_t bytes2 = htobe64(*file_data->message_size);
-
-        fprintf(args.output_stream, "%c", htobe32(strlen(directory_entry->d_name)));
-        fprintf(args.output_stream, "%c", htobe32(*file_data->message_size));
-
-        fprintf(args.output_stream, "%s", directory_entry->d_name);
 
         //============================Full or Uncompleted_block========================//
         double num = (double) (filelen - 24);
@@ -609,14 +584,31 @@ int main(int argc, char* argv[]) {
         if (*file_data->message_size != (nb_blocks * (*file_data->block_size) * word_size)) {
             nb_blocks--;
             contains_uncomplete_block = true;
-            if(args.verbose){
+            if(verbose){
                 printf("--------------------------------------------------------------------------------------------------------\n");
-                printf("This file contain uncomplete blocks\n\n");
+                printf("This file contains non-full blocks\n\n");
             }
         }
         if(!contains_uncomplete_block){
             printf("--------------------------------------------------------------------------------------------------------\n");
-            printf("\nThis file doesn't contain uncomplete blocks\n\n");
+            printf("This file doesn't contain non-full blocks\n\n");
+        }
+
+        //================Write the name of the file in the output file================//
+        // TODO: écrire les tailles en bytes (n'écrit qu'un seul byte ???)
+        //uint32_t bytes1 = htobe32(strlen(directory_entry->d_name));
+        //uint64_t bytes2 = htobe64(*file_data->message_size);
+
+        bool has_output = (args.output_stream != stdout) && (args.output_stream != stderr);
+        if (!has_output && !verbose) {
+            fprintf(stdout, "%c", htobe32(strlen(directory_entry->d_name)));
+            fprintf(stdout, "%c", htobe32(*file_data->message_size));
+            fprintf(stdout, "%s", directory_entry->d_name);
+        }
+        else if (has_output) {
+            fprintf(args.output_stream, "%c", htobe32(strlen(directory_entry->d_name)));
+            fprintf(args.output_stream, "%c", htobe32(*file_data->message_size));
+            fprintf(args.output_stream, "%s", directory_entry->d_name);
         }
 
         //=======================Write completes blocks in output file=================//
@@ -629,8 +621,7 @@ int main(int argc, char* argv[]) {
             uint8_t** current_block = make_block(temps_buf, *file_data->block_size);
             uint8_t** response = process_block(current_block,*file_data->block_size);
 
-
-            if (args.verbose) {
+            if (verbose) {
                 printf(">> processed block %d :\n", i);
                 printf_matrix(response, (*file_data->block_size + *file_data->redundancy), word_size);
                 printf(">> to_string :\n");
@@ -640,54 +631,54 @@ int main(int argc, char* argv[]) {
                 printf("\n\n--------------------------------------------------------------------------------------------------------\n");
             }
 
-            write_block(args.output_stream,response,*file_data->block_size,word_size);
+            write_block(args.output_stream,response,*file_data->block_size, word_size);
 
             readed += step;
             free(temps_buf);
         }
 
-
-        //================Calculate lost symbols and write it to output================//
+        //================Calculate lost symbols and write last block to output================//
         uint32_t readed_symbols = (*file_data->block_size) * word_size * nb_blocks;
         uint8_t* temps_buf = malloc(sizeof(uint8_t) * filelen-24-readed);
         for (int j = 0; j < filelen-24-readed; ++j) {
             temps_buf[j] = buf[24+readed + j];
         }
-
+        free(buf);
         uint32_t nb_remaining_symbols = ((filelen-24-readed)/word_size)-(*file_data->redundancy);
         if (contains_uncomplete_block){
             uint8_t** last_block = make_block(temps_buf, nb_remaining_symbols);
             uint8_t** decoded = process_block(last_block,nb_remaining_symbols);
             uint8_t padding = readed_symbols + nb_remaining_symbols * word_size - (*file_data->message_size);
             uint8_t true_length_last_symbol = word_size - padding;
+            // free coefficients (last used in process_block)
+            free(coeffs);
 
-            if (args.verbose) {
+            if (verbose) {
                 printf(">> last processed block :\n");
-                printf_matrix(last_block, (filelen-24-readed)/ word_size, word_size);
+                printf_matrix(last_block, (filelen-24-readed) / word_size, word_size);
                 printf(">> to_string :\n");
                 char* str = block_to_string(decoded, *file_data->block_size);
                 printf("%s", str);
                 free(str);
-                printf("\n========================================================================================================\n");
+                printf("\n========================================================================================================\n\n");
             }
 
-            write_last_block(args.output_stream,decoded,nb_remaining_symbols,word_size,true_length_last_symbol);
+            write_last_block(args.output_stream,decoded,nb_remaining_symbols, word_size,true_length_last_symbol);
         }
 
+        // free file_data structure
+        free(file_data);
 
-        //==============================Free variables=================================//
-        //TODO: mettre au bon endroits dés que on utilise plus la variable
-        //free(file_data);
-        //free(buf);
-        //free(coeffs);
-
-        //==============================Close files====================================//
-        //fclose(input_file);
+        // Close the input file
+        fclose(input_file);
     }
+
+    // Calculate the time taken
     t = clock() - t;
     double time_taken = ((double) t)/CLOCKS_PER_SEC;
-
-    printf("The program took %f seconds to execute\n", time_taken);
+    if (verbose) printf("The program took %f seconds to execute\n", time_taken);
+    bool has_output = (args.output_stream != stdout) && (args.output_stream != stderr);
+    if (!verbose && !has_output) printf("\n");
 
     // Close the input directory and the output file
     err = closedir(args.input_dir);

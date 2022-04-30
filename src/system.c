@@ -11,7 +11,6 @@
 #include "../headers/tinymt32.h"
 
 //====================== Functions ==========================//
-
 /**
  * Add two vectors in a Galois Field 256
  * @param symbol_1: the first symbol to add
@@ -20,10 +19,14 @@
  * @return a new vector of `symbol_size` byte containing the result of symbol_1 + symbol_2 in GF(256)
  */
 uint8_t* gf_256_full_add_vector(uint8_t* symbol_1, uint8_t* symbol_2, uint32_t symbol_size) {
+    // Allocate memory for output
     uint8_t* output = malloc(sizeof(uint8_t) * symbol_size);
+    if (output == NULL) return NULL;
+
     for (int i = 0; i < symbol_size; i++) {
         output[i] = (symbol_1[i] ^ symbol_2[i]);
     }
+
     return output;
 }
 
@@ -35,10 +38,14 @@ uint8_t* gf_256_full_add_vector(uint8_t* symbol_1, uint8_t* symbol_2, uint32_t s
  * @return a new vector of `symbol_size` byte containing the result of symbol * coef in GF(256)
  */
 uint8_t* gf_256_mul_vector(uint8_t* symbol, uint8_t coef, uint32_t symbol_size) {
+    // Allocate memory for output
     uint8_t* output = malloc(sizeof(uint8_t) * symbol_size);
+    if (output == NULL) return NULL;
+
     for (int i = 0; i < symbol_size; i++) {
         output[i] = gf256_mul_table[(int) symbol[i]][coef];
     }
+
     return output;
 }
 
@@ -50,10 +57,14 @@ uint8_t* gf_256_mul_vector(uint8_t* symbol, uint8_t coef, uint32_t symbol_size) 
  * @return a new vector of `symbol_size` byte containing the result of symbol / coef in GF(256)
  */
 uint8_t* gf_256_inv_vector(uint8_t* symbol, uint8_t coef, uint32_t symbol_size) {
+    // Allocate memory for output
     uint8_t* output = malloc(sizeof(uint8_t) * symbol_size);
+    if (output == NULL) return NULL;
+
     for (int i = 0; i < symbol_size; i++) {
         output[i] = gf256_mul_table[(int) symbol[i]][gf256_inv_table[coef]];
     }
+
     return output;
 }
 
@@ -96,11 +107,9 @@ void gf_256_gaussian_elimination(uint8_t** A, uint8_t** b, uint32_t symbol_size,
  * @return a nss * nrs array of coefficients
  */
 uint8_t** gen_coefs(uint32_t seed, uint32_t nss, uint32_t nrs) {
-
-    // Malloc for matrix
+    // Allocate memory for coefs matrix
     uint8_t** coefs = malloc(sizeof(uint8_t*) * nss);
     if(coefs == NULL) return NULL;
-    // malloc vectors in matrix
     for (int i = 0; i < nss ; i++) {
         coefs[i] = malloc(sizeof(uint8_t) * nrs);
         if (coefs[i] == NULL) return NULL;
@@ -109,7 +118,6 @@ uint8_t** gen_coefs(uint32_t seed, uint32_t nss, uint32_t nrs) {
     // TINYMT32(seed) ~= rnd
     tinymt32_t prng;
     memset(&prng, 0, sizeof(tinymt32_t));
-    // Do not modify these values!
     prng.mat1 = 0x8f7011ee;
     prng.mat2 = 0xfc78ff1f;
     prng.tmat = 0x3793fdff;
@@ -124,5 +132,6 @@ uint8_t** gen_coefs(uint32_t seed, uint32_t nss, uint32_t nrs) {
             }
         }
     }
+
     return coefs;
 }

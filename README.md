@@ -42,7 +42,8 @@ To run the executable "fec", use `./fec input_binary/` which will give your outp
 Here are some of the parameters you can use alongside the base command :
 - `-v` : to set verbose mode to 'true' and show steps of the program in your terminal
 - `-f output.txt` : to get your output in a .txt file (here named "output.txt")
-- `-n 4` : to specify the number of threads you want to run the program with (here 4 threads)
+
+[//]: # (- `-n 4` : to specify the number of threads you want to run the program with &#40;here 4 threads&#41;                          Disons que c pas très utilse pour le moment)
 ## Performance results
 
 Here is our first performance test showing the time needed to execute the program in C with one thread versus in Python.

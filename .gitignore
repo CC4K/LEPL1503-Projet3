@@ -1,5 +1,5 @@
 .idea/
-*.exe
 /CMakeLists.txt
 /cmake-build-debug/
-output.txt
+*.txt
+*.bin
