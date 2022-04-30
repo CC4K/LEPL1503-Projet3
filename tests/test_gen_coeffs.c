@@ -1,16 +1,16 @@
-//
-// Created by romain on 25/04/22.
-//
+//===========================================================//
+// LEPL1503-Projet_3                                         //
+// Created by Romain                                         //
+//===========================================================//
+
+// Libraries
 #include <stdlib.h>
 #include <stdio.h>
-#include <inttypes.h>
 #include <CUnit/Basic.h>
-#include <stdbool.h>
 #include <stdint.h>
-#include <string.h>
-#include "../headers/gf256_tables.h"
+
+// Import function to test
 #include "../headers/system.h"
-#include "../headers/tinymt32.h"
 
 void test_gen_coefs(){
     uint32_t seed = 12345;
@@ -60,5 +60,3 @@ int main() {
     CU_basic_run_tests();
     CU_basic_show_failures(CU_get_failure_list());
 }
-
-

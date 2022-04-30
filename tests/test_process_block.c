@@ -1,17 +1,18 @@
-//
-// Created by romain on 30/04/22.
-//
+//===========================================================//
+// LEPL1503-Projet_3                                         //
+// Created by Romain on 30/04/22.                            //
+//===========================================================//
+
+// Libraries
 #include <stdlib.h>
 #include <stdio.h>
-#include <inttypes.h>
 #include <CUnit/Basic.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "../headers/gf256_tables.h"
 #include "../headers/system.h"
-#include "../headers/tinymt32.h"
 
+// Setup structures for other functions
 typedef struct {
     uint8_t* unknown_map;
     uint8_t unknowns_amount;
@@ -22,10 +23,12 @@ typedef struct {
     uint8_t** B;
 } linear_system_t;
 
+// Setup global variables
 bool verbose = false;
 uint64_t word_size = 3;
 uint8_t** coeffs = NULL;
 
+// Helping function
 void printf_linear_system(uint8_t** A, uint8_t** B, uint8_t nb_unk) {
     printf(">> linear_system :\n");
     for (int i = 0; i < nb_unk; i++) {
@@ -41,6 +44,7 @@ void printf_linear_system(uint8_t** A, uint8_t** B, uint8_t nb_unk) {
     }
 }
 
+// Function needed for process_block
 linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, uint8_t** current_block, uint8_t block_size) {
     // Crée par Romain le 15/04/22
 
@@ -131,6 +135,7 @@ unknowns_t* find_lost_words(uint8_t** block, uint8_t size) {
     return output;
 }
 
+// Function to test
 uint8_t** process_block(uint8_t** block, uint8_t size) {
     // Crée par Cédric le 13/04/22
 
@@ -162,9 +167,7 @@ uint8_t** process_block(uint8_t** block, uint8_t size) {
 }
 
 void test_process_block() {
-
     coeffs = malloc(sizeof(uint8_t * ) * 4);
-
     for (int i = 0; i < 4; ++i) {
         coeffs[i] = malloc(sizeof(uint8_t)*3);
     }

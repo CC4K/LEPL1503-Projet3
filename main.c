@@ -547,8 +547,8 @@ int main(int argc, char* argv[]) {
         // Malloc inside function
         uint32_t nss = *file_data->redundancy;
         uint32_t nrs = *file_data->block_size;
-        coeffs = gen_coefs(*file_data->seed,nss, nrs);
-        if(verbose){
+        coeffs = gen_coefs(*file_data->seed, nss, nrs);
+        if (verbose) {
             if (coeffs == NULL) {
                 printf("You have to generate coefficients before printing them!\n");
             }
@@ -564,20 +564,20 @@ int main(int argc, char* argv[]) {
         fseek(input_file,0,SEEK_END);
         long filelen = ftell(input_file);
         rewind(input_file);
-        uint8_t* buf = malloc(sizeof(char)*filelen);
+        uint8_t* buf = malloc(sizeof(char) * filelen);
         fread(buf,filelen,1, input_file);
 
-        if(verbose){
+        if (verbose) {
             printf(">> binary data : \n");
             for (int i = 24; i < filelen; i++) {
-                printf("%d ",buf[i]);
+                printf("%d ", buf[i]);
             }
             printf("\n");
         }
 
         //============================Full or Uncompleted_block========================//
         double num = (double) (filelen - 24);
-        double den = (double) word_size * ((double)*file_data->block_size + (double) *file_data->redundancy);
+        double den = (double) word_size * ((double) *file_data->block_size + (double) *file_data->redundancy);
         uint32_t nb_blocks = ceil(num/den);
         bool contains_uncomplete_block = false;
 
@@ -589,7 +589,7 @@ int main(int argc, char* argv[]) {
                 printf("This file contains non-full blocks\n\n");
             }
         }
-        if(!contains_uncomplete_block){
+        if (!contains_uncomplete_block) {
             printf("--------------------------------------------------------------------------------------------------------\n");
             printf("This file doesn't contain non-full blocks\n\n");
         }
@@ -613,9 +613,9 @@ int main(int argc, char* argv[]) {
 
         //=======================Write completes blocks in output file=================//
         int32_t readed = 0;
-        for (int i = 0; i < nb_blocks; ++i) {
+        for (int i = 0; i < nb_blocks; i++) {
             uint8_t* temps_buf = malloc(sizeof(uint8_t) * step);
-            for (int j = 0; j < step; ++j) {
+            for (int j = 0; j < step; j++) {
                 temps_buf[j] = buf[(i * step) + j + 24];
             }
             uint8_t** current_block = make_block(temps_buf, *file_data->block_size);
@@ -640,12 +640,12 @@ int main(int argc, char* argv[]) {
         //================Calculate lost symbols and write last block to output================//
         uint32_t readed_symbols = (*file_data->block_size) * word_size * nb_blocks;
         uint8_t* temps_buf = malloc(sizeof(uint8_t) * filelen-24-readed);
-        for (int j = 0; j < filelen-24-readed; ++j) {
-            temps_buf[j] = buf[24+readed + j];
+        for (int i = 0; i < filelen-24-readed; ++i) {
+            temps_buf[i] = buf[24+readed + i];
         }
         free(buf);
-        uint32_t nb_remaining_symbols = ((filelen-24-readed)/word_size)-(*file_data->redundancy);
-        if (contains_uncomplete_block){
+        uint32_t nb_remaining_symbols = ((filelen-24-readed) / word_size) - (*file_data->redundancy);
+        if (contains_uncomplete_block) {
             uint8_t** last_block = make_block(temps_buf, nb_remaining_symbols);
             uint8_t** decoded = process_block(last_block,nb_remaining_symbols);
             uint8_t padding = readed_symbols + nb_remaining_symbols * word_size - (*file_data->message_size);

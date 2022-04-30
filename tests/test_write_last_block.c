@@ -1,20 +1,21 @@
-//
-// Created by romain on 29/04/22.
-//
+//===========================================================//
+// LEPL1503-Projet_3                                         //
+// Created by Romain on 29/04/22.                            //
+//===========================================================//
+
+// Libraries
 #include <stdlib.h>
 #include <stdio.h>
-#include <inttypes.h>
 #include <CUnit/Basic.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "../headers/gf256_tables.h"
-#include "../headers/system.h"
-#include "../headers/tinymt32.h"
-#define SIZE 2048
 
+// Global variables
+#define SIZE 2048
 uint32_t block_size = 3;
 uint64_t word_size = 3;
+
+// Function to test
 void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t word_size, uint8_t last_word_size) {
     for (int i = 0; i < size-1; i++) {
         for (int j = 0; j < word_size; j++) {
@@ -38,7 +39,6 @@ void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t 
 }
 
 void test_WLB() {
-
     FILE* output = fopen("tests/test_write_last_block.txt", "w+");
     uint8_t** current_block = malloc(sizeof(uint8_t*)*6);
     for (int i = 0; i < 6; ++i) {
@@ -81,4 +81,3 @@ int main() {
     CU_basic_run_tests();
     CU_basic_show_failures(CU_get_failure_list());
 }
-

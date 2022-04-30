@@ -1,22 +1,20 @@
-//
-// Created by romain on 28/04/22.
-//
+//===========================================================//
+// LEPL1503-Projet_3                                         //
+// Created by Romain on 28/04/22.                            //
+//===========================================================//
+
+// Libraries
 #include <stdlib.h>
 #include <stdio.h>
-#include <inttypes.h>
 #include <CUnit/Basic.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "../headers/gf256_tables.h"
-#include "../headers/system.h"
-#include "../headers/tinymt32.h"
 
+// Setup global variable
 uint32_t word_size = 3;
 
-
+// Function to test
 char* block_to_string(uint8_t** block, uint32_t size) {
-
     // Allocate memory for the returned string
     char* str = malloc(sizeof(char) * ((size * word_size)+1));
     if(str == NULL) return NULL;
@@ -25,8 +23,10 @@ char* block_to_string(uint8_t** block, uint32_t size) {
     int index = 0;
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < word_size; j++) {
+            // Stop at the first 0 we meet
             if (block[i][j] == 0) {
-                printf("Return str: %s",str);
+                // Add end of string and return
+                str[index] = '\0';
                 return str;
             }
             str[index] = (char) block[i][j];
@@ -34,16 +34,16 @@ char* block_to_string(uint8_t** block, uint32_t size) {
         }
     }
 
-    // Add end of string
+    // Add end of string and return
     str[index] = '\0';
     return str;
 }
 
 void test_BTS() {
     uint32_t size = 3;
-    uint8_t** current_block = malloc(sizeof(uint8_t*)*7);
+    uint8_t** current_block = malloc(sizeof(uint8_t*) * 7);
     for (int i = 0; i < 7; ++i) {
-        current_block[i] = malloc(sizeof(uint8_t)*3);
+        current_block[i] = malloc(sizeof(uint8_t) * 3);
     }
     current_block[0][0] = 112;
     current_block[0][1] = 114;
@@ -68,13 +68,12 @@ void test_BTS() {
     current_block[6][2] = 111;
     char* correct_str = "programmi";
     char* str = block_to_string(current_block,size);
-    int size_of_str = sizeof(correct_str)/ sizeof(correct_str[0]);
+    int size_of_str = sizeof(correct_str) / sizeof(correct_str[0]);
     for (int i = 0; i < size_of_str; ++i) {
         CU_ASSERT_EQUAL(str[i],correct_str[i]);
     }
     free(current_block);
     free(str);
-
 }
 
 int main() {

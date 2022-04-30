@@ -1,17 +1,15 @@
-//
-// Created by romain on 27/04/22.
-//
+//===========================================================//
+// LEPL1503-Projet_3                                         //
+// Created by Romain on 27/04/22.                            //
+//===========================================================//
+
+// Libraries
 #include <stdlib.h>
-#include <stdio.h>
-#include <inttypes.h>
 #include <CUnit/Basic.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "../headers/gf256_tables.h"
-#include "../headers/system.h"
-#include "../headers/tinymt32.h"
 
+// Function to test
 uint8_t** make_block(uint8_t* data, uint8_t size) {
     // Fait par Jacques le 12/04/22
 
@@ -31,7 +29,6 @@ uint8_t** make_block(uint8_t* data, uint8_t size) {
 
     return block;
 }
-
 
 void test_make_block() {
     uint8_t* temps_buf = malloc(sizeof(uint8_t)*21);
@@ -101,4 +98,3 @@ int main() {
     CU_basic_run_tests();
     CU_basic_show_failures(CU_get_failure_list());
 }
-

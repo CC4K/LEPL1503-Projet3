@@ -1,26 +1,28 @@
-//
-// Created by romain on 25/04/22.
-//
+//===========================================================//
+// LEPL1503-Projet_3                                         //
+// Created by Romain on 25/04/22.                            //
+//===========================================================//
+
+// Libraries
 #include <stdlib.h>
 #include <stdio.h>
 #include <inttypes.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 #include <CUnit/Basic.h>
-#include "../headers/gf256_tables.h"
 #include "../headers/system.h"
-#include "../headers/tinymt32.h"
-#include <stdbool.h>
 
+// Setup structure for function to test
 typedef struct {
     uint8_t** A;
     uint8_t** B;
 } linear_system_t;
 
+// Setup global variables
 uint8_t word_size = 3;
 uint8_t** coeffs = NULL;
 
+// Function to test
 linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, uint8_t** current_block, uint8_t block_size) {
     // Crée par Romain le 15/04/22
 
@@ -156,6 +158,7 @@ void test_MLS() {
     free(correct_B);
     free(correct_A);
 }
+
 int main() {
     CU_initialize_registry();
     CU_pSuite suite = CU_add_suite("makelinearsystem", 0, 0);
@@ -163,4 +166,3 @@ int main() {
     CU_basic_run_tests();
     CU_basic_show_failures(CU_get_failure_list());
 }
-

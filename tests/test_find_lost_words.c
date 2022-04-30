@@ -1,26 +1,25 @@
-//
-// Created by romain on 29/04/22.
-//
+//===========================================================//
+// LEPL1503-Projet_3                                         //
+// Created by Romain on 29/04/22.                            //
+//===========================================================//
+
+// Libraries
 #include <stdlib.h>
-#include <stdio.h>
-#include <inttypes.h>
 #include <CUnit/Basic.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "../headers/gf256_tables.h"
-#include "../headers/system.h"
-#include "../headers/tinymt32.h"
 
+// Setup global variables
 uint32_t block_size = 3;
 uint64_t word_size = 3;
 
+// Struct used by function to test
 typedef struct {
     uint8_t* unknown_map;
     uint8_t unknowns_amount;
 } unknowns_t;
 
-
+// Function to test
 unknowns_t* find_lost_words(uint8_t** block, uint8_t size) {
     // Initialize an array of boolean of size 'size' to false & the unknowns to 0
     uint8_t* unknown_indexes = malloc(sizeof(uint8_t) * size);
@@ -100,4 +99,3 @@ int main() {
     CU_basic_run_tests();
     CU_basic_show_failures(CU_get_failure_list());
 }
-

@@ -1,15 +1,16 @@
-#include "../headers/tinymt32.h"
-#include <CUnit/Basic.h>
-#include "../headers/system.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <inttypes.h>
-#include "../headers/gf256_tables.h"
-#include "../headers/system.h"
-#include "../headers/tinymt32.h"
+//===========================================================//
+// LEPL1503-Projet_3                                         //
+// Created by Pierre                                         //
+//===========================================================//
 
-void test_gaussian()
-{
+// Libraries
+#include <CUnit/Basic.h>
+#include <stdlib.h>
+
+// Import function to test
+#include "../headers/system.h"
+
+void test_gaussian() {
     uint8_t** A = malloc(sizeof(uint8_t *));
     A[0] = malloc(sizeof(uint8_t));
     uint8_t** b = malloc(sizeof(uint8_t *));
