@@ -40,27 +40,29 @@ tests: tests/
 	./testgaussian
 	$(CC) -o testgfi tests/test_get_file_info.c system.c tinymt32.c -lcunit
 	./testgfi
+	$(CC) -o testprocessblock tests/test_process_block.c system.c tinymt32.c -lcunit
+	./testprocessblock
 
 
 testsMLS: tests/test_make_linear_system.c
 	$(CC) -o testmls tests/test_make_linear_system.c system.c tinymt32.c -lcunit
-	valgrind ./testmls
+	./testmls
 
 testsGenCoeffs: tests/test_gen_coeffs.c
 	$(CC) -o testgencoeffs tests/test_gen_coeffs.c system.c tinymt32.c -lcunit
-	valgrind ./testgencoeffs
+	./testgencoeffs
 
 testsMakeBlock: tests/test_make_block.c
 	$(CC) -o testmakeblock tests/test_make_block.c system.c tinymt32.c -lcunit
-	valgrind ./testmakeblock
+	./testmakeblock
 
 testsBTS: tests/test_block_to_string.c
 	$(CC) -o testbts tests/test_block_to_string.c system.c tinymt32.c -lcunit
-	valgrind --leak-check=full --track-origins=yes ./testbts
+	./testbts
 
 testsFLW: tests/test_find_lost_words.c
 	$(CC) -o testflw tests/test_find_lost_words.c system.c tinymt32.c -lcunit
-	valgrind ./testflw
+	./testflw
 
 testsWriteBlock: tests/test_write_block.c
 	$(CC) -o testwriteblock tests/test_write_block.c system.c tinymt32.c -lcunit
@@ -77,6 +79,10 @@ testsGaussian: tests/test_gaussian.c
 testsGFI: tests/test_get_file_info.c
 	$(CC) -o testgfi tests/test_get_file_info.c system.c tinymt32.c -lcunit
 	./testgfi
+
+testsProcessBlock: tests/test_process_block.c
+	$(CC) -o testprocessblock tests/test_process_block.c system.c tinymt32.c -lcunit
+	./testprocessblock
 
 tests_short: tests/test_tinymt32.c
 	$(CC) -Wall -Werror -o test_tinymt32 tests/test_tinymt32.c system.c tinymt32.c -lcunit -lm

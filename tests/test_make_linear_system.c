@@ -80,8 +80,8 @@ void test_MLS() {
     coeffs[2][1] = 158;
     coeffs[2][2] = 168;
     coeffs[3][0] = 64;
-    coeffs[1][1] = 5;
-    coeffs[1][2] = 91;
+    coeffs[3][1] = 5;
+    coeffs[3][2] = 91;
     uint8_t nb_unk = 1;
     uint8_t block_size = 2;
     uint8_t **current_block = malloc(sizeof(uint8_t*)*6);
