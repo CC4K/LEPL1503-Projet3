@@ -33,18 +33,24 @@ You can then compile the code using these commands.
 
 The project includes a Makefile to avoid overcomplicated commands :
 - `make fec` : compiles code for execution
+- `make run` : compiles code and runs it (by default ouput is output.txt and verbose activated)
 - `make tests` : compiles and runs the tests (as well as the tested files)
 - `make clean` : clears all compiled files
 
-To run the executable 'main', use `./fec input_binary/` which will give your output to your terminal.
+To run the executable "fec", use `./fec input_binary/` which will give your output to your terminal.
 
-Here are some of the parameters you can use with the base command :
-- `-f output.txt` : to get your output in a .txt file name "output"
+Here are some of the parameters you can use alongside the base command :
 - `-v` : to set verbose mode to 'true' and show steps of the program in your terminal
+- `-f output.txt` : to get your output in a .txt file (here named "output.txt")
 - `-n 4` : to specify the number of threads you want to run the program with (here 4 threads)
-## Threads
-
-TODO : TODO
 ## Performance results
 
-TODO : TODO : TODO
+Here is our first performance test showing the time needed to execute the program in C with one thread versus in Python.
+
+The times were obtained by calculating the mean of 20 execution of each program.
+- Hardware used : Ryzen 5 4600U
+- OS : Ubuntu 20.04.4 LTS
+
+Results :
+- Python : 1.47261415 sec
+- C (1 thread) : 0.00826245 sec

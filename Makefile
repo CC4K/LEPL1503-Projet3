@@ -5,17 +5,10 @@ INCLUDE_HEADERS_DIRECTORY=-Iheaders
 
 fec: main.c
 	$(CC) $(CFLAGS) -o fec main.c src/system.c src/tinymt32.c $(LIBS)
-	# ./fec input_binary/ -f output.txt  -v
 
-%.o: %.c    # if for example you want to compute example.c this will create an object file called example.o in the same directory as example.c. Don't forget to clean it in your "make clean"
-	$(CC) $(INCLUDE_HEADERS_DIRECTORY) $(CFLAGS) -o $@ -c $<
-
-
-#TODO: delete avant de remettre le projet
-main: main.c
-	$(CC) -Werror -o main main.c system.c tinymt32.c -lm
-	./main input_binary/ -f output.txt  -v
-
+run: main.c
+	$(CC) $(CFLAGS) -o fec main.c src/system.c src/tinymt32.c $(LIBS)
+	./fec input_binary/ -f output.txt -v
 
 tests: tests/
 	$(CC) -o tests/test_tinymt32 tests/test_tinymt32.c src/system.c src/tinymt32.c -lcunit
