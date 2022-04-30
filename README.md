@@ -36,12 +36,12 @@ The project includes a Makefile to avoid overcomplicated commands :
 - `make tests` : compiles and runs the tests (as well as the tested files)
 - `make clean` : clears all compiled files
 
-To run the executable 'main', use `./main input_binary/` which will give your output to your terminal.
+To run the executable 'main', use `./fec input_binary/` which will give your output to your terminal.
 
 Here are some of the parameters you can use with the base command :
 - `-f output.txt` : to get your output in a .txt file name "output"
 - `-v` : to set verbose mode to 'true' and show steps of the program in your terminal
-- `-n 4` : to run the code with 4 threads
+- `-n 4` : to specify the number of threads you want to run the program with (here 4 threads)
 ## Threads
 
 TODO : TODO
