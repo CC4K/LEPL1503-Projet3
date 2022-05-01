@@ -59,7 +59,7 @@ bool verbose = false;
 
 //====================== Functions ==========================//
 /**
- * A function to help print n x m matrices in verbose mode
+ * Help function to print n x m matrices in verbose mode
  * @param matrix: the matrix to print
  * @param n: number of lines
  * @param m: number of columns
@@ -82,7 +82,7 @@ void printf_matrix(uint8_t** matrix, uint8_t n, uint8_t m) {
 }
 
 /**
- * A function to print the linear systems A x B in verbose mode
+ * Help function to print the linear systems A x B in verbose mode
  * @param A: first matrix
  * @param B: second matrix
  * @param nb_unk: size of A
@@ -138,7 +138,7 @@ uint8_t** make_block(uint8_t* data, uint8_t size) {
  * @param size: the size of the block
  * @return unknown_indexes: table of size 'size' mapping with source symbols
  *                          The input 'i' is 'true' if the source symbol 'i' is lost
- * @return unknwowns: the number of lost source symbols
+ * @return unknwowns: the amount of lost source symbols
  */
 unknowns_t* find_lost_words(uint8_t** block, uint8_t size) {
     // Made by Cédric
@@ -330,7 +330,7 @@ void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint64_t
 }
 
 /**
- * Retrieve the data from the 'data' block as specified in the statement
+ * Retrieves the data from the 'data' block as specified in the statement
  * @param filename: the file's 'Absolute Path'
  * @return output: a structure which contains pointers to the seed, the word_size, the block_size, the redundancy and message_size
  *                 - seed: the seed for random numbers generation
@@ -389,7 +389,7 @@ file_data_t* get_file_info(char* filename) {
 }
 
 /**
- * Help function. Returns a string stored in binary in the given block
+ * Help function that returns a string stored in binary in the given block in verbose mode
  * @param block: the said block
  * @param size: the size of the block
  * @return str: the block's string converted into binary
@@ -487,7 +487,7 @@ int parse_args(args_t* args, int argc, char* argv[]){
 
 //===================== MAIN FUNCTION =======================//
 int main(int argc, char* argv[]) {
-    // Variables to calculate time taken by the program
+    // Variable to calculate time taken by the program
     clock_t t;
     t = clock();
 
@@ -521,7 +521,6 @@ int main(int argc, char* argv[]) {
             goto file_read_error;
         }
         if (verbose) {
-            // This is a simple example of how to use the verbose mode
             printf("========================================================================================================\n");
             fprintf(stderr, "Successfully opened the file %s\n", full_path);
         }
@@ -544,7 +543,6 @@ int main(int argc, char* argv[]) {
         word_size = *file_data->word_size;
 
         //==========================Generate Matrix of coefficients====================//
-        // Malloc inside function
         uint32_t nss = *file_data->redundancy;
         uint32_t nrs = *file_data->block_size;
         coeffs = gen_coefs(*file_data->seed, nss, nrs);
@@ -561,11 +559,11 @@ int main(int argc, char* argv[]) {
         uint32_t step = word_size * (*file_data->block_size + *file_data->redundancy);
 
         //===================Create Buffeur of the readed file=========================//
-        fseek(input_file,0,SEEK_END);
+        fseek(input_file, 0, SEEK_END);
         long filelen = ftell(input_file);
         rewind(input_file);
         uint8_t* buf = malloc(sizeof(char) * filelen);
-        fread(buf,filelen,1, input_file);
+        fread(buf, filelen, 1, input_file);
 
         if (verbose) {
             printf(">> binary data : \n");
@@ -650,7 +648,7 @@ int main(int argc, char* argv[]) {
             uint8_t** decoded = process_block(last_block,nb_remaining_symbols);
             uint8_t padding = readed_symbols + nb_remaining_symbols * word_size - (*file_data->message_size);
             uint8_t true_length_last_symbol = word_size - padding;
-            // free coefficients (last used in process_block)
+            // Free coefficients (last used in process_block)
             free(coeffs);
 
             if (verbose) {
@@ -666,7 +664,7 @@ int main(int argc, char* argv[]) {
             write_last_block(args.output_stream,decoded,nb_remaining_symbols, word_size,true_length_last_symbol);
         }
 
-        // free file_data structure
+        // Free file_data structure
         free(file_data);
 
         // Close the input file
