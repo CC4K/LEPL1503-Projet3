@@ -487,15 +487,9 @@ int parse_args(args_t* args, int argc, char* argv[]){
 
 //===================== MAIN FUNCTION =======================//
 int main(int argc, char* argv[]) {
-    <<<<<<< HEAD
-    // Variables to calculate time taken by the program
+    // Variable to calculate time taken by the program
     clock_t time;
     time = clock();
-    =======
-    // Variable to calculate time taken by the program
-    clock_t t;
-    t = clock();
-    >>>>>>> e9b814996ae31c2ed99a1e2230c027c5467ac294
 
     // Reading user arguments
     args_t args;
@@ -556,14 +550,7 @@ int main(int argc, char* argv[]) {
         int32_t readed = 0;
 
         //==========================Generate Matrix of coefficients====================//
-        <<<<<<< HEAD
-        // Malloc inside function
         coeffs = gen_coefs(*file_data->seed, redundancy, block_size);
-        =======
-        uint32_t nss = *file_data->redundancy;
-        uint32_t nrs = *file_data->block_size;
-        coeffs = gen_coefs(*file_data->seed, nss, nrs);
-        >>>>>>> e9b814996ae31c2ed99a1e2230c027c5467ac294
         if (verbose) {
             if (coeffs == NULL) {
                 printf("You have to generate coefficients before printing them!\n");
@@ -615,7 +602,7 @@ int main(int argc, char* argv[]) {
         }
         else if (has_output) {
             uint32_t bytes_len_directory_entry_name = htobe32(strlen(directory_entry->d_name));
-            uint64_t bytes_message_size = htobe64(message_size);
+            uint64_t bytes_message_size = htobe32(message_size);
             fwrite(&bytes_len_directory_entry_name, 4, 1, args.output_stream);
             fwrite(&bytes_message_size, 8, 1, args.output_stream);
             fprintf(args.output_stream, "%s", directory_entry->d_name);
