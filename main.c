@@ -307,7 +307,7 @@ void write_block(FILE* output_file, uint8_t** block, uint32_t size, uint64_t wor
  * @param word_size: the size of a 'full' symbol
  * @param last_word_size: the size of the very last word of the last block
  */
-void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint64_t word_size, uint8_t last_word_size) {
+void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint64_t word_size, uint16_t last_word_size) {
     for (int i = 0; i < size-1; i++) {
         for (int j = 0; j < word_size; j++) {
             if ((output_file == stdout) || (output_file == stderr)) {
@@ -602,9 +602,9 @@ int main(int argc, char* argv[]) {
         }
         else if (has_output) {
             uint32_t bytes_len_directory_entry_name = htobe32(strlen(directory_entry->d_name));
-            uint64_t bytes_message_size = htobe32(message_size);
-            fwrite(&bytes_len_directory_entry_name, 4, 1, args.output_stream);
-            fwrite(&bytes_message_size, 8, 1, args.output_stream);
+            uint64_t bytes_message_size = htobe64(message_size);
+            fwrite(&bytes_len_directory_entry_name, sizeof(uint32_t), 1, args.output_stream);
+            fwrite(&bytes_message_size, sizeof(uint64_t), 1, args.output_stream);
             fprintf(args.output_stream, "%s", directory_entry->d_name);
         }
 
@@ -645,7 +645,7 @@ int main(int argc, char* argv[]) {
             uint8_t** last_block = make_block(temps_buf, nb_remaining_symbols);
             uint8_t** decoded = process_block(last_block,nb_remaining_symbols);
             uint8_t padding = readed_symbols + nb_remaining_symbols * word_size - message_size;
-            uint8_t true_length_last_symbol = word_size - padding;
+            uint16_t true_length_last_symbol = word_size - padding;
             // Free coefficients (last used in process_block)
             free(coeffs);
 
@@ -653,7 +653,7 @@ int main(int argc, char* argv[]) {
                 printf(">> last processed block :\n");
                 printf_matrix(last_block, (filelen-24-readed) / word_size, word_size);
                 printf(">> to_string :\n");
-                char* str = block_to_string(decoded, block_size);
+                char* str = block_to_string(last_block, block_size);
                 printf("%s", str);
                 free(str);
                 printf("\n========================================================================================================\n\n");
