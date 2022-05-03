@@ -3,7 +3,7 @@
 // Created by Jacques, Romain, Cédric & Pierre on 15/03/22.  //
 //===========================================================//
 
-//================= Libraries and imports ===================//
+//================= Libraries and headers ===================//
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -22,88 +22,7 @@
 #include "headers/file_data.h"
 #include "headers/block_process.h"
 
-//================== Global Variables =======================//
-file_data_t* file_data;
-//uint8_t** coeffs = NULL;
-//uint64_t word_size = 0;
-//uint32_t redundancy = 0;
-//bool verbose = false;
-
-//====================== Functions ==========================//
-/**
- * Help function to print n x m matrices in verbose mode
- * @param matrix: the matrix to print
- * @param n: number of lines
- * @param m: number of columns
- */
-void printf_matrix(uint8_t** matrix, uint8_t n, uint8_t m) {
-    // Made by Cédric
-
-    printf("[");
-    for (int i = 0; i < n; i++) {
-        if (i != 0) printf(" [");
-        else printf("[");
-        for (int j = 0; j < m; j++) {
-            if (j != m-1) printf("%d ", matrix[i][j]);
-            else printf("%d", matrix[i][j]);
-        }
-        if (i != n-1) printf("]\n");
-        else printf("]");
-    }
-    printf("]\n");
-}
-
-/**
- * Writes the block in binary in 'output_file'
- * @param output_file: the output file
- * @param block: the said block
- * @param size: the size of the block
- * @param word_size: the size of each symbol in the block
- */
-void write_block(FILE* output_file, uint8_t** block, uint32_t size, uint64_t word_size) {
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < word_size; j++) {
-            if ((output_file == stdout) || (output_file == stderr)) {
-                if (!verbose) printf("%c", (char) block[i][j]);
-            }
-            else {
-                fprintf(output_file, "%c", (char)(block[i][j]));
-            }
-        }
-    }
-}
-
-/**
- * Writes in the block in binary in the file 'output_file'. This function is different from the last since it needs to
- * manage the case where the last symbol of the last block is not of the same size as the other symbols of its block
- * @param output_file: the output_file
- * @param block: the said block
- * @param size: the size of the block
- * @param word_size: the size of a 'full' symbol
- * @param last_word_size: the size of the very last word of the last block
- */
-void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint64_t word_size, uint16_t last_word_size) {
-    for (int i = 0; i < size-1; i++) {
-        for (int j = 0; j < word_size; j++) {
-            if ((output_file == stdout) || (output_file == stderr)) {
-                if (!verbose) printf("%c", (char) block[i][j]);
-            }
-            else {
-                fprintf(output_file, "%c", (char) block[i][j]);
-            }
-        }
-    }
-
-    for (int i = 0; i < last_word_size; i++) {
-        if ((output_file == stdout) || (output_file == stderr)) {
-            if (!verbose) printf("%c", (char) block[size - 1][i]);
-        }
-        else {
-            fprintf(output_file, "%c", (char) block[size - 1][i]);
-        }
-    }
-}
-
+//======================= Functions =========================//
 /**
  * Retrieves the data from the 'data' block as specified in the statement
  * @param filename: the file's 'Absolute Path'
@@ -161,7 +80,7 @@ file_data_t* get_file_info(char* filename) {
     free(buf);
 
     return output;
-} // 1
+}
 
 /**
  * Help function that returns a string stored in binary in the given block in verbose mode
@@ -197,7 +116,81 @@ char* block_to_string(uint8_t** block, uint32_t size) {
 }
 
 /**
- * Shows how to run a program
+ * Writes the block in binary in 'output_file'
+ * @param output_file: the output file
+ * @param block: the said block
+ * @param size: the size of the block
+ * @param word_size: the size of each symbol in the block
+ */
+void write_block(FILE* output_file, uint8_t** block, uint32_t size, uint64_t word_size) {
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < word_size; j++) {
+            if ((output_file == stdout) || (output_file == stderr)) {
+                if (!verbose) printf("%c", (char) block[i][j]);
+            }
+            else {
+                fprintf(output_file, "%c", (char)(block[i][j]));
+            }
+        }
+    }
+}
+
+/**
+ * Writes in the block in binary in the file 'output_file'. This function is different from the last since it needs to
+ * manage the case where the last symbol of the last block is not of the same size as the other symbols of its block
+ * @param output_file: the output_file
+ * @param block: the said block
+ * @param size: the size of the block
+ * @param word_size: the size of a 'full' symbol
+ * @param last_word_size: the size of the very last word of the last block
+ */
+void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint64_t word_size, uint16_t last_word_size) {
+    for (int i = 0; i < size-1; i++) {
+        for (int j = 0; j < word_size; j++) {
+            if ((output_file == stdout) || (output_file == stderr)) {
+                if (!verbose) printf("%c", (char) block[i][j]);
+            }
+            else {
+                fprintf(output_file, "%c", (char) block[i][j]);
+            }
+        }
+    }
+
+    for (int i = 0; i < last_word_size; i++) {
+        if ((output_file == stdout) || (output_file == stderr)) {
+            if (!verbose) printf("%c", (char) block[size - 1][i]);
+        }
+        else {
+            fprintf(output_file, "%c", (char) block[size - 1][i]);
+        }
+    }
+}
+
+/**
+ * Help function to print n x m matrices in verbose mode
+ * @param matrix: the matrix to print
+ * @param n: number of lines
+ * @param m: number of columns
+ */
+void printf_matrix(uint8_t** matrix, uint8_t n, uint8_t m) {
+    // Made by Cédric
+
+    printf("[");
+    for (int i = 0; i < n; i++) {
+        if (i != 0) printf(" [");
+        else printf("[");
+        for (int j = 0; j < m; j++) {
+            if (j != m-1) printf("%d ", matrix[i][j]);
+            else printf("%d", matrix[i][j]);
+        }
+        if (i != n-1) printf("]\n");
+        else printf("]");
+    }
+    printf("]\n");
+}
+
+/**
+ * Shows the arguments used during program execution
  * @param prog_name
  */
 void usage(char* prog_name) {
@@ -209,6 +202,9 @@ void usage(char* prog_name) {
     fprintf(stderr, "    -v : enable debugging messages. If not set, no such messages will be displayed (except error messages on failure)\n");
 }
 
+/**
+ * Reads the arguments passed during execution to store them in args_t structure
+ */
 int parse_args(args_t* args, int argc, char* argv[]){
     memset(args, 0, sizeof(args_t));
 
@@ -259,6 +255,9 @@ int parse_args(args_t* args, int argc, char* argv[]){
 
     return 0;
 }
+
+//================== Global Variables =======================//
+file_data_t* file_data;
 
 //===================== MAIN FUNCTION =======================//
 int main(int argc, char* argv[]) {

@@ -1,7 +1,3 @@
-//
-// Created by cedric_k on 3/05/22.
-//
-
 #ifndef GROUPEY2_FILE_DATA_H
 #define GROUPEY2_FILE_DATA_H
 

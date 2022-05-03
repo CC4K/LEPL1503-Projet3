@@ -3,11 +3,6 @@
 
 #include <stdint.h>
 
-typedef struct
-{
-    // TODO
-} system_t;
-
 /**
  *
  * Add two vectors in a Galois Field 256
