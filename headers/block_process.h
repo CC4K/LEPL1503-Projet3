@@ -9,17 +9,28 @@ uint64_t word_size;
 uint32_t redundancy;
 bool verbose;
 
-// Structure to store missing words emplacements
+/**
+ * Structure to store missing words emplacements
+ */
 typedef struct {
     uint8_t* unknown_map;
     uint8_t unknowns_amount;
 } unknowns_t;
 
-// Structure to store linear system matrices
+/**
+ * Structure to store linear system matrices
+ */
 typedef struct {
     uint8_t** A;
     uint8_t** B;
 } linear_system_t;
+
+/**
+ * Frees memory from a matrix
+ * @param matrix: the matrix to free the contents from
+ * @param n: number of lines of the matrix
+ */
+void free_matrix(uint8_t** matrix, uint8_t n);
 
 /**
  * Build the block based on the data and the size of a block

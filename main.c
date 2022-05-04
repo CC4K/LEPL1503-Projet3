@@ -256,23 +256,21 @@ int parse_args(args_t* args, int argc, char* argv[]){
     return 0;
 }
 
-//================== Global Variables =======================//
-file_data_t* file_data;
-
-//===================== MAIN FUNCTION =======================//
+//================================================= MAIN FUNCTION ====================================================//
 int main(int argc, char* argv[]) {
     // Variable to calculate time taken by the program
     clock_t time;
     time = clock();
 
-    // Reading user arguments
+    //========================================== Read user arguments =================================================//
     args_t args;
     int err = parse_args(&args, argc, argv);
     if (err == -1) exit(EXIT_FAILURE);
     else if (err == 1) exit(EXIT_SUCCESS);
 
+    // Loop on each file in input_directory
     struct dirent *directory_entry;
-    FILE *input_file;
+    FILE* input_file;
     while ((directory_entry = readdir(args.input_dir))) {
         // Ignore parent and current directory
         if (!strcmp(directory_entry->d_name, ".")) continue;
@@ -287,7 +285,7 @@ int main(int argc, char* argv[]) {
         // Setup verbose global variable
         verbose = args.verbose;
 
-        //==================================Open input File==========================//
+        //======================================= Open input file ====================================================//
         input_file = fopen(full_path, "r");
         if (input_file == NULL) {
             printf("========================================================================================================\n");
@@ -299,8 +297,8 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "Successfully opened the file %s\n", full_path);
         }
 
-        //==============================Get File Infos===============================//
-        file_data = get_file_info(full_path);
+        //======================================= Get file infos =====================================================//
+        file_data_t* file_data = get_file_info(full_path);
         if (file_data == NULL) {
             printf("Can't get file Infos");
             return -1;
@@ -323,8 +321,16 @@ int main(int argc, char* argv[]) {
         bool has_output = (args.output_stream != stdout) && (args.output_stream != stderr);
         int32_t readed = 0;
 
-        //==========================Generate Matrix of coefficients====================//
+        //=============================== Generate matrix of coefficients ============================================//
         coeffs = gen_coefs(*file_data->seed, redundancy, block_size);
+        // TODO: free file_data information
+        free(file_data->seed);
+        free(file_data->block_size);
+        free(file_data->word_size);
+        free(file_data->redundancy);
+        free(file_data->message_size);
+        free(file_data);
+
         if (verbose) {
             if (coeffs == NULL) {
                 printf("You have to generate coefficients before printing them!\n");
@@ -335,7 +341,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        //===================Create Buffeur of the readed file=========================//
+        //============================== Create buffer for input binary data =========================================//
         fseek(input_file, 0, SEEK_END);
         long filelen = ftell(input_file);
         rewind(input_file);
@@ -350,7 +356,7 @@ int main(int argc, char* argv[]) {
             printf("\n");
         }
 
-        //============================Full or Uncompleted_block========================//
+        //================================== Detect number of full blocks ============================================//
         double num = (double) (filelen - 24);
         double den = (double) word_size * ((double) block_size + (double) redundancy);
         uint32_t nb_blocks = ceil(num/den);
@@ -368,7 +374,7 @@ int main(int argc, char* argv[]) {
             printf("This file doesn't contain non-full blocks\n\n");
         }
 
-        //================Write the name of the file in the output file================//
+        //=========================== Write size of name, size and name to output ====================================//
         if (!has_output && !verbose) {
             fprintf(stdout, "%c", htobe32(strlen(directory_entry->d_name)));
             fprintf(stdout, "%c", htobe32(message_size));
@@ -382,13 +388,15 @@ int main(int argc, char* argv[]) {
             fprintf(args.output_stream, "%s", directory_entry->d_name);
         }
 
-        //=======================Write completes blocks in output file=================//
+        //================================= Write full blocks to output ==============================================//
         for (int i = 0; i < nb_blocks; i++) {
             uint8_t* temps_buf = malloc(sizeof(uint8_t) * step);
             for (int j = 0; j < step; j++) {
                 temps_buf[j] = buf[(i * step) + j + 24];
             }
             uint8_t** current_block = make_block(temps_buf, block_size);
+            // TODO: free temps_buf (step)
+            free(temps_buf);
             uint8_t** response = process_block(current_block,block_size);
 
             if (verbose) {
@@ -397,47 +405,55 @@ int main(int argc, char* argv[]) {
                 printf(">> to_string :\n");
                 char* str = block_to_string(response, block_size);
                 printf("%s", str);
+                // TODO: free str ((block_size * word_size)+1)
                 free(str);
                 printf("\n\n--------------------------------------------------------------------------------------------------------\n");
             }
 
             write_block(args.output_stream,response,block_size, word_size);
+            // TODO: free response LINES: (block_size + redundancy) | COLUMNS: word_size
+            free_matrix(response, block_size + redundancy);
 
             readed += step;
-            free(temps_buf);
         }
 
-        //================Calculate lost symbols and write last block to output================//
+        //================================= Write last block to output ===============================================//
         uint32_t readed_symbols = block_size * word_size * nb_blocks;
         uint8_t* temps_buf = malloc(sizeof(uint8_t) * filelen-24-readed);
         for (int i = 0; i < filelen-24-readed; ++i) {
             temps_buf[i] = buf[24+readed + i];
         }
+        // TODO: free buf (filelen)
         free(buf);
+
         uint32_t nb_remaining_symbols = ((filelen-24-readed) / word_size) - redundancy;
         if (contains_uncomplete_block) {
             uint8_t** last_block = make_block(temps_buf, nb_remaining_symbols);
+            // TODO: free temps_buf (filelen-24-readed)
+            free(temps_buf);
             uint8_t** decoded = process_block(last_block,nb_remaining_symbols);
+
+            // TODO: free coefficients (last used in process_block) LINES: redundancy
+            free_matrix(coeffs, redundancy);
+
             uint8_t padding = readed_symbols + nb_remaining_symbols * word_size - message_size;
             uint16_t true_length_last_symbol = word_size - padding;
-            // Free coefficients (last used in process_block)
-            free(coeffs);
 
             if (verbose) {
                 printf(">> last processed block :\n");
-                printf_matrix(last_block, (filelen-24-readed) / word_size, word_size);
+                printf_matrix(decoded, (filelen-24-readed) / word_size, word_size);
                 printf(">> to_string :\n");
-                char* str = block_to_string(last_block, block_size);
+                char* str = block_to_string(decoded, block_size);
                 printf("%s", str);
+                // TODO: free str (sizeof(char) * ((block_size * word_size)+1))
                 free(str);
                 printf("\n========================================================================================================\n\n");
             }
 
             write_last_block(args.output_stream,decoded,nb_remaining_symbols, word_size,true_length_last_symbol);
+            // TODO: free decoded LINES: (nb_remaining_symbols + redundancy)
+            free_matrix(decoded, nb_remaining_symbols + redundancy);
         }
-
-        // Free file_data structure
-        free(file_data);
 
         // Close the input file
         fclose(input_file);

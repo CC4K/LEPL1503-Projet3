@@ -5,8 +5,7 @@
 #include <stdint.h>
 
 static inline sem_t *
-my_sem_init_with_name(char *name, uint32_t value)
-{
+my_sem_init_with_name(char *name, uint32_t value) {
 #ifdef __APPLE__
     int rc = sem_unlink(name);
     sem_t *s;
@@ -27,14 +26,12 @@ my_sem_init_with_name(char *name, uint32_t value)
 }
 
 static inline sem_t *
-my_sem_init(uint32_t value)
-{
+my_sem_init(uint32_t value) {
     return my_sem_init_with_name("/tmp/myPortableSem", value);
 }
 
 static inline int
-my_sem_destroy(sem_t *sem)
-{
+my_sem_destroy(sem_t *sem) {
 #ifdef __APPLE__
     return sem_close(sem);
 #else

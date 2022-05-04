@@ -7,10 +7,12 @@ fec: main.c
 	@$(CC) $(CFLAGS) -o fec main.c src/block_process.c src/system.c src/tinymt32.c $(LIBS)
 
 run: main.c
+	@rm -f fec
 	@$(CC) $(CFLAGS) -o fec main.c src/block_process.c src/system.c src/tinymt32.c $(LIBS)
 	@./fec input_binary/ -f output.txt -v
 
 valgrind: main.c
+	@rm -f fec
 	@$(CC) $(CFLAGS) -o fec main.c src/block_process.c src/system.c src/tinymt32.c $(LIBS)
 	@valgrind --leak-check=full ./fec input_binary/ -f output.txt
 

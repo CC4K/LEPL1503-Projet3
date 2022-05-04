@@ -1,7 +1,9 @@
 #ifndef GROUPEY2_ARGS_H
 #define GROUPEY2_ARGS_H
 
-// Structure for program args
+/**
+ * Structure for program args
+ */
 typedef struct {
     DIR* input_dir;
     char input_dir_path[PATH_MAX];

@@ -85,13 +85,13 @@ linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, ui
     // Allocate memory for the two matrices A and B
     uint8_t** A = malloc(sizeof(uint8_t*) * nb_unk);
     if (A == NULL) return NULL;
-    for (size_t i = 0; i < nb_unk; ++i) {
+    for (size_t i = 0; i < nb_unk; i++) {
         A[i] = malloc(sizeof(uint8_t) * nb_unk);
         if (A[i] == NULL) return NULL;
     }
     uint8_t** B = malloc(sizeof(uint8_t*) * nb_unk);
     if (B == NULL) return NULL;
-    for (size_t i = 0; i < nb_unk; ++i) {
+    for (size_t i = 0; i < nb_unk; i++) {
         B[i] = malloc(sizeof(uint8_t) * word_size);
         if (B[i] == NULL) return NULL;
     }
@@ -110,6 +110,8 @@ linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, ui
             else {
                 uint8_t* vec_mul = gf_256_mul_vector(current_block[j], coeffs[i][j], word_size);
                 B[i] = gf_256_full_add_vector(B[i], vec_mul,word_size);
+                // TODO: free vec_mul
+                free(vec_mul);
             }
         }
     }
@@ -171,5 +173,19 @@ uint8_t** process_block(uint8_t** block, uint8_t size) {
         }
     }
 
+    // TODO: free input_linear_system and input_unknowns
+    free_matrix(A, unknowns);
+//    free_matrix(B, unknowns);
+    free(input_linear_system);
+    free(unknown_indexes);
+    free(input_unknowns);
+
     return block;
+}
+
+void free_matrix(uint8_t** matrix, uint8_t n) {
+    for (int i = 0; i < n; i++) {
+        free(matrix[i]);
+    }
+    free(matrix);
 }

@@ -1,7 +1,9 @@
 #ifndef GROUPEY2_FILE_DATA_H
 #define GROUPEY2_FILE_DATA_H
 
-// Structure to store file information
+/**
+ * Structure to store file information
+ */
 typedef struct {
     uint32_t* seed;
     uint32_t* block_size;
