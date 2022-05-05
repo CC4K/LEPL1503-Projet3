@@ -364,7 +364,7 @@ thread_infos_t* producteur(char* file_path, char* file_name, args_t args) {
     t_infos->word_size = *file_data->word_size;
     t_infos->message_size = *file_data->message_size;
     t_infos->output_stream = args.output_stream;
-    t_infos->verbose = args.verbose;;
+    t_infos->verbose = args.verbose;
     t_infos->coeffs = coeffs;
     t_infos->buf = buf;
     t_infos->filelen = filelen;
