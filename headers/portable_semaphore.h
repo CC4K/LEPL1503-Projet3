@@ -37,6 +37,7 @@ my_sem_destroy(sem_t *sem) {
 #else
     int err = sem_destroy(sem);
     free(sem);
+    return err;
 #endif /* __APPLE__ */
 }
 

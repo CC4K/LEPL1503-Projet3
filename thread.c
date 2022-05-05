@@ -1,3 +1,4 @@
+
 //===========================================================//
 // LEPL1503-Projet_3                                         //
 // Created by Jacques, Romain, Cédric & Pierre on 15/03/22.  //
@@ -25,6 +26,23 @@
 #include "headers/portable_endian.h"
 #include "threads.h"
 #include "semaphore.h"
+
+
+
+typedef struct {
+    FILE* file_path;
+    FILE* output_stream;
+    uint32_t nb_blocks;
+    uint8_t* buf;
+    uint8_t** coefs;
+    uint64_t word_size;
+    uint32_t block_size;
+    uint32_t redundancy;
+    bool verbose;
+    uint64_t filelen;
+    bool contain_uncomplete_blocks;
+    bool has_output;
+}thread_infos_t;
 
 //======================= Functions =========================//
 /**
@@ -260,6 +278,106 @@ int parse_args(args_t* args, int argc, char* argv[]){
     return 0;
 }
 
+
+thread_infos_t* open_file_producter(char* file_path, args_t args){
+    thread_infos_t* t_infos = malloc(sizeof(thread_infos_t));
+    if(t_infos == NULL){
+        printf("\nError Malloc Open_File_Producter\n");
+        exit(EXIT_FAILURE);
+    }
+
+
+    FILE* input_file = fopen(file_path,"r");
+    if(input_file == NULL){
+        exit(EXIT_FAILURE);
+    }
+
+    file_data_t* file_data = get_file_info(file_path);
+    if(file_data == NULL){
+        printf("Can't get file Infos");
+        exit(EXIT_FAILURE);
+    }
+
+    t_infos->file_path = input_file;
+    t_infos->redundancy = *file_data->redundancy;
+    t_infos->block_size = *file_data->block_size;
+    t_infos->word_size = *file_data->word_size;
+    t_infos->output_stream = args.output_stream;
+    t_infos->verbose = args.verbose;
+    t_infos->has_output = ((args.output_stream != stdout) && (args.output_stream != stderr));
+
+    if (t_infos->verbose) {
+        printf(">> seed : %d \n", *file_data->seed);
+        printf(">> block_size : %d \n", *file_data->block_size);
+        printf(">> word_size : %d \n", *file_data->word_size);
+        printf(">> redundancy : %d \n", *file_data->redundancy);
+        printf(">> message_size : %lu\n", *file_data->message_size);
+    }
+
+    t_infos->coefs = gen_coefs(*file_data->seed,t_infos->redundancy, t_infos->block_size);
+
+    if (t_infos->verbose) {
+        if (t_infos->coefs == NULL) {
+            printf("You have to generate coefficients before printing them!\n");
+        }
+        else {
+            printf(">> coefficients :\n");
+            printf_matrix(t_infos->coefs, t_infos->redundancy, t_infos->block_size);
+        }
+    }
+
+    fseek(input_file, 0, SEEK_END);
+    uint64_t filelen = ftell(input_file);
+    rewind(input_file);
+    uint8_t* buf = malloc(sizeof(char) * filelen);
+    fread(buf, filelen, 1, input_file);
+    t_infos->buf = buf;
+    t_infos->filelen = filelen;
+
+    if (t_infos->verbose) {
+        printf(">> binary data : \n");
+        for (int i = 24; i < filelen; i++) {
+            printf("%d ", buf[i]);
+        }
+        printf("\n");
+    }
+
+    double num = (double) (filelen - 24);
+    double den = (double) t_infos->word_size * ((double) t_infos->block_size + (double) t_infos->redundancy);
+    uint32_t nb_blocks = ceil(num/den);
+    t_infos->nb_blocks = nb_blocks;
+
+    if (*file_data->message_size != (t_infos->nb_blocks * t_infos->block_size * t_infos->word_size)) {
+        nb_blocks--;
+        t_infos->contain_uncomplete_blocks = true;
+        if(t_infos->verbose){
+            printf("--------------------------------------------------------------------------------------------------------\n");
+            printf("This file contains non-full blocks\n\n");
+        }
+    }
+    if (!t_infos->contain_uncomplete_blocks) {
+        printf("--------------------------------------------------------------------------------------------------------\n");
+        printf("This file doesn't contain non-full blocks\n\n");
+    }
+    if (!t_infos->has_output && !t_infos->verbose) {
+        fprintf(stdout, "%c", htobe32(strlen(directory_entry->d_name)));
+        fprintf(stdout, "%c", htobe32(message_size));
+        fprintf(stdout, "%s", directory_entry->d_name);
+    }
+    else if (has_output) {
+        uint32_t bytes_len_directory_entry_name = htobe32(strlen(directory_entry->d_name));
+        uint64_t bytes_message_size = htobe64(message_size);
+        fwrite(&bytes_len_directory_entry_name, sizeof(uint32_t), 1, args.output_stream);
+        fwrite(&bytes_message_size, sizeof(uint64_t), 1, args.output_stream);
+        fprintf(args.output_stream, "%s", directory_entry->d_name);
+    }
+
+    return t_infos;
+}
+
+
+
+
 //================================================= MAIN FUNCTION ====================================================//
 int main(int argc, char* argv[]) {
     // Variable to calculate time taken by the program
@@ -420,7 +538,6 @@ int main(int argc, char* argv[]) {
 
             readed += step;
         }
-
         //================================= Write last block to output ===============================================//
         uint32_t readed_symbols = block_size * word_size * nb_blocks;
         uint8_t* temps_buf = malloc(sizeof(uint8_t) * filelen-24-readed);
