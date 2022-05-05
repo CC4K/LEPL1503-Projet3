@@ -21,10 +21,6 @@
 #include "headers/args.h"
 #include "headers/file_data.h"
 #include "headers/block_process.h"
-#include "headers/portable_semaphore.h"
-#include "headers/portable_endian.h"
-#include "threads.h"
-#include "semaphore.h"
 
 //======================= Functions =========================//
 /**
@@ -148,7 +144,7 @@ void write_block(FILE* output_file, uint8_t** block, uint32_t size, uint64_t wor
  * @param word_size: the size of a 'full' symbol
  * @param last_word_size: the size of the very last word of the last block
  */
-void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint64_t word_size, uint16_t last_word_size) {
+void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint64_t word_size, uint32_t last_word_size) {
     for (int i = 0; i < size-1; i++) {
         for (int j = 0; j < word_size; j++) {
             if ((output_file == stdout) || (output_file == stderr)) {
@@ -323,7 +319,7 @@ int main(int argc, char* argv[]) {
         uint32_t step = word_size * (block_size + redundancy);
         bool contains_uncomplete_block = false;
         bool has_output = (args.output_stream != stdout) && (args.output_stream != stderr);
-        int32_t readed = 0;
+        uint32_t readed = 0;
 
         //=============================== Generate matrix of coefficients ============================================//
         coeffs = gen_coefs(*file_data->seed, redundancy, block_size);
@@ -392,6 +388,11 @@ int main(int argc, char* argv[]) {
             fprintf(args.output_stream, "%s", directory_entry->d_name);
         }
 
+
+
+        // CONSUMER STARTS HERE
+
+
         //================================= Write full blocks to output ==============================================//
         for (int i = 0; i < nb_blocks; i++) {
             uint8_t* temps_buf = malloc(sizeof(uint8_t) * step);
@@ -441,7 +442,7 @@ int main(int argc, char* argv[]) {
             free_matrix(coeffs, redundancy);
 
             uint8_t padding = readed_symbols + nb_remaining_symbols * word_size - message_size;
-            uint16_t true_length_last_symbol = word_size - padding;
+            uint32_t true_length_last_symbol = word_size - padding;
 
             if (verbose) {
                 printf(">> last processed block :\n");

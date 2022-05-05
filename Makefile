@@ -11,6 +11,11 @@ run: main.c
 	@$(CC) $(CFLAGS) -o fec main.c src/block_process.c src/system.c src/tinymt32.c $(LIBS)
 	@./fec input_binary/ -f output.txt -v
 
+threads_run: thread.c
+	@rm -f thread
+	@$(CC) $(CFLAGS) -o thread thread.c src/block_process.c src/system.c src/tinymt32.c $(LIBS)
+	@./thread input_binary/ -f output.txt -v
+
 valgrind: main.c
 	@rm -f fec
 	@$(CC) $(CFLAGS) -o fec main.c src/block_process.c src/system.c src/tinymt32.c $(LIBS)
@@ -43,6 +48,7 @@ tests: tests/
 clean:
 	@rm -f src/*.o
 	@rm -f fec
+	@rm -f thread
 	@rm -f *.txt
 	@rm -f tests/test_tinymt32
 	@rm -f tests/test_make_linear_system
