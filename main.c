@@ -50,7 +50,10 @@ file_data_t* get_file_info(char* filename) {
 
     // Create a buffer which contains the first 24 bytes
     buf = malloc(4 * sizeof(uint32_t)+1 * sizeof(uint64_t));
-    fread(buf,4 * sizeof(uint32_t)+1 * sizeof(uint64_t),1,fileptr);
+    int j = fread(buf,4 * sizeof(uint32_t)+1 * sizeof(uint64_t),1,fileptr);
+    if(j == 0){
+        exit(EXIT_FAILURE);
+    }
 
     // Allocate memory for the structure pointers
     output->seed = malloc(sizeof(uint32_t));
@@ -346,7 +349,11 @@ int main(int argc, char* argv[]) {
         long filelen = ftell(input_file);
         rewind(input_file);
         uint8_t* buf = malloc(sizeof(char) * filelen);
-        fread(buf, filelen, 1, input_file);
+        int i = fread(buf, filelen, 1, input_file);
+        if(i == 0){
+            exit(EXIT_FAILURE);
+        }
+
 
         if (verbose) {
             printf(">> binary data : \n");
@@ -467,7 +474,7 @@ int main(int argc, char* argv[]) {
     // Calculate the time taken
     time = clock() - time;
     double time_taken = ((double) time)/CLOCKS_PER_SEC;
-    if (verbose) printf("The program took %f seconds to execute\n", time_taken);
+    printf("The program took %f seconds to execute\n", time_taken);
     bool has_output = (args.output_stream != stdout) && (args.output_stream != stderr);
     if (!verbose && !has_output) printf("\n");
 

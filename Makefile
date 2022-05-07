@@ -4,45 +4,45 @@ LIBS=-lcunit -lpthread -lm
 INCLUDE_HEADERS_DIRECTORY=-Iheaders
 
 fec: main.c
-	@$(CC) $(CFLAGS) -o fec main.c src/block_process.c src/system.c src/tinymt32.c $(LIBS)
+	@$(CC) $(CFLAGS) -O3 main.c src/block_process.c src/system.c src/tinymt32.c $(LIBS) -o fec
 
 run: main.c
 	@rm -f fec
-	@$(CC) $(CFLAGS) -o fec main.c src/block_process.c src/system.c src/tinymt32.c $(LIBS)
-	@./fec input_binary/ -f output.txt -v
+	@$(CC) $(CFLAGS) -O3 main.c src/block_process.c src/system.c src/tinymt32.c $(LIBS) -o fec
+	@./fec input_binary/ -f output.txt
 
 threads_run: thread.c
 	@rm -f thread
-	@$(CC) $(CFLAGS) -o thread thread.c src/block_process.c src/system.c src/tinymt32.c $(LIBS)
+	@$(CC) $(CFLAGS) -O3 thread.c src/block_process.c src/system.c src/tinymt32.c $(LIBS) -o thread
 	@./thread input_binary/ -f output.txt -v
 
 valgrind: main.c
 	@rm -f fec
-	@$(CC) $(CFLAGS) -o fec main.c src/block_process.c src/system.c src/tinymt32.c $(LIBS)
+	@$(CC) $(CFLAGS) -O3 main.c src/block_process.c src/system.c src/tinymt32.c $(LIBS) -o main
 	@valgrind --leak-check=full ./fec input_binary/ -f output.txt
 
 tests: tests/
-	@$(CC) -o tests/test_tinymt32 tests/test_tinymt32.c src/system.c src/tinymt32.c -lcunit
+	@$(CC) -O3 tests/test_tinymt32.c src/system.c src/tinymt32.c -lcunit -o tests/test_tinymt32
 	./tests/test_tinymt32
-	@$(CC) -o tests/test_make_linear_system tests/test_make_linear_system.c src/system.c src/tinymt32.c -lcunit
+	@$(CC) -O3 tests/test_make_linear_system.c src/system.c src/tinymt32.c -lcunit -o tests/test_make_linear_system
 	./tests/test_make_linear_system
-	@$(CC) -o tests/test_gen_coeffs tests/test_gen_coeffs.c src/system.c src/tinymt32.c -lcunit
+	@$(CC) -O3 tests/test_gen_coeffs.c src/system.c src/tinymt32.c -lcunit -o tests/test_gen_coeffs
 	./tests/test_gen_coeffs
-	@$(CC) -o tests/test_block_to_string tests/test_block_to_string.c src/system.c src/tinymt32.c -lcunit
+	@$(CC) -O3 tests/test_block_to_string.c src/system.c src/tinymt32.c -lcunit -o tests/test_block_to_string
 	./tests/test_block_to_string
-	@$(CC) -o tests/test_make_block tests/test_make_block.c src/system.c src/tinymt32.c -lcunit
+	@$(CC) -O3 tests/test_make_block.c src/system.c src/tinymt32.c -lcunit -o tests/test_make_block
 	./tests/test_make_block
-	@$(CC) -o tests/test_find_lost_words tests/test_find_lost_words.c src/system.c src/tinymt32.c -lcunit
+	@$(CC) -O3 tests/test_find_lost_words.c src/system.c src/tinymt32.c -lcunit -o tests/test_find_lost_words
 	./tests/test_find_lost_words
-	@$(CC) -o tests/test_write_block tests/test_write_block.c src/system.c src/tinymt32.c -lcunit
+	@$(CC) -O3 tests/test_write_block.c src/system.c src/tinymt32.c -lcunit -o tests/test_write_block
 	./tests/test_write_block input_binary/ -f
-	@$(CC) -o tests/test_write_last_block tests/test_write_last_block.c src/system.c src/tinymt32.c -lcunit
+	@$(CC) -O3 tests/test_write_last_block.c src/system.c src/tinymt32.c -lcunit -o tests/test_write_last_block
 	./tests/test_write_last_block input_binary/ -f
-	@$(CC) -o tests/test_gaussian tests/test_gaussian.c src/system.c src/tinymt32.c -lcunit
+	@$(CC) -O3 tests/test_gaussian.c src/system.c src/tinymt32.c -lcunit -o tests/test_gaussian
 	./tests/test_gaussian
-	@$(CC) -o tests/test_get_file_info tests/test_get_file_info.c src/system.c src/tinymt32.c -lcunit
+	@$(CC) -O3 tests/test_get_file_info.c src/system.c src/tinymt32.c -lcunit -o tests/test_get_file_info
 	./tests/test_get_file_info
-	@$(CC) -o tests/test_process_block tests/test_process_block.c src/system.c src/tinymt32.c -lcunit
+	@$(CC) -O3 tests/test_process_block.c src/system.c src/tinymt32.c -lcunit -o tests/test_process_block
 	./tests/test_process_block
 
 clean:

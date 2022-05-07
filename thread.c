@@ -24,8 +24,21 @@
 #include "headers/block_process.h"
 #include "headers/portable_semaphore.h"
 #include "headers/portable_endian.h"
-#include "threads.h"
+#include "pthread.h"
 #include "semaphore.h"
+
+sem_t* produce_empty;
+sem_t* produce_full;
+sem_t* consume_empty;
+sem_t* consume_full;
+pthread_mutex_t produce_mutex;
+pthread_mutex_t consume_mutex;
+thread_infos_t* t_infos[100];
+uint32_t produce_index_in = 0;
+uint32_t produce_index_out = 0;
+uint32_t consume_index_in = 0;
+uint32_t consume_index_out = 0;
+
 
 //======================= Functions =========================//
 /**
@@ -55,7 +68,10 @@ file_data_t* get_file_info(char* filename) {
 
     // Create a buffer which contains the first 24 bytes
     buf = malloc(4 * sizeof(uint32_t)+1 * sizeof(uint64_t));
-    fread(buf,4 * sizeof(uint32_t)+1 * sizeof(uint64_t),1,fileptr);
+    int err = fread(buf,4 * sizeof(uint32_t)+1 * sizeof(uint64_t),1,fileptr);
+    if(err == 0){
+        exit(EXIT_FAILURE);
+    }
 
     // Allocate memory for the structure pointers
     output->seed = malloc(sizeof(uint32_t));
@@ -313,7 +329,10 @@ thread_infos_t* producteur(char* file_path, char* file_name, args_t args) {
     uint64_t filelen = ftell(input_file);
     rewind(input_file);
     uint8_t* buf = malloc(sizeof(char) * filelen);
-    fread(buf, filelen, 1, input_file);
+    int err = fread(buf, filelen, 1, input_file);
+    if(err == 0){
+        exit(EXIT_FAILURE);
+    }
 
 
     if (args.verbose) {
@@ -454,6 +473,34 @@ void consumer(thread_infos_t* t_infos) {
 
     // Close the input file
     fclose(t_infos->input_file);
+}
+
+void* run_producer(void* param){
+    struct dirent *directory_entry;
+    args_t args = (args_t)param;
+    while ((directory_entry = readdir(args.input_dir))) {
+
+        // Ignore parent and current directory
+        if (!strcmp(directory_entry->d_name, ".")) continue;
+        if (!strcmp(directory_entry->d_name, "..")) continue;
+
+        // Add the directory path to the filename to open it
+        char full_path[PATH_MAX];
+        memset(full_path, 0, sizeof(char) * PATH_MAX);
+        strcpy(full_path, args.input_dir_path);
+        strcat(full_path, directory_entry->d_name);
+
+        verbose = args.verbose;
+
+        sem_wait(produce_empty);
+        pthread_mutex_lock(produce_mutex);
+        t_infos[produce_index_in] = producteur(full_path,directory_entry->d_name,args);
+
+        produce_index_in = (produce_index_in + 1) % 100;
+
+        pthread_mutex_unlock(produce_mutex);
+        sem_post(produce_full)
+    }
 }
 
 
