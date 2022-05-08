@@ -27,20 +27,40 @@
 #include "pthread.h"
 #include "semaphore.h"
 
-sem_t* produce_empty;
-sem_t* produce_full;
-sem_t* consume_empty;
-sem_t* consume_full;
-pthread_mutex_t produce_mutex;
-pthread_mutex_t consume_mutex;
-thread_infos_t* t_infos[100];
-uint32_t produce_index_in = 0;
-uint32_t produce_index_out = 0;
-uint32_t consume_index_in = 0;
-uint32_t consume_index_out = 0;
+sem_t* sem_empty;
+sem_t* sem_full;
+pthread_mutex_t buf_mutex;
+thread_infos_t* t_infos_buf[100];
+uint32_t index_buf_in;
+uint32_t index_buf_out;
+
+
 
 
 //======================= Functions =========================//
+/**
+ * Help function to print n x m matrices in verbose mode
+ * @param matrix: the matrix to print
+ * @param n: number of lines
+ * @param m: number of columns
+ */
+void printf_matrix(uint8_t** matrix, uint8_t n, uint8_t m) {
+    // Made by Cédric
+
+    printf("[");
+    for (int i = 0; i < n; i++) {
+        if (i != 0) printf(" [");
+        else printf("[");
+        for (int j = 0; j < m; j++) {
+            if (j != m-1) printf("%d ", matrix[i][j]);
+            else printf("%d", matrix[i][j]);
+        }
+        if (i != n-1) printf("]\n");
+        else printf("]");
+    }
+    printf("]\n");
+}
+
 /**
  * Retrieves the data from the 'data' block as specified in the statement
  * @param filename: the file's 'Absolute Path'
@@ -187,28 +207,7 @@ void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint64_t
     }
 }
 
-/**
- * Help function to print n x m matrices in verbose mode
- * @param matrix: the matrix to print
- * @param n: number of lines
- * @param m: number of columns
- */
-void printf_matrix(uint8_t** matrix, uint8_t n, uint8_t m) {
-    // Made by Cédric
 
-    printf("[");
-    for (int i = 0; i < n; i++) {
-        if (i != 0) printf(" [");
-        else printf("[");
-        for (int j = 0; j < m; j++) {
-            if (j != m-1) printf("%d ", matrix[i][j]);
-            else printf("%d", matrix[i][j]);
-        }
-        if (i != n-1) printf("]\n");
-        else printf("]");
-    }
-    printf("]\n");
-}
 
 /**
  * Shows the arguments used during program execution
@@ -285,7 +284,7 @@ int parse_args(args_t* args, int argc, char* argv[]){
  * @param args: args
  * @return FILE* file_path, FILE* output_stream, uint32_t nb_blocks, uint8_t* buf, uint8_t** coefs, uint64_t word_size, uint32_t block_size, uint32_t redundancy, bool verbose, uint64_t filelen, bool contain_uncomplete_blocks
  */
-thread_infos_t* producteur(char* file_path, char* file_name, args_t args) {
+thread_infos_t* producteur(char* file_path, args_t args) {
     // Structure to store data to pass to consumer
     thread_infos_t* t_infos = malloc(sizeof(thread_infos_t));
     if(t_infos == NULL){
@@ -361,21 +360,6 @@ thread_infos_t* producteur(char* file_path, char* file_name, args_t args) {
         printf("This file doesn't contain non-full blocks\n\n");
     }
 
-    // Write bytes into output
-    bool has_output = (args.output_stream != stdout) && (args.output_stream != stderr);
-    if (!has_output && !args.verbose) {
-        fprintf(stdout, "%c", htobe32(strlen(file_name)));
-        fprintf(stdout, "%c", htobe32(*file_data->message_size));
-        fprintf(stdout, "%s", file_name);
-    }
-    else if (has_output) {
-        uint32_t bytes_len_directory_entry_name = htobe32(strlen(file_name));
-        uint64_t bytes_message_size = htobe64(*file_data->message_size);
-        fwrite(&bytes_len_directory_entry_name, sizeof(uint32_t), 1, args.output_stream);
-        fwrite(&bytes_message_size, sizeof(uint64_t), 1, args.output_stream);
-        fprintf(args.output_stream, "%s", file_name);
-    }
-
     // Setup data into structure
     t_infos->input_file = input_file;
     t_infos->redundancy = *file_data->redundancy;
@@ -403,6 +387,10 @@ void consumer(thread_infos_t* t_infos) {
     verbose = t_infos->verbose;
 
     // Write full blocks to output
+    t_infos->blocks = malloc(sizeof(uint8_t**)*t_infos->nb_blocks);
+    if(t_infos->blocks == NULL){
+        exit(EXIT_FAILURE);
+    }
     for (int i = 0; i < t_infos->nb_blocks; i++) {
         uint8_t* temps_buf = malloc(sizeof(uint8_t) * step);
         for (int j = 0; j < step; j++) {
@@ -426,12 +414,14 @@ void consumer(thread_infos_t* t_infos) {
             printf("\n\n--------------------------------------------------------------------------------------------------------\n");
         }
 
-        write_block(t_infos->output_stream,response,t_infos->block_size, t_infos->word_size);
-        // TODO: free response LINES: (block_size + redundancy) | COLUMNS: word_size
-        free_matrix(response, t_infos->block_size + t_infos->redundancy);
+        t_infos->blocks[i] = response;
 
+        printf_matrix(t_infos->blocks[i],(t_infos->block_size+t_infos->redundancy),t_infos->word_size);
+        // TODO: free response LINES: (block_size + redundancy) | COLUMNS: word_size
+        //free_matrix(response, t_infos->block_size + t_infos->redundancy);
         readed += step;
     }
+
 
     // Write last block to output
     uint32_t readed_symbols = t_infos->block_size * t_infos->word_size * t_infos->nb_blocks;
@@ -454,7 +444,6 @@ void consumer(thread_infos_t* t_infos) {
 
         uint8_t padding = readed_symbols + nb_remaining_symbols * t_infos->word_size - t_infos->message_size;
         uint32_t true_length_last_symbol = t_infos->word_size - padding;
-
         if (verbose) {
             printf(">> last processed block :\n");
             printf_matrix(decoded, (t_infos->filelen-24-readed) / t_infos->word_size, t_infos->word_size);
@@ -466,18 +455,51 @@ void consumer(thread_infos_t* t_infos) {
             printf("\n========================================================================================================\n\n");
         }
 
-        write_last_block(t_infos->output_stream,decoded,nb_remaining_symbols, t_infos->word_size,true_length_last_symbol);
+        t_infos->decoded = decoded;
+        t_infos->nb_remaining_symbols = nb_remaining_symbols;
+
+        t_infos->true_length_last_symbols = true_length_last_symbol;
+
         // TODO: free decoded LINES: (nb_remaining_symbols + redundancy)
-        free_matrix(decoded, nb_remaining_symbols + t_infos->redundancy);
+        //free_matrix(decoded, nb_remaining_symbols + t_infos->redundancy);
+
     }
+
 
     // Close the input file
     fclose(t_infos->input_file);
 }
 
-void* run_producer(void* param){
+void write_output(thread_infos_t* t_infos, char* file_name){
+
+    // Write bytes into output
+    bool has_output = (t_infos->output_stream!= stdout) && (t_infos->output_stream!= stderr);
+    if (!has_output && !t_infos->verbose) {
+        fprintf(stdout, "%c", htobe32(strlen(file_name)));
+        fprintf(stdout, "%c", htobe32(t_infos->message_size));
+        fprintf(stdout, "%s", file_name);
+    }
+    else if (has_output) {
+        uint32_t bytes_len_directory_entry_name = htobe32(strlen(file_name));
+        uint64_t bytes_message_size = htobe64(t_infos->message_size);
+        fwrite(&bytes_len_directory_entry_name, sizeof(uint32_t), 1, t_infos->output_stream);
+        fwrite(&bytes_message_size, sizeof(uint64_t), 1, t_infos->output_stream);
+        fprintf(t_infos->output_stream, "%s", file_name);
+    }
+
+    for (int i = 0; i < t_infos->nb_blocks; ++i) {
+        write_block(t_infos->output_stream,t_infos->blocks[i],t_infos->block_size,t_infos->word_size);
+    }
+
+    if(t_infos->contains_uncomplete_block){
+        write_last_block(t_infos->output_stream,t_infos->decoded,t_infos->nb_remaining_symbols,t_infos->word_size,t_infos->true_length_last_symbols);
+    }
+}
+
+
+/*void* run_producer(void* param){
     struct dirent *directory_entry;
-    args_t args = (args_t)param;
+    args_t args = (args_t) param;
     while ((directory_entry = readdir(args.input_dir))) {
 
         // Ignore parent and current directory
@@ -492,16 +514,27 @@ void* run_producer(void* param){
 
         verbose = args.verbose;
 
-        sem_wait(produce_empty);
-        pthread_mutex_lock(produce_mutex);
-        t_infos[produce_index_in] = producteur(full_path,directory_entry->d_name,args);
+        sem_wait(sem_empty);
+        pthread_mutex_lock(buf_mutex);
+        t_infos_buf[index_buf_in] = producteur(full_path,directory_entry->d_name,args);
 
         produce_index_in = (produce_index_in + 1) % 100;
 
-        pthread_mutex_unlock(produce_mutex);
-        sem_post(produce_full)
+        pthread_mutex_unlock(buf_mutex);
+        sem_post( sem_full);
     }
+    pthread_exit(NULL);
 }
+
+void* run_consumer(void* param){
+    while(1){
+        sem_wait(sem_full);
+        pthread_mutex_lock(buf_mutex);
+
+        pthread_mutex_unlock(buf_mutex);
+        sem_post(sem_empty);
+    }
+}*/
 
 
 //================================================= MAIN FUNCTION ====================================================//
@@ -533,10 +566,13 @@ int main(int argc, char* argv[]) {
         verbose = args.verbose;
 
         // Producer
-        thread_infos_t* product = producteur(full_path, directory_entry->d_name, args);
+        thread_infos_t* product = producteur(full_path, args);
 
         // Consumer
         consumer(product);
+
+
+        write_output(product, directory_entry->d_name);
 
     }
 

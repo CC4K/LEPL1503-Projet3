@@ -17,6 +17,11 @@ typedef struct {
     bool verbose;
     uint64_t filelen;
     bool contains_uncomplete_block;
+    uint8_t*** blocks;
+    uint32_t nb_remaining_symbols;
+    uint32_t true_length_last_symbols;
+    uint8_t** decoded;
+
 } thread_infos_t;
 
 #endif //GROUPEY2_THREAD_INFO_H
