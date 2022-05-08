@@ -27,12 +27,24 @@
 #include "pthread.h"
 #include "semaphore.h"
 
-sem_t* sem_empty;
-sem_t* sem_full;
-pthread_mutex_t buf_mutex;
-thread_infos_t* t_infos_buf[100];
-uint32_t index_buf_in;
-uint32_t index_buf_out;
+sem_t* producter_empty;
+sem_t* producteur_full;
+sem_t* consumer_empty;
+sem_t* consumer_full;
+sem_t* writer_empty;
+sem_t* writer_full;
+
+thread_infos_t* produce_buf; // ATTENTION MALLOC
+thread_infos_t* consume_buf;
+
+pthread_mutex_t produce_mutex;
+pthread_mutex_t consume_mutex;
+pthread_mutex_t write_mutex;
+
+uint32_t produce_buf_in = 0;
+uint32_t produce_buf_out = 0;
+uint32_t consume_buf_in = 0;
+uint32_t consume_buf_out = 0;
 
 
 
@@ -497,10 +509,14 @@ void write_output(thread_infos_t* t_infos, char* file_name){
 }
 
 
-/*void* run_producer(void* param){
+void* run_producer(void* param){
     struct dirent *directory_entry;
     args_t args = (args_t) param;
+
     while ((directory_entry = readdir(args.input_dir))) {
+        if(t_infos_buf == NULL){
+            exit(EXIT_FAILURE);
+        }
 
         // Ignore parent and current directory
         if (!strcmp(directory_entry->d_name, ".")) continue;
@@ -514,28 +530,69 @@ void write_output(thread_infos_t* t_infos, char* file_name){
 
         verbose = args.verbose;
 
-        sem_wait(sem_empty);
-        pthread_mutex_lock(buf_mutex);
-        t_infos_buf[index_buf_in] = producteur(full_path,directory_entry->d_name,args);
+        sem_wait(producter_empty);
+        pthread_mutex_lock(produce_mutex);
 
-        produce_index_in = (produce_index_in + 1) % 100;
+        produce_buf[index_buf_in] = producteur(full_path,args);
+        index_buf_in++;
 
-        pthread_mutex_unlock(buf_mutex);
-        sem_post( sem_full);
+        pthread_mutex_unlock(produce_mutex);
+        sem_post(producteur_full);
     }
+
+    //se renseigner si jamais fait pas les stop avec un flag
+
+
     pthread_exit(NULL);
 }
 
 void* run_consumer(void* param){
     while(1){
-        sem_wait(sem_full);
-        pthread_mutex_lock(buf_mutex);
 
-        pthread_mutex_unlock(buf_mutex);
-        sem_post(sem_empty);
+        //recupere le t_infos du producteur
+        sem_wait(producteur_full);
+        pthread_mutex_lock(produce_mutex);
+
+        thread_infos_t t_infos = produce_buf[index_buf_out];
+        index_buf_out--;
+
+        pthread_mutex_unlock(produce_mutex);
+        sem_post(producter_empty);
+
+        //condition si fin de thread
+
+        //utilise les données producteurs;
+
+        sem_wait(writer_empty);
+        pthread_mutex_lock(consume_mutex);
+
+        consume_buf[consume_buf_in] = consumer(t_infos);
+        consume_buf_in++;
+
+        pthread_mutex_unlock(consume_mutex);
+        sem_post(writer_full);
     }
-}*/
+}
 
+void* run_writter(void* param){
+    while (1){
+
+        sem_wait(writer_full);
+        pthread_mutex_lock(write_mutex);
+
+        thread_infos_t elem = consume_buf[produce_buf_out];
+        produce_buf_out--;
+
+        pthread_mutex_unlock(write_mutex);
+        sem_post(writer_empty);
+
+        //TODO: condition de sortie
+
+        //utilise les donncées du consomateur
+        write_output(elem,elem.output_stream);
+
+    }
+}
 
 //================================================= MAIN FUNCTION ====================================================//
 int main(int argc, char* argv[]) {
@@ -545,7 +602,32 @@ int main(int argc, char* argv[]) {
 
     //========================================== Read user arguments =================================================//
     args_t args;
-    int err = parse_args(&args, argc, argv);
+    int nb_files = 0;
+    while ((directory_entry = readdir(args.input_dir))){
+        nb_files++;
+    }
+    produce_buf = malloc(sizeof(thread_infos_t*) * nb_files);
+    consume_buf = malloc(sizeof(thread_infos_t*) * nb_files);
+
+    //init semaphore
+    producter_empty = my_sem_init(nb_files);
+    consumer_empty; = my_sem_init(nb_files);
+    writer_empty; = my_sem_init(nb_files);
+
+    producteur_full = my_sem_init(0);
+    consumer_full = my_sem_init(0);
+    writer_full = my_sem_init(0);
+
+    //init mutex
+    pthread_mutex_init(&(produce_mutex),NULL);
+    pthread_mutex_init(&(consume_mutex),NULL);
+    pthread_mutex_init(&(write_mutex),NULL);
+
+    //TODO : lunch thread
+
+
+
+    /*int err = parse_args(&args, argc, argv);
     if (err == -1) exit(EXIT_FAILURE);
     else if (err == 1) exit(EXIT_SUCCESS);
 
@@ -574,7 +656,7 @@ int main(int argc, char* argv[]) {
 
         write_output(product, directory_entry->d_name);
 
-    }
+    }*/
 
     // Calculate the time taken
     time = clock() - time;
