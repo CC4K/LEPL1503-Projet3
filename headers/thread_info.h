@@ -1,5 +1,6 @@
 #ifndef GROUPEY2_THREAD_INFO_H
 #define GROUPEY2_THREAD_INFO_H
+#include <stddef.h>
 
 /**
  * Structure to store producer data
@@ -21,6 +22,8 @@ typedef struct {
     uint32_t nb_remaining_symbols;
     uint32_t true_length_last_symbols;
     uint8_t** decoded;
+    char* full_path;
+    char* stop;
 
 } thread_infos_t;
 

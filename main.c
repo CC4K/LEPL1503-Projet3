@@ -285,6 +285,8 @@ int main(int argc, char* argv[]) {
         strcpy(full_path, args.input_dir_path);
         strcat(full_path, directory_entry->d_name);
 
+        printf("\nfull : %s",full_path);
+
         // Setup verbose global variable
         verbose = args.verbose;
 
