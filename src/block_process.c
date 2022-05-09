@@ -168,14 +168,16 @@ uint8_t** process_block(uint8_t** block, uint8_t size) {
     uint8_t temp = 0;
     for (int i = 0; i < size; i++) {
         if (unknown_indexes[i] == 1) {
+            // TODO: free lines of block
+            free(block[i]);
             block[i] = B[temp];
             temp += 1;
         }
     }
 
-    // TODO: free input_linear_system and input_unknowns
+    // TODO: free input_linear_system, input_unknowns, matrix B, lines and matrix A, unknown indexes
     free_matrix(A, unknowns);
-//    free_matrix(B, unknowns);
+    free(B);
     free(input_linear_system);
     free(unknown_indexes);
     free(input_unknowns);

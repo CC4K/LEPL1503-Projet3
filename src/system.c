@@ -56,9 +56,11 @@ void gf_256_gaussian_elimination(uint8_t** A, uint8_t** b, uint32_t symbol_size,
                 A[j][k] = A[j][k] ^ gf256_mul_table[A[i][k]][factor];
             }
             uint8_t* mul_vector = gf_256_mul_vector(b[i], factor, symbol_size);
+            uint8_t* free_add_vector = b[j];
             b[j] = gf_256_full_add_vector(b[j], mul_vector, symbol_size);
-            // TODO: free mul vector
+            // TODO: free mul vector AND b[j]
             free(mul_vector);
+            free(free_add_vector);
         }
     }
     // Backward elimination
@@ -69,17 +71,21 @@ void gf_256_gaussian_elimination(uint8_t** A, uint8_t** b, uint32_t symbol_size,
         }
         for (int j = i+1; j < system_size; j++) {
             uint8_t* mul_vector = gf_256_mul_vector(b[j], A[i][j], symbol_size);
+            uint8_t* free_add_vector_2 = factor_tab;
             factor_tab = gf_256_full_add_vector(factor_tab, mul_vector, symbol_size);
-            // TODO: free mul vector
+            // TODO: free mul vector AND add vector
             free(mul_vector);
+            free(free_add_vector_2);
         }
         uint8_t* add_vector = gf_256_full_add_vector(b[i], factor_tab, symbol_size);
+        uint8_t* free_b = b[i];
         b[i] = gf_256_inv_vector(add_vector, A[i][i], symbol_size);
-        // TODO: free add
+        // TODO: free add AND b[i]
         free(add_vector);
+        free(free_b);
     }
     // TODO: free factor_tab
-    free(factor_tab); // Doesn't work ???????????????????
+    free(factor_tab);
 }
 
 uint8_t** gen_coefs(uint32_t seed, uint32_t nss, uint32_t nrs) {
