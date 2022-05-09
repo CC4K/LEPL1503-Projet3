@@ -9,7 +9,7 @@ fec: main.c
 run: main.c
 	@rm -f fec
 	@$(CC) $(CFLAGS) -O3 main.c src/block_process.c src/system.c src/tinymt32.c $(LIBS) -o fec
-	@./fec input_binary/ -f output.txt
+	@./fec input_binary/ -f output.txt -v
 
 threads_run: thread.c
 	@rm -f thread
@@ -18,7 +18,7 @@ threads_run: thread.c
 
 valgrind: main.c
 	@rm -f fec
-	@$(CC) $(CFLAGS) -O3 main.c src/block_process.c src/system.c src/tinymt32.c $(LIBS) -o main
+	@$(CC) $(CFLAGS) -O3 main.c src/block_process.c src/system.c src/tinymt32.c $(LIBS) -o fec
 	@valgrind --leak-check=full ./fec input_binary/ -f output.txt
 
 tests: tests/
