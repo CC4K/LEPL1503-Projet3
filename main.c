@@ -13,7 +13,6 @@
 #include <getopt.h>
 #include <limits.h>
 #include <stdbool.h>
-#include <endian.h>
 #include <fcntl.h>
 #include <math.h>
 #include <time.h>
@@ -21,6 +20,7 @@
 #include "headers/args.h"
 #include "headers/file_data.h"
 #include "headers/block_process.h"
+#include "headers/portable_endian.h"
 
 //======================= Functions =========================//
 /**
