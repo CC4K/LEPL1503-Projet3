@@ -82,4 +82,5 @@ int main() {
     CU_add_test(suite, "correct_blocktostring", test_BTS);
     CU_basic_run_tests();
     CU_basic_show_failures(CU_get_failure_list());
+    CU_cleanup_registry();
 }
