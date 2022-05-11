@@ -26,11 +26,20 @@ typedef struct {
 } linear_system_t;
 
 /**
- * Frees memory from a matrix
- * @param matrix: the matrix to free the contents from
- * @param n: number of lines of the matrix
+ * Help function to print n x m matrices in verbose mode
+ * @param matrix: the matrix to print
+ * @param n: number of lines
+ * @param m: number of columns
  */
-void free_matrix(uint8_t** matrix, uint8_t n);
+void printf_matrix(uint8_t** matrix, uint8_t n, uint8_t m);
+
+/**
+ * Help function to print the linear systems A x B in verbose mode
+ * @param A: first matrix
+ * @param B: second matrix
+ * @param nb_unk: size of A
+ */
+void printf_linear_system(uint8_t** A, uint8_t** B, uint8_t nb_unk);
 
 /**
  * Build the block based on the data and the size of a block
@@ -62,14 +71,6 @@ unknowns_t* find_lost_words(uint8_t** block, uint8_t size);
  * @return B: the independents terms vector. Each element of B is the same size as a data vector (packet)
  */
 linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, uint8_t** current_block, uint8_t block_size);
-
-/**
- * Help function to print the linear systems A x B in verbose mode
- * @param A: first matrix
- * @param B: second matrix
- * @param nb_unk: size of A
- */
-void printf_linear_system(uint8_t** A, uint8_t** B, uint8_t nb_unk);
 
 /**
  * Based on a block, find the unknowns (e.g., lost source symbols) and build the corresponding linear system.

@@ -20,6 +20,7 @@ run_verbose: main.c
 	@rm -f fec
 	@$(CC) $(CFLAGS) -O3 main.c src/block_process.c src/system.c src/tinymt32.c $(LIBS) -o fec
 	@./fec input_binary/ -f output.txt -v
+
 threads_run: thread.c
 	@rm -f thread
 	@$(CC) $(CFLAGS) -O3 thread.c src/block_process.c src/system.c src/tinymt32.c $(LIBS) -o thread

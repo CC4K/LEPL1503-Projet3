@@ -33,7 +33,7 @@ You can then compile the code using these commands.
 
 The project includes a Makefile to avoid overcomplicated commands :
 - `make fec` : compiles code for execution
-- `make run` : compiles code and runs it (by default ouput is output.txt and verbose activated)
+- `make run` : compiles code and runs it (by default output is output.txt and verbose activated)
 - `make tests` : compiles and runs the tests (as well as the tested files)
 - `make clean` : clears all compiled files
 
