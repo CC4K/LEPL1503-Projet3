@@ -14,7 +14,7 @@ run: main.c
 threads_run: thread.c
 	@rm -f thread
 	@$(CC) $(CFLAGS) -O3 thread.c src/block_process.c src/system.c src/tinymt32.c $(LIBS) -o thread
-	@./thread input_binary/ -f output.txt -v
+	@valgrind --tool=helgrind -s ./thread input_binary -n 4 -f output.txt
 
 valgrind: main.c
 	@rm -f fec

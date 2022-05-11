@@ -23,7 +23,7 @@ typedef struct {
     uint32_t true_length_last_symbols;
     uint8_t** decoded;
     char* full_path;
-    char* stop;
+    bool stop;
 
 } thread_infos_t;
 

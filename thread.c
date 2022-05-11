@@ -13,7 +13,6 @@
 #include <getopt.h>
 #include <limits.h>
 #include <stdbool.h>
-#include <endian.h>
 #include <fcntl.h>
 #include <math.h>
 #include <time.h>
@@ -25,27 +24,33 @@
 #include "headers/portable_semaphore.h"
 #include "headers/portable_endian.h"
 #include "pthread.h"
-#include "semaphore.h"
 
+//====================================Globals variables=======================================//
+//Semaphores
 sem_t *producter_empty;
 sem_t *producter_full;
 sem_t *writer_empty;
 sem_t *writer_full;
 
-thread_infos_t *produce_buf[100]; // ATTENTION MALLOC + changer par nb_files
-thread_infos_t *consume_buf[100];
+//Buffers
+thread_infos_t *produce_buf[10]; // ATTENTION MALLOC + changer par nb_files
+thread_infos_t *consume_buf[10];
 
+//Mutex
 pthread_mutex_t produce_mutex;
 pthread_mutex_t write_mutex;
 
+//index out & in
 uint32_t produce_buf_in = 0;
 uint32_t produce_buf_out = 0;
 uint32_t consume_buf_in = 0;
 uint32_t consume_buf_out = 0;
 
-int count_stop = 0;
-struct dirent *directory_entrys;
-uint8_t nb_file = 0;
+
+
+uint8_t nb_files = 0;
+uint8_t nb_threads;
+uint8_t count_stop = 0;
 
 
 
@@ -216,7 +221,6 @@ void write_last_block(FILE *output_file, uint8_t **block, uint8_t size, uint64_t
     }
 }
 
-
 /**
  * Shows the arguments used during program execution
  * @param prog_name
@@ -301,19 +305,18 @@ thread_infos_t *producteur(char *file_path, args_t args) {
         exit(EXIT_FAILURE);
     }
 
-
     // Open the file
     FILE *input_file = fopen(file_path, "r");
     if (input_file == NULL) {
         exit(EXIT_FAILURE);
     }
 
+    if(args.verbose){
+        printf("\n Successfuly open file %s", file_path);
+    }
+
     // Setup file information
     file_data_t *file_data = get_file_info(file_path);
-    if (file_data == NULL) {
-        printf("Can't get file Infos");
-        exit(EXIT_FAILURE);
-    }
 
     uint8_t **coeffs = gen_coefs(*file_data->seed, *file_data->redundancy, *file_data->block_size);
     if (args.verbose) {
@@ -386,6 +389,10 @@ thread_infos_t *producteur(char *file_path, args_t args) {
 
 }
 
+/**
+ * @param t_infos: struc with all infos uses for threads
+ * @make : modify t_infos or add some element use in t_infos
+ */
 void consumer(thread_infos_t *t_infos) {
     // Variables
     uint32_t step = t_infos->word_size * (t_infos->block_size + t_infos->redundancy);
@@ -396,7 +403,7 @@ void consumer(thread_infos_t *t_infos) {
     verbose = t_infos->verbose;
 
     // Write full blocks to output
-    t_infos->blocks = malloc(sizeof(uint8_t * *) * t_infos->nb_blocks);
+    t_infos->blocks = malloc(sizeof(uint8_t **) * t_infos->nb_blocks);
     if (t_infos->blocks == NULL) {
         exit(EXIT_FAILURE);
     }
@@ -479,11 +486,14 @@ void consumer(thread_infos_t *t_infos) {
     fclose(t_infos->input_file);
 }
 
+/**
+ * @param t_infos : struct with all infos usefull for thread (cf thread_info.h)
+ * @param file_name : name of the file
+ */
 void write_output(thread_infos_t *t_infos, char *file_name) {
-
     // Write bytes into output
     bool has_output = (t_infos->output_stream != stdout) && (t_infos->output_stream != stderr);
-    if (!has_output && !t_infos->verbose) {
+    if (!has_output && !t_infos->verbose && !t_infos->stop) {
         fprintf(stdout, "%c", htobe32(strlen(file_name)));
         fprintf(stdout, "%c", htobe32(t_infos->message_size));
         fprintf(stdout, "%s", file_name);
@@ -505,7 +515,10 @@ void write_output(thread_infos_t *t_infos, char *file_name) {
     }
 }
 
-void *run_producer(void *elem) {
+/**
+ * @param elem : argument give when call programmestruct dirent *directory_entrys;
+ */
+void* run_producer(void *elem) {
 
     struct dirent *directory_entry;
     args_t *args = (args_t *) elem;
@@ -524,16 +537,14 @@ void *run_producer(void *elem) {
         strcat(full_path, "/"); //pourquoi mtn il y a plus le "/" aucune idée et ça ma fait perdre 20min de debug
         strcat(full_path, directory_entry->d_name);
 
-
         //wait access
         sem_wait(producter_empty);
         pthread_mutex_lock(&produce_mutex); //Lock mutex
 
-        //Produce
-
+        //Produce and set variable
         produce_buf[produce_buf_in] = producteur(full_path, *args);
         produce_buf[produce_buf_in]->full_path = full_path;
-        produce_buf[produce_buf_in]->stop = "";
+        produce_buf[produce_buf_in]->stop = false;
 
         produce_buf_in++;
 
@@ -543,11 +554,12 @@ void *run_producer(void *elem) {
     }
 
 
-    //create the same nb of t_infos in the buffer but with stop string to know when stop function
+    //create the same nb of t_infos in the buffer but with stop bool to know when stop thread
     for (int i = 0; i < args->nb_threads; ++i) {
         thread_infos_t *stop = malloc(sizeof(thread_infos_t));
         if (stop == NULL) { exit(EXIT_FAILURE); }
-        stop->stop = "STOP";
+        stop->stop = true;
+        stop->full_path="";
 
         sem_wait(producter_empty);
         pthread_mutex_lock(&produce_mutex);
@@ -559,11 +571,10 @@ void *run_producer(void *elem) {
         sem_post(producter_full);
     }
 
-
     pthread_exit(NULL);
 }
 
-void *run_consumer(void *elem) {
+void* run_consumer(void *elem) {
     while (1) {
 
         //wait an lock mutex when thread can work
@@ -573,46 +584,42 @@ void *run_consumer(void *elem) {
         //recolt t_infos from buf
         thread_infos_t *t_infos = produce_buf[produce_buf_out];
         produce_buf_out++;
-
         //unlock and notify sem
         pthread_mutex_unlock(&produce_mutex);
         sem_post(producter_empty);
 
         //condition if end of thread
-        if (!strcmp(t_infos->stop, "STOP")) {
-
-            //wait an lock mutex when thread can work
+        if (t_infos->stop) {
             sem_wait(writer_empty);
             pthread_mutex_lock(&write_mutex);
 
-            //recolt t_infos from buf
             consume_buf[consume_buf_in] = t_infos;
             consume_buf_in++;
 
-            //unlock and notify sem
             pthread_mutex_unlock(&write_mutex);
             sem_post(writer_full);
 
-            //stop le thread
             pthread_exit(NULL);
+
+        }else{
+
+            sem_wait(writer_empty);
+            pthread_mutex_lock(&write_mutex);
+
+            consumer(t_infos); // consume to change t_infos;
+            consume_buf[consume_buf_in] = t_infos;
+            consume_buf_in++;
+
+            pthread_mutex_unlock(&write_mutex);
+            sem_post(writer_full);
         }
-
-
-        sem_wait(writer_empty);
-        pthread_mutex_lock(&write_mutex);
-
-        consumer(t_infos); // consume to change t_infos;
-        consume_buf[consume_buf_in] = t_infos;
-        consume_buf_in++;
-
-        pthread_mutex_unlock(&write_mutex);
-        sem_post(writer_full);
     }
+
 }
 
-void *run_writter(void *elem) {
+void* run_writter(void *elem) {
 
-    args_t *args = (args_t *) elem;
+    args_t* args = (args_t*) elem;
     while (1) {
 
         sem_wait(writer_full);
@@ -624,16 +631,16 @@ void *run_writter(void *elem) {
         pthread_mutex_unlock(&write_mutex);
         sem_post(writer_empty);
 
-        if (strcmp(t_infos->stop, "STOP")) {
-            count_stop++;;
+        if (t_infos->stop) {
+            count_stop++;
             if (count_stop == args->nb_threads) {
                 pthread_exit(NULL);
             }
+        }else{
+
+            //utilise les donncées du consomateur
+            write_output(t_infos, t_infos->full_path);
         }
-
-        //utilise les donncées du consomateur
-        write_output(t_infos, t_infos->full_path);
-
     }
 }
 
@@ -643,7 +650,6 @@ int main(int argc, char *argv[]) {
     clock_t time;
     time = clock();
 
-
     //========================================== Read user arguments =================================================//
     args_t args;
     int err = parse_args(&args, argc, argv);
@@ -651,16 +657,32 @@ int main(int argc, char *argv[]) {
     else if (err == 1) exit(EXIT_SUCCESS);
 
 
-    //thread_infos_t* produce_buf[nb_files];
-    //thread_infos_t* consume_buf[nb_files];
+    //counting nb files in directory;
+    DIR * dirp;
+    struct dirent * entry;
+    dirp = opendir(args.input_dir_path); /* There should be error handling after this */
+    while ((entry = readdir(dirp)) != NULL) {
+        if (entry->d_type == DT_REG) { /* If the entry is a regular file */
+            nb_files++;
+        }
+    }
+    closedir(dirp);
+
+    if(args.verbose){
+        printf("The directory contains %d file(s)",nb_files);
+    }
+
+    //========================================= init thread mutex semaphore ==========================================//
+    //produce_buf = malloc(sizeof(thread_infos_t*) * nb_files * 2);
+    //consume_buf = malloc(sizeof(thread_infos_t*) * nb_files * 2);
 
     pthread_t producer_thread;
     pthread_t consume_thread[args.nb_threads];
     pthread_t write_thread;
 
     //init semaphore
-    producter_empty = my_sem_init(100);
-    writer_empty = my_sem_init(100);
+    producter_empty = my_sem_init(10);
+    writer_empty = my_sem_init(10);
 
     producter_full = my_sem_init(0);
     writer_full = my_sem_init(0);
@@ -669,13 +691,18 @@ int main(int argc, char *argv[]) {
     pthread_mutex_init(&(produce_mutex), NULL);
     pthread_mutex_init(&(write_mutex), NULL);
 
+    //========================================= Create and join thread ===============================================//
+
+
     //create thread
+    //producer : read file, get info file, create coefs
     err = pthread_create(&producer_thread, NULL, &run_producer, &args);
     if (err != 0) {
         printf("Error while creating thread run_producer");
         exit(EXIT_FAILURE);
     }
 
+    //Consume : calcuate lost
     for (int i = 0; i < args.nb_threads; ++i) {
         err = pthread_create(&consume_thread[i], NULL, &run_consumer, &args);
         if (err != 0) {
@@ -685,7 +712,7 @@ int main(int argc, char *argv[]) {
     }
 
 
-    err = pthread_create(&write_thread, NULL, run_writter, &args);
+    err = pthread_create(&write_thread, NULL, &run_writter, &args);
     if (err != 0) {
         printf("Error while creating thread run_writter");
         exit(EXIT_FAILURE);
@@ -724,7 +751,7 @@ int main(int argc, char *argv[]) {
     // Calculate the time taken
     time = clock() - time;
     double time_taken = ((double) time) / CLOCKS_PER_SEC;
-    if (verbose) printf("The program took %f seconds to execute\n", time_taken);
+    printf("The program took %f seconds to execute\n", time_taken);
     bool has_output = (args.output_stream != stdout) && (args.output_stream != stderr);
     if (!verbose && !has_output) printf("\n");
 
