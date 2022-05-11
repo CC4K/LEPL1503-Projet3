@@ -6,6 +6,7 @@
 //================= Libraries and headers ===================//
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "../headers/block_process.h"
 #include "../headers/system.h"
 
@@ -16,6 +17,40 @@ uint32_t redundancy = 0;
 bool verbose = false;
 
 //======================= Functions =========================//
+void printf_matrix(uint8_t** matrix, uint8_t n, uint8_t m) {
+    // Made by Cédric
+
+    printf("[");
+    for (int i = 0; i < n; i++) {
+        if (i != 0) printf(" [");
+        else printf("[");
+        for (int j = 0; j < m; j++) {
+            if (j != m-1) printf("%d ", matrix[i][j]);
+            else printf("%d", matrix[i][j]);
+        }
+        if (i != n-1) printf("]\n");
+        else printf("]");
+    }
+    printf("]\n");
+}
+
+void printf_linear_system(uint8_t** A, uint8_t** B, uint8_t nb_unk) {
+    // Made by Cédric
+
+    printf(">> linear_system :\n");
+    for (int i = 0; i < nb_unk; i++) {
+        printf("[ ");
+        for (int j = 0; j < nb_unk; j++) {
+            printf("%d ", A[i][j]);
+        }
+        printf("]\t[ ");
+        for (int j = 0; j < word_size; j++) {
+            printf("%d ", B[i][j]);
+        }
+        printf("]\n");
+    }
+}
+
 uint8_t** make_block(uint8_t* data, uint8_t size) {
     // Made by Jacques
 
@@ -91,10 +126,6 @@ linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, ui
     }
     uint8_t** B = malloc(sizeof(uint8_t*) * nb_unk);
     if (B == NULL) return NULL;
-    for (size_t i = 0; i < nb_unk; i++) {
-        B[i] = malloc(sizeof(uint8_t) * word_size);
-        if (B[i] == NULL) return NULL;
-    }
 
     for (int i = 0; i < nb_unk; i++) {
         B[i] = current_block[block_size + i];
@@ -105,7 +136,7 @@ linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, ui
         for (int j = 0; j < block_size; j++) {
             if (unknown_indexes[j] == 1) {
                 A[i][temp] = coeffs[i][j];
-                temp += 1;
+                temp ++;
             }
             else {
                 uint8_t* vec_mul = gf_256_mul_vector(current_block[j], coeffs[i][j], word_size);
@@ -130,23 +161,6 @@ linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, ui
     return output;
 }
 
-void printf_linear_system(uint8_t** A, uint8_t** B, uint8_t nb_unk) {
-    // Made by Cédric
-
-    printf(">> linear_system :\n");
-    for (int i = 0; i < nb_unk; i++) {
-        printf("[ ");
-        for (int j = 0; j < nb_unk; j++) {
-            printf("%d ", A[i][j]);
-        }
-        printf("]\t[ ");
-        for (int j = 0; j < word_size; j++) {
-            printf("%d ", B[i][j]);
-        }
-        printf("]\n");
-    }
-}
-
 uint8_t** process_block(uint8_t** block, uint8_t size) {
     // Made by Cédric
 
@@ -165,29 +179,33 @@ uint8_t** process_block(uint8_t** block, uint8_t size) {
     if (verbose) printf_linear_system(A, B, unknowns);
 
     // For each index marked as 'true', replace the data
-    uint8_t temp = 0;
+    int temp = 0;
     for (int i = 0; i < size; i++) {
         if (unknown_indexes[i] == 1) {
             // TODO: free lines of block
             free(block[i]);
             block[i] = B[temp];
-            temp += 1;
+            temp++;
         }
     }
 
-    // TODO: free input_linear_system, input_unknowns, matrix B, lines and matrix A, unknown indexes
-    free_matrix(A, unknowns);
-    free(B);
+//    printf("\n\nB:\n");
+//    printf_matrix(B, unknowns, word_size);
+//    printf("\nblock:\n");
+//    printf_matrix(block, size + redundancy, word_size);
+
+    // TODO: free input_linear_system, input_unknowns, matrix B, matrix A, unknown indexes
+    for (int i = 0; i < unknowns; i++) {
+        free(input_linear_system->A[i]);
+    }
+    free(input_linear_system->A);
+//    for (int i = 0; i < unknowns; i++) {
+//        free(B[i]);
+//    }
+    free(input_linear_system->B);
     free(input_linear_system);
     free(unknown_indexes);
     free(input_unknowns);
 
     return block;
-}
-
-void free_matrix(uint8_t** matrix, uint8_t n) {
-    for (int i = 0; i < n; i++) {
-        free(matrix[i]);
-    }
-    free(matrix);
 }

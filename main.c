@@ -170,29 +170,6 @@ void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint64_t
 }
 
 /**
- * Help function to print n x m matrices in verbose mode
- * @param matrix: the matrix to print
- * @param n: number of lines
- * @param m: number of columns
- */
-void printf_matrix(uint8_t** matrix, uint8_t n, uint8_t m) {
-    // Made by Cédric
-
-    printf("[");
-    for (int i = 0; i < n; i++) {
-        if (i != 0) printf(" [");
-        else printf("[");
-        for (int j = 0; j < m; j++) {
-            if (j != m-1) printf("%d ", matrix[i][j]);
-            else printf("%d", matrix[i][j]);
-        }
-        if (i != n-1) printf("]\n");
-        else printf("]");
-    }
-    printf("]\n");
-}
-
-/**
  * Shows the arguments used during program execution
  * @param prog_name
  */
@@ -326,7 +303,7 @@ int main(int argc, char* argv[]) {
 
         //=============================== Generate matrix of coefficients ============================================//
         coeffs = gen_coefs(*file_data->seed, redundancy, block_size);
-        // TODO: free file_data information
+        // TODO: free file_data
         free(file_data->seed);
         free(file_data->block_size);
         free(file_data->word_size);
@@ -407,7 +384,7 @@ int main(int argc, char* argv[]) {
                 temps_buf[j] = buf[(i * step) + j + 24];
             }
             uint8_t** current_block = make_block(temps_buf, block_size);
-            // TODO: free temps_buf (step)
+            // TODO: free temps_buf
             free(temps_buf);
             uint8_t** response = process_block(current_block,block_size);
 
@@ -423,8 +400,11 @@ int main(int argc, char* argv[]) {
             }
 
             write_block(args.output_stream,response,block_size, word_size);
-            // TODO: free response LINES: (block_size + redundancy) | COLUMNS: word_size
-            free_matrix(response, block_size + redundancy);
+            // TODO: free response LINES: block_size + redundancy
+            for (int i = 0; i < (block_size + redundancy); i++) {
+                free(response[i]);
+            }
+            free(response);
 
             readed += step;
         }
@@ -435,18 +415,21 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < filelen-24-readed; ++i) {
             temps_buf[i] = buf[24+readed + i];
         }
-        // TODO: free buf (filelen)
+        // TODO: free buf
         free(buf);
 
         uint32_t nb_remaining_symbols = ((filelen-24-readed) / word_size) - redundancy;
         if (contains_uncomplete_block) {
             uint8_t** last_block = make_block(temps_buf, nb_remaining_symbols);
-            // TODO: free temps_buf (filelen-24-readed)
+            // TODO: free temps_buf
             free(temps_buf);
             uint8_t** decoded = process_block(last_block,nb_remaining_symbols);
 
             // TODO: free coefficients (last used in process_block) LINES: redundancy
-            free_matrix(coeffs, redundancy);
+            for (int i = 0; i < redundancy; i++) {
+                free(coeffs[i]);
+            }
+            free(coeffs);
 
             uint8_t padding = readed_symbols + nb_remaining_symbols * word_size - message_size;
             uint32_t true_length_last_symbol = word_size - padding;
@@ -464,7 +447,10 @@ int main(int argc, char* argv[]) {
 
             write_last_block(args.output_stream,decoded,nb_remaining_symbols, word_size,true_length_last_symbol);
             // TODO: free decoded LINES: (nb_remaining_symbols + redundancy)
-            free_matrix(decoded, nb_remaining_symbols + redundancy);
+            for (int i = 0; i < (nb_remaining_symbols + redundancy); i++) {
+                free(decoded[i]);
+            }
+            free(decoded);
         }
 
         // Close the input file
