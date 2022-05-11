@@ -33,8 +33,8 @@ sem_t *writer_empty;
 sem_t *writer_full;
 
 //Buffers
-thread_infos_t *produce_buf[10]; // ATTENTION MALLOC + changer par nb_files
-thread_infos_t *consume_buf[10];
+thread_infos_t *produce_buf[MAX_INPUT];
+thread_infos_t *consume_buf[MAX_INPUT];
 
 //Mutex
 pthread_mutex_t produce_mutex;
@@ -45,7 +45,6 @@ uint32_t produce_buf_in = 0;
 uint32_t produce_buf_out = 0;
 uint32_t consume_buf_in = 0;
 uint32_t consume_buf_out = 0;
-
 
 
 uint8_t nb_files = 0;
@@ -296,7 +295,10 @@ int parse_args(args_t *args, int argc, char *argv[]) {
  * @param file_name: name of the file
  * @param args: args
  * @return FILE* file_path, FILE* output_stream, uint32_t nb_blocks, uint8_t* buf, uint8_t** coefs, uint64_t word_size, uint32_t block_size, uint32_t redundancy, bool verbose, uint64_t filelen, bool contain_uncomplete_blocks
+ *
+ * find/calculate all info we need to calculate the lost symboles of the binary file, calculate the coef matrix too. put all infos in a struct thread_info_t
  */
+
 thread_infos_t *producteur(char *file_path, args_t args) {
     // Structure to store data to pass to consumer
     thread_infos_t *t_infos = malloc(sizeof(thread_infos_t));
@@ -311,7 +313,7 @@ thread_infos_t *producteur(char *file_path, args_t args) {
         exit(EXIT_FAILURE);
     }
 
-    if(args.verbose){
+    if (args.verbose) {
         printf("\n Successfuly open file %s", file_path);
     }
 
@@ -391,7 +393,9 @@ thread_infos_t *producteur(char *file_path, args_t args) {
 
 /**
  * @param t_infos: struc with all infos uses for threads
- * @make : modify t_infos or add some element use in t_infos
+ *
+ * calculate the lost symbole of the binary file and modify the t_infos given in parameter and add some new element in t_infos.
+ * Afer the call, all symbols must be found
  */
 void consumer(thread_infos_t *t_infos) {
     // Variables
@@ -403,7 +407,7 @@ void consumer(thread_infos_t *t_infos) {
     verbose = t_infos->verbose;
 
     // Write full blocks to output
-    t_infos->blocks = malloc(sizeof(uint8_t **) * t_infos->nb_blocks);
+    t_infos->blocks = malloc(sizeof(uint8_t * *) * t_infos->nb_blocks);
     if (t_infos->blocks == NULL) {
         exit(EXIT_FAILURE);
     }
@@ -489,15 +493,18 @@ void consumer(thread_infos_t *t_infos) {
 /**
  * @param t_infos : struct with all infos usefull for thread (cf thread_info.h)
  * @param file_name : name of the file
+ *
+ * Write in the output file the new infos about the binary file that we juste calulate
  */
 void write_output(thread_infos_t *t_infos, char *file_name) {
     // Write bytes into output
     bool has_output = (t_infos->output_stream != stdout) && (t_infos->output_stream != stderr);
-    if (!has_output && !t_infos->verbose && !t_infos->stop) {
+    if (!has_output && !t_infos->verbose) {
         fprintf(stdout, "%c", htobe32(strlen(file_name)));
         fprintf(stdout, "%c", htobe32(t_infos->message_size));
         fprintf(stdout, "%s", file_name);
     } else if (has_output) {
+
         uint32_t bytes_len_directory_entry_name = htobe32(strlen(file_name));
         uint64_t bytes_message_size = htobe64(t_infos->message_size);
         fwrite(&bytes_len_directory_entry_name, sizeof(uint32_t), 1, t_infos->output_stream);
@@ -518,7 +525,7 @@ void write_output(thread_infos_t *t_infos, char *file_name) {
 /**
  * @param elem : argument give when call programmestruct dirent *directory_entrys;
  */
-void* run_producer(void *elem) {
+void *run_producer(void *elem) {
 
     struct dirent *directory_entry;
     args_t *args = (args_t *) elem;
@@ -534,7 +541,9 @@ void* run_producer(void *elem) {
         char full_path[PATH_MAX];
         memset(full_path, 0, sizeof(char) * PATH_MAX);
         strcpy(full_path, args->input_dir_path);
-        strcat(full_path, "/"); //pourquoi mtn il y a plus le "/" aucune idée et ça ma fait perdre 20min de debug
+        if(strcmp(&(full_path[strlen(full_path)-1]),"/")) {
+            strcat(full_path, "/"); //if forgot the "/" when giving input directory in argument
+        }
         strcat(full_path, directory_entry->d_name);
 
         //wait access
@@ -543,7 +552,7 @@ void* run_producer(void *elem) {
 
         //Produce and set variable
         produce_buf[produce_buf_in] = producteur(full_path, *args);
-        produce_buf[produce_buf_in]->full_path = full_path;
+        strcpy(produce_buf[produce_buf_in]->full_path, full_path);
         produce_buf[produce_buf_in]->stop = false;
 
         produce_buf_in++;
@@ -554,12 +563,14 @@ void* run_producer(void *elem) {
     }
 
 
-    //create the same nb of t_infos in the buffer but with stop bool to know when stop thread
+    //create the same nb of t_infos in the buffer but with stop bool to know when stop threads
     for (int i = 0; i < args->nb_threads; ++i) {
+
         thread_infos_t *stop = malloc(sizeof(thread_infos_t));
         if (stop == NULL) { exit(EXIT_FAILURE); }
         stop->stop = true;
-        stop->full_path="";
+        strcpy(stop->full_path, "none"); //none else segfault in write output functions
+
 
         sem_wait(producter_empty);
         pthread_mutex_lock(&produce_mutex);
@@ -574,7 +585,7 @@ void* run_producer(void *elem) {
     pthread_exit(NULL);
 }
 
-void* run_consumer(void *elem) {
+void *run_consumer(void *elem) {
     while (1) {
 
         //wait an lock mutex when thread can work
@@ -601,7 +612,7 @@ void* run_consumer(void *elem) {
 
             pthread_exit(NULL);
 
-        }else{
+        } else {
 
             sem_wait(writer_empty);
             pthread_mutex_lock(&write_mutex);
@@ -617,9 +628,9 @@ void* run_consumer(void *elem) {
 
 }
 
-void* run_writter(void *elem) {
+void *run_writter(void *elem) {
 
-    args_t* args = (args_t*) elem;
+    args_t *args = (args_t *) elem;
     while (1) {
 
         sem_wait(writer_full);
@@ -636,7 +647,7 @@ void* run_writter(void *elem) {
             if (count_stop == args->nb_threads) {
                 pthread_exit(NULL);
             }
-        }else{
+        } else {
 
             //utilise les donncées du consomateur
             write_output(t_infos, t_infos->full_path);
@@ -655,11 +666,9 @@ int main(int argc, char *argv[]) {
     int err = parse_args(&args, argc, argv);
     if (err == -1) exit(EXIT_FAILURE);
     else if (err == 1) exit(EXIT_SUCCESS);
-
-
     //counting nb files in directory;
-    DIR * dirp;
-    struct dirent * entry;
+    DIR *dirp;
+    struct dirent *entry;
     dirp = opendir(args.input_dir_path); /* There should be error handling after this */
     while ((entry = readdir(dirp)) != NULL) {
         if (entry->d_type == DT_REG) { /* If the entry is a regular file */
@@ -668,21 +677,19 @@ int main(int argc, char *argv[]) {
     }
     closedir(dirp);
 
-    if(args.verbose){
-        printf("The directory contains %d file(s)",nb_files);
+    if (args.verbose) {
+        printf("The directory contains %d file(s)", nb_files);
     }
 
     //========================================= init thread mutex semaphore ==========================================//
-    //produce_buf = malloc(sizeof(thread_infos_t*) * nb_files * 2);
-    //consume_buf = malloc(sizeof(thread_infos_t*) * nb_files * 2);
 
     pthread_t producer_thread;
     pthread_t consume_thread[args.nb_threads];
     pthread_t write_thread;
 
     //init semaphore
-    producter_empty = my_sem_init(10);
-    writer_empty = my_sem_init(10);
+    producter_empty = my_sem_init(MAX_INPUT);
+    writer_empty = my_sem_init(MAX_INPUT);
 
     producter_full = my_sem_init(0);
     writer_full = my_sem_init(0);
@@ -739,13 +746,16 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
+    //destroy sem
     my_sem_destroy(producter_empty);
     my_sem_destroy(producter_full);
     my_sem_destroy(writer_empty);
     my_sem_destroy(writer_full);
 
+    //destroy mutex
     pthread_mutex_destroy(&produce_mutex);
     pthread_mutex_destroy(&write_mutex);
+
 
 
     // Calculate the time taken
