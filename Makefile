@@ -5,18 +5,14 @@ LIBS=-lcunit -lpthread -lm
 INCLUDE_HEADERS_DIRECTORY=-Iheaders
 
 fec: main.c
+	@rm -f fec
 	@$(CC) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fec
 
-fec2: thread.c
+fec_threads: thread.c
 	@rm -f thread
 	@$(CC) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o thread
 
 run: main.c
-	@rm -f fec
-	@$(CC) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fec
-	@./fec input_binary/ -f output.txt
-
-run_verbose: main.c
 	@rm -f fec
 	@$(CC) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fec
 	@./fec input_binary/ -f output.txt -v
@@ -24,22 +20,17 @@ run_verbose: main.c
 threads_run: thread.c
 	@rm -f thread
 	@$(CC) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o thread
-	@./thread input_binary -n 4 -f output.txt
+	@./thread input_binary -n 4 -f output.txt -v
 
-threads_run_verbose: thread.c
-	@rm -f thread
-	@$(CC) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o thread
-	@./thread input_binary/ -n 4 -f output.txt -v
-
-valgrind_fec: main.c
+valgrind_run: main.c
 	@rm -f fec
 	@$(CC) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fec
-	@valgrind --leak-check=full ./fec input_binary/ -f output.txt
+	@valgrind --leak-check=full --show-leak-kinds=all ./fec input_binary/ -f output.txt
 
-valgrind_thread: thread.c
+valgrind_threads: thread.c
 	@rm -f fec
 	@$(CC) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o thread
-	@valgrind --leak-check=full ./thread input_binary/ -n 4 -f output.txt
+	@valgrind --leak-check=full --show-leak-kinds=all ./thread input_binary/ -n 4 -f output.txt
 
 tests: tests/
 	@$(CC) -O3 tests/test_tinymt32.c src/system.c src/tinymt32.c -lcunit -o tests/test_tinymt32

@@ -32,25 +32,27 @@ First you must have your binary files in the `input_binary/` directory.
 You can then compile the code using these commands.
 
 The project includes a Makefile to avoid overcomplicated commands :
-- `make fec` : compiles code for execution
-- `make run` : compiles code and runs it (by default output is output.txt and verbose activated)
+- `make fec` : compiles sequential code for execution
+- `make fec_threads` : compiles threaded code for execution
+- `make run` : compiles and runs sequential code (default output is output.txt and verbose is activated)
+- `make threads_run` : compiles and runs threaded code (default output is output.txt, verbose is activated and 4 threads are running)
+- `make valgrind_run` : compiles and runs sequential code with valgrind
+- `make valgrind_threads` : compiles and runs threaded code with valgrind
 - `make tests` : compiles and runs the tests (as well as the tested files)
 - `make clean` : clears all compiled files
 
-To run the executable "fec", use `./fec input_binary/` which will give your output to your terminal.
+To run the executable "fec", use `./fec input_binary/` which will print your output straight to your terminal.
+Same goes for the "thread" executable.
 
 Here are some of the parameters you can use alongside the base command :
 - `-v` : to set verbose mode to 'true' and show steps of the program in your terminal
 - `-f output.txt` : to get your output in a .txt file (here named "output.txt")
-
-[//]: # (- `-n 4` : to specify the number of threads you want to run the program with &#40;here 4 threads&#41;                          Disons que c pas très utilse pour le moment)
+- `-n 4` : to specify the number of threads you want to run the "thread" executable with (here 4 threads)
 ## Performance results
 
 Here is our first performance test showing the time needed to execute the program in C with one thread versus in Python.
 
 The times were obtained by calculating the mean of 20 execution of each program.
-- Hardware used : Ryzen 5 4600U
-- OS : Ubuntu 20.04.4 LTS
 
 Results :
 - Python : 1.47261415 sec

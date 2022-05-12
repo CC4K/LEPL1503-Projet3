@@ -268,12 +268,12 @@ int main(int argc, char* argv[]) {
         input_file = fopen(full_path, "r");
         if (input_file == NULL) {
             printf("========================================================================================================\n");
-            fprintf(stderr, "Failed to open the input file %s: %s\n", full_path, strerror(errno));
+            printf("Failed to open the input file %s: %s\n", full_path, strerror(errno));
             goto file_read_error;
         }
         if (verbose) {
             printf("========================================================================================================\n");
-            fprintf(stderr, "Successfully opened the file %s\n", full_path);
+            printf("Successfully opened the file %s\n", full_path);
         }
 
         //======================================= Get file infos =====================================================//
@@ -298,7 +298,8 @@ int main(int argc, char* argv[]) {
 
         //=============================== Generate matrix of coefficients ============================================//
         coeffs = gen_coefs(*file_data->seed, redundancy, block_size);
-        // TODO: free file_data
+
+        // Free file data
         free(file_data->seed);
         free(file_data->block_size);
         free(file_data->word_size);

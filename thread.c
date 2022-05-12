@@ -106,10 +106,8 @@ file_data_t* get_file_info(char* filename) {
     // Close the file
     fclose(fileptr);
 
-    // TODO
     // Free the buffer
-    //free(buf);
-
+    free(buf);
     return output;
 }
 
@@ -271,7 +269,7 @@ int parse_args(args_t* args, int argc, char* argv[]) {
  * @param args: parsed file arguments
  * @return input_file, output_stream, nb_blocks, buf, coeffs, word_size, block_size, redundancy, message_size, verbose, filelen, contain_uncomplete_blocks
  */
-thread_infos_t* producteur(char* file_path, args_t args) {
+thread_infos_t* producer(char* file_path, args_t args) {
     // Initialize the structure to store data to pass to consumer
     thread_infos_t* t_infos = malloc(sizeof(thread_infos_t));
     if (t_infos == NULL) {
@@ -281,9 +279,17 @@ thread_infos_t* producteur(char* file_path, args_t args) {
 
     // Open the file
     FILE* input_file = fopen(file_path, "r");
-    if (input_file == NULL) exit(EXIT_FAILURE);
-
-    if (args.verbose) printf("\nSuccessfully opened file %s", file_path);
+    if (input_file == NULL) {
+        printf("========================================================================================================\n");
+        fprintf(stderr, "Failed to open the input file %s: %s\n", file_path, strerror(errno));
+        // TODO : Il faut le sortir en argument pour y accéder ds le main
+//        goto file_read_error;
+        exit(EXIT_FAILURE);
+    }
+    if (args.verbose) {
+        printf("========================================================================================================\n");
+        printf("Successfully opened the file %s\n", file_path);
+    }
 
     // Get file data and generate coefficients
     file_data_t* file_data = get_file_info(file_path);
@@ -332,12 +338,12 @@ thread_infos_t* producteur(char* file_path, args_t args) {
         contains_uncomplete_block = true;
         if (args.verbose) {
             printf("--------------------------------------------------------------------------------------------------------\n");
-            printf("This file contains non-full blocks\n\n");
+            printf("This file contains non-full blocks\n========================================================================================================\n");
         }
     }
     if (!contains_uncomplete_block) {
         printf("--------------------------------------------------------------------------------------------------------\n");
-        printf("This file doesn't contain non-full blocks\n\n");
+        printf("This file doesn't contain non-full blocks\n========================================================================================================\n");
     }
 
     // Load data into structure
@@ -353,6 +359,15 @@ thread_infos_t* producteur(char* file_path, args_t args) {
     t_infos->filelen = filelen;
     t_infos->nb_blocks = nb_blocks;
     t_infos->contains_uncomplete_block = contains_uncomplete_block;
+
+    // Free file data
+    free(file_data->seed);
+    free(file_data->block_size);
+    free(file_data->word_size);
+    free(file_data->redundancy);
+    free(file_data->message_size);
+    free(file_data);
+
     return t_infos;
 }
 
@@ -381,9 +396,8 @@ void consumer(thread_infos_t* t_infos) {
         }
 
         uint8_t** current_block = make_block(temps_buf, t_infos->block_size);
-
-        // TODO: free temps_buf (step)
-        //free(temps_buf);
+        // Free temporary buffer
+        free(temps_buf);
         uint8_t** response = process_block(current_block, t_infos->block_size);
 
         if (t_infos->verbose) {
@@ -392,17 +406,13 @@ void consumer(thread_infos_t* t_infos) {
             printf(">> to_string :\n");
             char* str = block_to_string(response, t_infos->block_size);
             printf("%s", str);
-            // TODO: free str ((block_size * word_size)+1)
-            //free(str);
+            free(str);
             printf("\n\n--------------------------------------------------------------------------------------------------------\n");
         }
 
         t_infos->blocks[i] = response;
 
-        // TODO: free response LINES: (block_size + redundancy) | COLUMNS: word_size
-        //free_matrix(response, t_infos->block_size + t_infos->redundancy);
         readed += step;
-
     }
 
     // Calculate and write last block to output
@@ -411,18 +421,21 @@ void consumer(thread_infos_t* t_infos) {
     for (int32_t i = 0; i < t_infos->filelen - 24 - readed; i++) {
         temps_buf[i] = t_infos->buf[24 + readed + i];
     }
-    // TODO: free buf (filelen)
-    //free(t_infos->buf);
+    // Free main buffer
+    free(t_infos->buf);
 
     uint32_t nb_remaining_symbols = ((t_infos->filelen-24-readed) / t_infos->word_size) - t_infos->redundancy;
     if (t_infos->contains_uncomplete_block) {
         uint8_t** last_block = make_block(temps_buf, nb_remaining_symbols);
-        // TODO: free temps_buf (filelen-24-readed)
-        //free(temps_buf);
+        // Free used temporary buffer
+        free(temps_buf);
         uint8_t** decoded = process_block(last_block, nb_remaining_symbols);
 
-        // TODO: free coefficients (last used in process_block) LINES: redundancy
-        //free_matrix(t_infos->coeffs, t_infos->redundancy);
+        // Free global variable coefficients
+        for (int i = 0; i < t_infos->redundancy; i++) {
+            free(t_infos->coeffs[i]);
+        }
+        free(t_infos->coeffs);
 
         uint8_t padding = readed_symbols + nb_remaining_symbols * t_infos->word_size - t_infos->message_size;
         uint32_t true_length_last_symbol = t_infos->word_size - padding;
@@ -432,17 +445,13 @@ void consumer(thread_infos_t* t_infos) {
             printf(">> to_string :\n");
             char *str = block_to_string(decoded, t_infos->block_size);
             printf("%s", str);
-            // TODO: free str (sizeof(char) * ((block_size * word_size)+1))
-            //free(str);
+            free(str);
             printf("\n========================================================================================================\n\n");
         }
 
         t_infos->decoded = decoded;
         t_infos->nb_remaining_symbols = nb_remaining_symbols;
         t_infos->true_length_last_symbols = true_length_last_symbol;
-
-        // TODO: free decoded LINES: (nb_remaining_symbols + redundancy)
-        //free_matrix(decoded, nb_remaining_symbols + t_infos->redundancy);
     }
 
     // Close the input file
@@ -472,11 +481,24 @@ void write_output(thread_infos_t* t_infos, char* file_name) {
 
     for (int i = 0; i < t_infos->nb_blocks; i++) {
         write_block(t_infos->output_stream, t_infos->blocks[i], t_infos->block_size, t_infos->word_size);
+
+        // Free blocks[i]
+        for (int j = 0; j < t_infos->block_size + t_infos->redundancy; j++) {
+            free(t_infos->blocks[i][j]);
+        }
+        free(t_infos->blocks[i]);
     }
+    free(t_infos->blocks);
 
     if (t_infos->contains_uncomplete_block) {
         write_last_block(t_infos->output_stream, t_infos->decoded, t_infos->nb_remaining_symbols, t_infos->word_size,
                          t_infos->true_length_last_symbols);
+
+        // TODO : Free decoded
+//        for (int i = 0; i < t_infos->block_size + t_infos->redundancy; i++) {
+//            free(t_infos->decoded[i]);
+//        }
+//        free(t_infos->decoded);
     }
 }
 
@@ -499,7 +521,7 @@ void* run_producer(void* elem) {
         char full_path[PATH_MAX];
         memset(full_path, 0, sizeof(char) * PATH_MAX);
         strcpy(full_path, args->input_dir_path);
-        if(strcmp(&(full_path[strlen(full_path)-1]),"/")) {
+        if (strcmp(&(full_path[strlen(full_path)-1]),"/")) {
             strcat(full_path, "/"); //if forgot the "/" when giving input directory in argument
         }
         strcat(full_path, directory_entry->d_name);
@@ -509,7 +531,7 @@ void* run_producer(void* elem) {
         pthread_mutex_lock(&produce_mutex); //Lock mutex
 
         // Produce and set variable
-        produce_buf[produce_buf_in] = producteur(full_path, *args);
+        produce_buf[produce_buf_in] = producer(full_path, *args);
         strcpy(produce_buf[produce_buf_in]->full_path, full_path);
         produce_buf[produce_buf_in]->stop = false;
 
@@ -597,7 +619,7 @@ void* run_writer(void* elem) {
         sem_wait(writer_full);
         pthread_mutex_lock(&write_mutex);
 
-        thread_infos_t* t_infos = consume_buf[consume_buf_out];
+        thread_infos_t *t_infos = consume_buf[consume_buf_out];
         consume_buf_out++;
 
         pthread_mutex_unlock(&write_mutex);
@@ -613,6 +635,14 @@ void* run_writer(void* elem) {
             // Use consumer data
             write_output(t_infos, t_infos->full_path);
         }
+
+        // TODO : Free t_infos
+//        free(t_infos->input_file);
+//        free(t_infos->buf);
+//        for (int i = 0; i < t_infos->block_size + t_infos->redundancy; i++) {
+//            free(t_infos->decoded[i]);
+//        }
+//        free(t_infos->decoded);
     }
 }
 
@@ -639,10 +669,10 @@ int main(int argc, char *argv[]) {
     closedir(dirp);
 
     if (args.verbose) {
-        printf("The directory contains %d file(s)", nb_files);
+        printf("The input directory contains %d file(s)\n", nb_files);
     }
 
-    //============================= Initialize thread, mutex and semaphore =======================================//
+    //=============================== Initialize threads, mutex and semaphores =======================================//
     // Thread
     pthread_t producer_thread;
     pthread_t consume_thread[args.nb_threads];
@@ -659,17 +689,16 @@ int main(int argc, char *argv[]) {
     pthread_mutex_init(&(produce_mutex), NULL);
     pthread_mutex_init(&(write_mutex), NULL);
 
-    //========================================= Create and join thread ===============================================//
-    // Create thread
-    // Producer : read file, get info file, create coefs
+    //======================================== Create and join threads ===============================================//
+    // Producer : reads file, gets info file, creates coeffs
     err = pthread_create(&producer_thread, NULL, &run_producer, &args);
     if (err != 0) {
         printf("Error while creating thread run_producer");
         exit(EXIT_FAILURE);
     }
 
-    //Consume : calcuate lost
-    for (int i = 0; i < args.nb_threads; i++) {
+    // Consumer : calculates lost symbols
+    for (int32_t i = 0; i < args.nb_threads; i++) {
         err = pthread_create(&consume_thread[i], NULL, &run_consumer, &args);
         if (err != 0) {
             printf("Error while creating thread run_consumer");
@@ -677,9 +706,10 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    // Writer : writes repaired blocks to output
     err = pthread_create(&write_thread, NULL, &run_writer, &args);
     if (err != 0) {
-        printf("Error while creating thread run_writter");
+        printf("Error while creating thread run_writer");
         exit(EXIT_FAILURE);
     }
 
@@ -690,7 +720,7 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    for (int i = 0; i < args.nb_threads; ++i) {
+    for (int32_t i = 0; i < args.nb_threads; i++) {
         err = pthread_join(consume_thread[i], NULL);
         if (err != 0) {
             printf("Error while joining thread producer_thread");
@@ -700,7 +730,7 @@ int main(int argc, char *argv[]) {
 
     err = pthread_join(write_thread, NULL);
     if (err != 0) {
-        printf("Error while joining thread writter_thread");
+        printf("Error while joining thread writer_thread");
         exit(EXIT_FAILURE);
     }
 
@@ -731,8 +761,7 @@ int main(int argc, char *argv[]) {
     }
     return 0;
 
-
-    //TODO: debug ici
+    // TODO: debug ici (il faut déclarer l'appel dans le main pr que ça marche)
 //    file_read_error:
 //    err = closedir(args.input_dir);
 //    if (err < 0) {
