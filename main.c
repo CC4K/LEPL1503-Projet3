@@ -51,8 +51,8 @@ file_data_t* get_file_info(char* filename) {
     // Create a buffer which contains the first 24 bytes
     buf = malloc(4 * sizeof(uint32_t)+1 * sizeof(uint64_t));
     if (buf == NULL) exit(EXIT_FAILURE);
-    int j = fread(buf,4 * sizeof(uint32_t)+1 * sizeof(uint64_t),1,fileptr);
-    if (j == 0) exit(EXIT_FAILURE);
+    int err = fread(buf,4 * sizeof(uint32_t)+1 * sizeof(uint64_t),1,fileptr);
+    if (err == 0) exit(EXIT_FAILURE);
 
     // Allocate memory for the structure pointers
     output->seed = malloc(sizeof(uint32_t));
@@ -131,7 +131,7 @@ void write_block(FILE* output_file, uint8_t** block, uint32_t size, uint64_t wor
                 if (!verbose) printf("%c", (char) block[i][j]);
             }
             else {
-                fprintf(output_file, "%c", (char)(block[i][j]));
+                fprintf(output_file, "%c", (char) (block[i][j]));
             }
         }
     }
@@ -318,12 +318,12 @@ int main(int argc, char* argv[]) {
 
         //============================== Create buffer for input binary data =========================================//
         fseek(input_file, 0, SEEK_END);
-        long filelen = ftell(input_file);
+        uint64_t filelen = ftell(input_file);
         rewind(input_file);
         uint8_t* buf = malloc(sizeof(char) * filelen);
         if (buf == NULL) exit(EXIT_FAILURE);
-        int i = fread(buf, filelen, 1, input_file);
-        if(i == 0) exit(EXIT_FAILURE);
+        int err = fread(buf, filelen, 1, input_file);
+        if (err == 0) exit(EXIT_FAILURE);
 
         if (verbose) {
             printf(">> binary data : \n");
