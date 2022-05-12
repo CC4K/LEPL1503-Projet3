@@ -23,16 +23,16 @@ typedef struct {
 unknowns_t* find_lost_words(uint8_t** block, uint8_t size) {
     // Initialize an array of boolean of size 'size' to false & the unknowns to 0
     uint8_t* unknown_indexes = malloc(sizeof(uint8_t) * size);
-    if (unknown_indexes == NULL) return NULL;
-    for (int i = 0; i < size; i++) {
+    if (unknown_indexes == NULL) exit(EXIT_FAILURE);
+    for (int32_t i = 0; i < size; i++) {
         unknown_indexes[i] = 0;
     }
     uint8_t unknowns = 0;
 
     // Mapping the locations with lost values and counting the unknowns
-    for (int i = 0; i < size; i++) {
+    for (int32_t i = 0; i < size; i++) {
         uint8_t count = 0;
-        for (int j = 0; j < word_size; j++) {
+        for (int32_t j = 0; j < word_size; j++) {
             count = count + block[i][j];
         }
         // A symbol with only 0's is considered as lost
@@ -44,7 +44,7 @@ unknowns_t* find_lost_words(uint8_t** block, uint8_t size) {
 
     // Allocate memory to store the results in a struct and return it
     unknowns_t* output = malloc(sizeof(unknowns_t));
-    if (output == NULL) return NULL;
+    if (output == NULL) exit(EXIT_FAILURE);
     output->unknown_map = unknown_indexes;
     output->unknowns_amount = unknowns;
 
@@ -52,9 +52,9 @@ unknowns_t* find_lost_words(uint8_t** block, uint8_t size) {
 }
 
 void test_FLW() {
-    uint8_t** block = malloc(sizeof(uint8_t*)*7);
-    for (int i = 0; i < 7; ++i) {
-        block[i] = malloc(sizeof(uint8_t)*3);
+    uint8_t** block = malloc(sizeof(uint8_t*) * 7);
+    for (int32_t i = 0; i < 7; ++i) {
+        block[i] = malloc(sizeof(uint8_t) * 3);
     }
     block[0][0] = 0;
     block[0][1] = 0;
@@ -83,7 +83,7 @@ void test_FLW() {
     correct_map[2] = 1;
     uint8_t correct_amount = 2;
     unknowns_t* input_unknows = find_lost_words(block,block_size);
-    for (int i = 0; i < block_size; ++i) {
+    for (int32_t i = 0; i < block_size; ++i) {
         CU_ASSERT_EQUAL(input_unknows->unknown_map[i],correct_map[i]);
     }
     CU_ASSERT_EQUAL(input_unknows->unknowns_amount,correct_amount);

@@ -11,13 +11,18 @@
 #include "../headers/system.h"
 
 void test_gaussian() {
-    uint8_t** A = malloc(sizeof(uint8_t *));
+    uint8_t** A = malloc(sizeof(uint8_t*));
+    if (A == NULL) exit(EXIT_FAILURE);
     A[0] = malloc(sizeof(uint8_t));
-    uint8_t** b = malloc(sizeof(uint8_t *));
-    b[0] = malloc(sizeof(uint8_t)*3);
-
-    uint8_t **expected_res = malloc(sizeof(uint8_t*));
-    expected_res[0] = malloc(sizeof(uint8_t)*3);
+    if (A[0] == NULL) exit(EXIT_FAILURE);
+    uint8_t** b = malloc(sizeof(uint8_t*));
+    if (b == NULL) exit(EXIT_FAILURE);
+    b[0] = malloc(sizeof(uint8_t) * 3);
+    if (b[0] == NULL) exit(EXIT_FAILURE);
+    uint8_t** expected_res = malloc(sizeof(uint8_t*));
+    if (expected_res == NULL) exit(EXIT_FAILURE);
+    expected_res[0] = malloc(sizeof(uint8_t) * 3);
+    if (expected_res[0] == NULL) exit(EXIT_FAILURE);
 
     uint32_t symbol_size = 3;
     uint32_t system_size = 1;
@@ -33,7 +38,7 @@ void test_gaussian() {
     expected_res[0][2] = 0;
     gf_256_gaussian_elimination(A,b,symbol_size,system_size);
 
-    for (int i = 0; i < 3; ++i){
+    for (int32_t i = 0; i < 3; ++i){
             CU_ASSERT_EQUAL(b[0][i], expected_res[0][i]);
     }
     free(A);

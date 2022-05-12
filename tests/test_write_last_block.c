@@ -17,8 +17,8 @@ uint64_t word_size = 3;
 
 // Function to test
 void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t word_size, uint8_t last_word_size) {
-    for (int i = 0; i < size-1; i++) {
-        for (int j = 0; j < word_size; j++) {
+    for (int32_t i = 0; i < size-1; i++) {
+        for (int32_t j = 0; j < word_size; j++) {
             if ((output_file == stdout) || (output_file == stderr)) {
                 printf("%c", (char) block[i][j]);
             }
@@ -28,7 +28,7 @@ void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t 
         }
     }
 
-    for (int i = 0; i < last_word_size; i++) {
+    for (int32_t i = 0; i < last_word_size; i++) {
         if ((output_file == stdout) || (output_file == stderr)) {
             printf("%c", (char) block[size - 1][i]);
         }
@@ -40,9 +40,11 @@ void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t 
 
 void test_WLB() {
     FILE* output = fopen("tests/test_write_last_block.txt", "w+");
-    uint8_t** current_block = malloc(sizeof(uint8_t*)*6);
-    for (int i = 0; i < 6; ++i) {
-        current_block[i] = malloc(sizeof(uint8_t)*3);
+    uint8_t** current_block = malloc(sizeof(uint8_t*) * 6);
+    if (current_block == NULL) exit(EXIT_FAILURE);
+    for (int32_t i = 0; i < 6; i++) {
+        current_block[i] = malloc(sizeof(uint8_t) * 3);
+        if (current_block[i] == NULL) exit(EXIT_FAILURE);
     }
     current_block[0][0] = 110;
     current_block[0][1] = 103;
@@ -64,14 +66,12 @@ void test_WLB() {
     current_block[5][2] = 232;
 
     write_last_block(output,current_block,2,word_size,2);
-
     char response[SIZE];
     rewind(output);
     fgets(response,SIZE,output);
     CU_ASSERT_STRING_EQUAL(response,"ng :)");
     free(current_block);
     fclose(output);
-
 }
 
 int main() {

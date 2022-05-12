@@ -19,8 +19,8 @@ void test_gen_coefs(){
     uint8_t** coeffs = gen_coefs(seed,redudancy, block_size);
 
     uint8_t** correct_coeffs = gen_coefs(seed,redudancy, block_size);
-    for (int i = 0; i < redudancy; ++i) {
-        correct_coeffs[i] = malloc(sizeof(uint8_t)*block_size);
+    for (int32_t i = 0; i < redudancy; i++) {
+        correct_coeffs[i] = malloc(sizeof(uint8_t) * block_size);
     }
     correct_coeffs[0][0] = 126;
     correct_coeffs[0][1] = 101;
@@ -42,8 +42,8 @@ void test_gen_coefs(){
     correct_coeffs[1][7] = 144;
     correct_coeffs[1][8] = 130;
     correct_coeffs[1][9] = 153;
-    for (int i = 0; i < redudancy; ++i) {
-        for (int j = 0; j < block_size; ++j) {
+    for (int32_t i = 0; i < redudancy; i++) {
+        for (int32_t j = 0; j < block_size; j++) {
             CU_ASSERT_EQUAL(coeffs[i][j], correct_coeffs[i][j]);
 
         }

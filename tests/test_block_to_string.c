@@ -5,7 +5,6 @@
 
 // Libraries
 #include <stdlib.h>
-#include <stdio.h>
 #include <CUnit/Basic.h>
 #include <stdint.h>
 #include <string.h>
@@ -17,12 +16,12 @@ uint32_t word_size = 3;
 char* block_to_string(uint8_t** block, uint32_t size) {
     // Allocate memory for the returned string
     char* str = malloc(sizeof(char) * ((size * word_size)+1));
-    if(str == NULL) return NULL;
+    if (str == NULL) exit(EXIT_FAILURE);
 
     // Record block elements in the string array
     int index = 0;
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < word_size; j++) {
+    for (int32_t i = 0; i < size; i++) {
+        for (int32_t j = 0; j < word_size; j++) {
             // Stop at the first 0 we meet
             if (block[i][j] == 0) {
                 // Add end of string and return
@@ -42,7 +41,7 @@ char* block_to_string(uint8_t** block, uint32_t size) {
 void test_BTS() {
     uint32_t size = 3;
     uint8_t** current_block = malloc(sizeof(uint8_t*) * 7);
-    for (int i = 0; i < 7; ++i) {
+    for (int32_t i = 0; i < 7; ++i) {
         current_block[i] = malloc(sizeof(uint8_t) * 3);
     }
     current_block[0][0] = 112;
@@ -69,7 +68,7 @@ void test_BTS() {
     char* correct_str = "programmi";
     char* str = block_to_string(current_block,size);
     int size_of_str = sizeof(correct_str) / sizeof(correct_str[0]);
-    for (int i = 0; i < size_of_str; ++i) {
+    for (int32_t i = 0; i < size_of_str; ++i) {
         CU_ASSERT_EQUAL(str[i],correct_str[i]);
     }
     free(current_block);

@@ -51,7 +51,7 @@ file_data_t* get_file_info(char* filename) {
     // Create a buffer which contains the first 24 bytes
     buf = malloc(4 * sizeof(uint32_t)+1 * sizeof(uint64_t));
     if (buf == NULL) exit(EXIT_FAILURE);
-    int err = fread(buf,4 * sizeof(uint32_t)+1 * sizeof(uint64_t),1,fileptr);
+    int32_t err = fread(buf,4 * sizeof(uint32_t)+1 * sizeof(uint64_t),1,fileptr);
     if (err == 0) exit(EXIT_FAILURE);
 
     // Allocate memory for the structure pointers

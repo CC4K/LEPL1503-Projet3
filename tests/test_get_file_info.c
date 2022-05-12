@@ -26,7 +26,7 @@ file_data_t* get_file_info(char* filename) {
 
     // Allocate memory for the returned data
     file_data_t* output = malloc(sizeof(file_data_t));
-    if (output == NULL) return NULL;
+    if (output == NULL) exit(EXIT_FAILURE);
 
     FILE* fileptr;
     uint32_t* buf;
@@ -36,7 +36,9 @@ file_data_t* get_file_info(char* filename) {
 
     // Create a buffer which contains the first 24 bytes
     buf = malloc(4 * sizeof(uint32_t)+1 * sizeof(uint64_t));
-    fread(buf,4 * sizeof(uint32_t)+1 * sizeof(uint64_t),1,fileptr);
+    if (buf == NULL) exit(EXIT_FAILURE);
+    int32_t err = fread(buf,4 * sizeof(uint32_t)+1 * sizeof(uint64_t),1,fileptr);
+    if (err == 0) exit(EXIT_FAILURE);
 
     // Allocate memory for the structure pointers
     output->seed = malloc(sizeof(uint32_t));
@@ -46,11 +48,11 @@ file_data_t* get_file_info(char* filename) {
     output->message_size = malloc(sizeof(uint64_t));
 
     // Check if malloc didn't fail
-    if (output->seed == NULL) return NULL;
-    if (output->block_size == NULL) return NULL;
-    if (output->word_size == NULL) return NULL;
-    if (output->redundancy == NULL) return NULL;
-    if (output->message_size == NULL) return NULL;
+    if (output->seed == NULL) exit(EXIT_FAILURE);
+    if (output->block_size == NULL) exit(EXIT_FAILURE);
+    if (output->word_size == NULL) exit(EXIT_FAILURE);
+    if (output->redundancy == NULL) exit(EXIT_FAILURE);
+    if (output->message_size == NULL) exit(EXIT_FAILURE);
 
     // Store each value
     *output->seed = be32toh((uint32_t) * buf);

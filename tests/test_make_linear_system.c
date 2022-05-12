@@ -28,49 +28,46 @@ linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, ui
 
     // Allocate memory for the two matrices
     uint8_t** A = malloc(sizeof(uint8_t*) * nb_unk);
-    if (A == NULL) return NULL;
-    for (size_t i = 0; i < nb_unk; ++i) {
+    if (A == NULL) exit(EXIT_FAILURE);
+    for (int32_t i = 0; i < nb_unk; i++) {
         A[i] = malloc(sizeof(uint8_t) * nb_unk);
-        if (A[i] == NULL) return NULL;
+        if (A[i] == NULL) exit(EXIT_FAILURE);
     }
     uint8_t** B = malloc(sizeof(uint8_t*) * nb_unk);
-    if (B == NULL) return NULL;
-    for (size_t i = 0; i < nb_unk; ++i) {
-        B[i] = malloc(sizeof(uint8_t) * word_size);
-        if (B[i] == NULL) return NULL;
-    }
+    if (B == NULL) exit(EXIT_FAILURE);
 
-    for (int i = 0; i < nb_unk; i++) {
+    for (int32_t i = 0; i < nb_unk; i++) {
         B[i] = current_block[block_size + i];
     }
-
-    for (int i = 0; i < nb_unk; i++) {
-        int temp = 0;
-        for (int j = 0; j < block_size; j++) {
+    for (int32_t i = 0; i < nb_unk; i++) {
+        int32_t temp = 0;
+        for (int32_t j = 0; j < block_size; j++) {
             if (unknown_indexes[j] == 1) {
                 A[i][temp] = coeffs[i][j];
-                temp += 1;
+                temp++;
             }
             else {
                 uint8_t* vec_mul = gf_256_mul_vector(current_block[j], coeffs[i][j], word_size);
                 B[i] = gf_256_full_add_vector(B[i], vec_mul,word_size);
+                free(vec_mul);
             }
         }
     }
 
-
     // Allocate memory to store the results in a struct and return it
     linear_system_t* output = malloc(sizeof(linear_system_t));
-    if (output == NULL) return NULL;
+    if (output == NULL) exit(EXIT_FAILURE);
     output->A = A;
     output->B = B;
     return output;
 }
 
 void test_MLS() {
-    coeffs = malloc(sizeof(uint8_t * ) * 4);
-    for (int i = 0; i < 4; ++i) {
-        coeffs[i] = malloc(sizeof(uint8_t)*3);
+    coeffs = malloc(sizeof(uint8_t*) * 4);
+    if (coeffs == NULL) exit(EXIT_FAILURE);
+    for (int32_t i = 0; i < 4; i++) {
+        coeffs[i] = malloc(sizeof(uint8_t) * 3);
+        if (coeffs[i] == NULL) exit(EXIT_FAILURE);
     }
     coeffs[0][0] = 171;
     coeffs[0][1] = 165;
@@ -86,12 +83,15 @@ void test_MLS() {
     coeffs[3][2] = 91;
     uint8_t nb_unk = 1;
     uint8_t block_size = 2;
-    uint8_t **current_block = malloc(sizeof(uint8_t*)*6);
-    for (int i = 0; i < 6; ++i) {
-        current_block[i] = malloc(sizeof(uint8_t)*3);
+    uint8_t** current_block = malloc(sizeof(uint8_t*) * 6);
+    if (current_block == NULL) exit(EXIT_FAILURE);
+    for (int32_t i = 0; i < 6; i++) {
+        current_block[i] = malloc(sizeof(uint8_t) * 3);
+        if (current_block[i] == NULL) exit(EXIT_FAILURE);
     }
 
-    uint8_t *unknown_indexes = malloc(sizeof(uint8_t)*2);
+    uint8_t* unknown_indexes = malloc(sizeof(uint8_t) * 2);
+    if (unknown_indexes == NULL) exit(EXIT_FAILURE);
     current_block[0][0] = 110;
     current_block[0][1] = 103;
     current_block[0][2] = 32;
@@ -114,39 +114,40 @@ void test_MLS() {
     unknown_indexes[1] = 1;
     linear_system_t* test = make_linear_system(unknown_indexes, nb_unk, current_block, block_size);
     printf("A :\n");
-    for (int i = 0; i < 1; ++i) {
-        for (int j = 0; j < 1; ++j) {
-            printf("%"
-            PRId8
-            "\t", (test->A)[i][j]);
+    for (int32_t i = 0; i < 1; i++) {
+        for (int32_t j = 0; j < 1; j++) {
+            printf("%"PRId8"\t", (test->A)[i][j]);
         }
         printf("\n");
     }
     printf("B :\n");
-    for (int i = 0; i < 1; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            printf("%"
-            PRId8
-            "\t", (test->B)[i][j]);
+    for (int32_t i = 0; i < 1; i++) {
+        for (int32_t j = 0; j < 3; j++) {
+            printf("%"PRId8"\t", (test->B)[i][j]);
         }
         printf("\n");
     }
+
     uint8_t** correct_A = malloc(sizeof(uint8_t*)*1);
+    if (correct_A == NULL) exit(EXIT_FAILURE);
     correct_A[0] = malloc(sizeof(uint8_t)*1);
+    if (correct_A[0] == NULL) exit(EXIT_FAILURE);
     correct_A[0][0] = 165;
     uint8_t** correct_B = malloc(sizeof(uint8_t*));
+    if (correct_B == NULL) exit(EXIT_FAILURE);
     correct_B[0] = malloc(sizeof(uint8_t)*3);
+    if (correct_B[0] == NULL) exit(EXIT_FAILURE);
     correct_B[0][0] = 141;
     correct_B[0][1] = 253;
     correct_B[0][2] = 0;
-    for (int i = 0; i < 1; ++i) {
-        for (int j = 0; j < 1; ++j) {
+    for (int32_t i = 0; i < 1; i++) {
+        for (int32_t j = 0; j < 1; j++) {
              CU_ASSERT_EQUAL(test->A[i][j], correct_A[i][j]);
         }
         printf("\n");
     }
-    for (int i = 0; i < 1; ++i) {
-        for (int j = 0; j < 3; ++j) {
+    for (int32_t i = 0; i < 1; i++) {
+        for (int32_t j = 0; j < 3; j++) {
             CU_ASSERT_EQUAL(test->B[i][j], correct_B[i][j]);
         }
         printf("\n");

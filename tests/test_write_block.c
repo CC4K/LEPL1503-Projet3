@@ -17,13 +17,13 @@ uint64_t word_size = 3;
 
 // Function to test
 void write_block(FILE* output_file, uint8_t** block, uint32_t size, uint64_t word_size) {
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < word_size; j++) {
+    for (int32_t i = 0; i < size; i++) {
+        for (int32_t j = 0; j < word_size; j++) {
             if ((output_file == stdout) || (output_file == stderr)) {
                 printf("%c", (char) block[i][j]);
             }
             else {
-                fprintf(output_file, "%c", (char)(block[i][j]));
+                fprintf(output_file, "%c", (char) (block[i][j]));
             }
         }
     }
@@ -31,9 +31,11 @@ void write_block(FILE* output_file, uint8_t** block, uint32_t size, uint64_t wor
 
 void test_write_block() {
     FILE* output = fopen("tests/test_write_block.txt", "w+");
-    uint8_t** current_block = malloc(sizeof(uint8_t*)*7);
-    for (int i = 0; i < 7; ++i) {
-        current_block[i] = malloc(sizeof(uint8_t)*3);
+    uint8_t** current_block = malloc(sizeof(uint8_t*) * 7);
+    if (current_block == NULL) exit(EXIT_FAILURE);
+    for (int32_t i = 0; i < 7; i++) {
+        current_block[i] = malloc(sizeof(uint8_t) * 3);
+        if (current_block[i] == NULL) exit(EXIT_FAILURE);
     }
     current_block[0][0] = 112;
     current_block[0][1] = 114;

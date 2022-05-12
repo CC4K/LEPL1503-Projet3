@@ -15,14 +15,14 @@ uint8_t** make_block(uint8_t* data, uint8_t size) {
 
     // Allocate memory for the returned block
     uint8_t** block = malloc(sizeof(uint8_t*) * (size + 4));
-    if(block == NULL) return NULL;
-    for (int i = 0; i < (size + 4); i++) {
+    if (block == NULL) exit(EXIT_FAILURE);
+    for (int32_t i = 0; i < (size + 4); i++) {
         block[i] = malloc(sizeof(uint8_t) * 3);
-        if (block[i] == NULL) return NULL;
+        if (block[i] == NULL) exit(EXIT_FAILURE);
     }
 
-    for (int i = 0; i < (size + 4) ; i++) {
-        for (int j = 0; j < 3; j++) {
+    for (int32_t i = 0; i < (size + 4) ; i++) {
+        for (int32_t j = 0; j < 3; j++) {
             block[i][j] = data[i * 3 + j];
         }
     }
@@ -54,9 +54,9 @@ void test_make_block() {
     temps_buf[19] = 82;
     temps_buf[20] = 111;
     uint8_t size = 3;
-    uint8_t** correct_block = malloc(sizeof(uint8_t*)*7);
-    for (int i = 0; i < 7; ++i) {
-        correct_block[i] = malloc(sizeof(uint8_t)*3);
+    uint8_t** correct_block = malloc(sizeof(uint8_t*) * 7);
+    for (int32_t i = 0; i < 7; i++) {
+        correct_block[i] = malloc(sizeof(uint8_t) * 3);
     }
     correct_block[0][0] = 0;
     correct_block[0][1] = 0;
@@ -81,8 +81,8 @@ void test_make_block() {
     correct_block[6][2] = 111;
 
     uint8_t** current_block = make_block(temps_buf,size);
-    for (int i = 0; i < 7; ++i) {
-        for (int j = 0; j < 3; ++j) {
+    for (int32_t i = 0; i < 7; i++) {
+        for (int32_t j = 0; j < 3; j++) {
             CU_ASSERT_EQUAL(current_block[i][j],correct_block[i][j]);
         }
     }
