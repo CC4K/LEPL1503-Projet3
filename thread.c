@@ -357,7 +357,7 @@ thread_infos_t* producteur(char* file_path, args_t args) {
 }
 
 /**
- * Calculates lost symbols of the binary file and updates the data in t_infos structure.
+ * Calculates lost symbols of the binary file and updates the data in the t_infos structure given in parameters.
  * After this function is called, all symbols must have been found.
  * @param t_infos: a structure containing data needed to calculate lost symbols
  */
@@ -481,7 +481,7 @@ void write_output(thread_infos_t* t_infos, char* file_name) {
 }
 
 /**
- * Loops the producer on every file to extract file data
+ * Loops threads on the producer function to extract file data for each file given in input
  * @param elem: argument given when calling struct dirent* directory_entry
  */
 void* run_producer(void* elem) {
