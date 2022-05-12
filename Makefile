@@ -1,44 +1,44 @@
 CC=gcc
 CFLAGS=-Wall -Werror -g
+SRC=src/block_process.c src/system.c src/tinymt32.c
 LIBS=-lcunit -lpthread -lm
 INCLUDE_HEADERS_DIRECTORY=-Iheaders
 
 fec: main.c
-	@$(CC) $(CFLAGS) -O3 main.c src/block_process.c src/system.c src/tinymt32.c $(LIBS) -o fec
+	@$(CC) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fec
 
 fec2: thread.c
 	@rm -f thread
-	@$(CC) $(CFLAGS) -O3 thread.c src/block_process.c src/system.c src/tinymt32.c $(LIBS) -o thread
-
+	@$(CC) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o thread
 
 run: main.c
 	@rm -f fec
-	@$(CC) $(CFLAGS) -O3 main.c src/block_process.c src/system.c src/tinymt32.c $(LIBS) -o fec
+	@$(CC) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fec
 	@./fec input_binary/ -f output.txt
 
 run_verbose: main.c
 	@rm -f fec
-	@$(CC) $(CFLAGS) -O3 main.c src/block_process.c src/system.c src/tinymt32.c $(LIBS) -o fec
+	@$(CC) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fec
 	@./fec input_binary/ -f output.txt -v
 
 threads_run: thread.c
 	@rm -f thread
-	@$(CC) $(CFLAGS) -O3 thread.c src/block_process.c src/system.c src/tinymt32.c $(LIBS) -o thread
+	@$(CC) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o thread
 	@./thread input_binary -n 4 -f output.txt
 
 threads_run_verbose: thread.c
 	@rm -f thread
-	@$(CC) $(CFLAGS) -O3 thread.c src/block_process.c src/system.c src/tinymt32.c $(LIBS) -o thread
+	@$(CC) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o thread
 	@./thread input_binary/ -n 4 -f output.txt -v
 
 valgrind_fec: main.c
 	@rm -f fec
-	@$(CC) $(CFLAGS) -O3 main.c src/block_process.c src/system.c src/tinymt32.c $(LIBS) -o fec
+	@$(CC) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fec
 	@valgrind --leak-check=full ./fec input_binary/ -f output.txt
 
 valgrind_thread: thread.c
 	@rm -f fec
-	@$(CC) $(CFLAGS) -O3 thread.c src/block_process.c src/system.c src/tinymt32.c $(LIBS) -o thread
+	@$(CC) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o thread
 	@valgrind --leak-check=full ./thread input_binary/ -n 4 -f output.txt
 
 tests: tests/

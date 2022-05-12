@@ -40,7 +40,7 @@ file_data_t* get_file_info(char* filename) {
 
     // Allocate memory for the returned data
     file_data_t* output = malloc(sizeof(file_data_t));
-    if (output == NULL) return NULL;
+    if (output == NULL) exit(EXIT_FAILURE);
 
     FILE* fileptr;
     uint32_t* buf;
@@ -50,10 +50,9 @@ file_data_t* get_file_info(char* filename) {
 
     // Create a buffer which contains the first 24 bytes
     buf = malloc(4 * sizeof(uint32_t)+1 * sizeof(uint64_t));
+    if (buf == NULL) exit(EXIT_FAILURE);
     int j = fread(buf,4 * sizeof(uint32_t)+1 * sizeof(uint64_t),1,fileptr);
-    if(j == 0){
-        exit(EXIT_FAILURE);
-    }
+    if (j == 0) exit(EXIT_FAILURE);
 
     // Allocate memory for the structure pointers
     output->seed = malloc(sizeof(uint32_t));
@@ -63,11 +62,11 @@ file_data_t* get_file_info(char* filename) {
     output->message_size = malloc(sizeof(uint64_t));
 
     // Check if malloc didn't fail
-    if (output->seed == NULL) return NULL;
-    if (output->block_size == NULL) return NULL;
-    if (output->word_size == NULL) return NULL;
-    if (output->redundancy == NULL) return NULL;
-    if (output->message_size == NULL) return NULL;
+    if (output->seed == NULL) exit(EXIT_FAILURE);
+    if (output->block_size == NULL) exit(EXIT_FAILURE);
+    if (output->word_size == NULL) exit(EXIT_FAILURE);
+    if (output->redundancy == NULL) exit(EXIT_FAILURE);
+    if (output->message_size == NULL) exit(EXIT_FAILURE);
 
     // Store each value
     *output->seed = be32toh((uint32_t) * buf);
@@ -95,13 +94,13 @@ char* block_to_string(uint8_t** block, uint32_t size) {
     // Made by Jacques
 
     // Allocate memory for the returned string
-    char* str = malloc(sizeof(char) * ((size * word_size)+1));
-    if(str == NULL) return NULL;
+    char* str = malloc(sizeof(char) * ((size * word_size) + 1));
+    if (str == NULL) exit(EXIT_FAILURE);
 
     // Record block elements in the string array
     int index = 0;
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < word_size; j++) {
+    for (int32_t i = 0; i < size; i++) {
+        for (int32_t j = 0; j < word_size; j++) {
             // Stop at the first 0 we meet
             if (block[i][j] == 0) {
                 // Add end of string and return
@@ -126,8 +125,8 @@ char* block_to_string(uint8_t** block, uint32_t size) {
  * @param word_size: the size of each symbol in the block
  */
 void write_block(FILE* output_file, uint8_t** block, uint32_t size, uint64_t word_size) {
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < word_size; j++) {
+    for (int32_t i = 0; i < size; i++) {
+        for (int32_t j = 0; j < word_size; j++) {
             if ((output_file == stdout) || (output_file == stderr)) {
                 if (!verbose) printf("%c", (char) block[i][j]);
             }
@@ -148,8 +147,8 @@ void write_block(FILE* output_file, uint8_t** block, uint32_t size, uint64_t wor
  * @param last_word_size: the size of the very last word of the last block
  */
 void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint64_t word_size, uint32_t last_word_size) {
-    for (int i = 0; i < size-1; i++) {
-        for (int j = 0; j < word_size; j++) {
+    for (int32_t i = 0; i < size-1; i++) {
+        for (int32_t j = 0; j < word_size; j++) {
             if ((output_file == stdout) || (output_file == stderr)) {
                 if (!verbose) printf("%c", (char) block[i][j]);
             }
@@ -159,7 +158,7 @@ void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint64_t
         }
     }
 
-    for (int i = 0; i < last_word_size; i++) {
+    for (int32_t i = 0; i < last_word_size; i++) {
         if ((output_file == stdout) || (output_file == stderr)) {
             if (!verbose) printf("%c", (char) block[size - 1][i]);
         }
@@ -279,10 +278,6 @@ int main(int argc, char* argv[]) {
 
         //======================================= Get file infos =====================================================//
         file_data_t* file_data = get_file_info(full_path);
-        if (file_data == NULL) {
-            printf("Can't get file Infos");
-            return -1;
-        }
         if (verbose) {
             printf(">> seed : %d \n", *file_data->seed);
             printf(">> block_size : %d \n", *file_data->block_size);
@@ -326,11 +321,9 @@ int main(int argc, char* argv[]) {
         long filelen = ftell(input_file);
         rewind(input_file);
         uint8_t* buf = malloc(sizeof(char) * filelen);
+        if (buf == NULL) exit(EXIT_FAILURE);
         int i = fread(buf, filelen, 1, input_file);
-        if(i == 0){
-            exit(EXIT_FAILURE);
-        }
-
+        if(i == 0) exit(EXIT_FAILURE);
 
         if (verbose) {
             printf(">> binary data : \n");
@@ -372,21 +365,17 @@ int main(int argc, char* argv[]) {
             fprintf(args.output_stream, "%s", directory_entry->d_name);
         }
 
-
-
-        // CONSUMER STARTS HERE
-
-
         //================================= Write full blocks to output ==============================================//
         for (int i = 0; i < nb_blocks; i++) {
             uint8_t* temps_buf = malloc(sizeof(uint8_t) * step);
+            if (temps_buf == NULL) exit(EXIT_FAILURE);
             for (int j = 0; j < step; j++) {
                 temps_buf[j] = buf[(i * step) + j + 24];
             }
             uint8_t** current_block = make_block(temps_buf, block_size);
-            // TODO: free temps_buf
+            // Free temporary buffer
             free(temps_buf);
-            uint8_t** response = process_block(current_block,block_size);
+            uint8_t** response = process_block(current_block, block_size);
 
             if (verbose) {
                 printf(">> processed block %d :\n", i);
@@ -394,14 +383,14 @@ int main(int argc, char* argv[]) {
                 printf(">> to_string :\n");
                 char* str = block_to_string(response, block_size);
                 printf("%s", str);
-                // TODO: free str ((block_size * word_size)+1)
                 free(str);
                 printf("\n\n--------------------------------------------------------------------------------------------------------\n");
             }
 
-            write_block(args.output_stream,response,block_size, word_size);
-            // TODO: free response LINES: block_size + redundancy
-            for (int i = 0; i < (block_size + redundancy); i++) {
+            write_block(args.output_stream,response, block_size, word_size);
+
+            // Free processed_block
+            for (int i = 0; i < block_size+redundancy; i++) {
                 free(response[i]);
             }
             free(response);
@@ -412,20 +401,21 @@ int main(int argc, char* argv[]) {
         //================================= Write last block to output ===============================================//
         uint32_t readed_symbols = block_size * word_size * nb_blocks;
         uint8_t* temps_buf = malloc(sizeof(uint8_t) * filelen-24-readed);
+        if (temps_buf == NULL) exit(EXIT_FAILURE);
         for (int i = 0; i < filelen-24-readed; ++i) {
             temps_buf[i] = buf[24+readed + i];
         }
-        // TODO: free buf
+        // Free main buffer
         free(buf);
 
         uint32_t nb_remaining_symbols = ((filelen-24-readed) / word_size) - redundancy;
         if (contains_uncomplete_block) {
             uint8_t** last_block = make_block(temps_buf, nb_remaining_symbols);
-            // TODO: free temps_buf
+            // Free used temporary buffer
             free(temps_buf);
             uint8_t** decoded = process_block(last_block,nb_remaining_symbols);
 
-            // TODO: free coefficients (last used in process_block) LINES: redundancy
+            // Free global variable coefficients
             for (int i = 0; i < redundancy; i++) {
                 free(coeffs[i]);
             }
@@ -440,13 +430,12 @@ int main(int argc, char* argv[]) {
                 printf(">> to_string :\n");
                 char* str = block_to_string(decoded, block_size);
                 printf("%s", str);
-                // TODO: free str (sizeof(char) * ((block_size * word_size)+1))
                 free(str);
                 printf("\n========================================================================================================\n\n");
             }
 
             write_last_block(args.output_stream,decoded,nb_remaining_symbols, word_size,true_length_last_symbol);
-            // TODO: free decoded LINES: (nb_remaining_symbols + redundancy)
+            // Free last processed block
             for (int i = 0; i < (nb_remaining_symbols + redundancy); i++) {
                 free(decoded[i]);
             }
