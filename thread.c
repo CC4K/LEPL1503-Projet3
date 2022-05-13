@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <inttypes.h>
 #include <dirent.h>
 #include <errno.h>
 #include <getopt.h>
@@ -156,7 +157,8 @@ void write_block(FILE *output_file, uint8_t **block, uint32_t size, uint64_t wor
         for (int32_t j = 0; j < word_size; j++) {
             if ((output_file == stdout) || (output_file == stderr)) {
                 if (!verbose) printf("%c", (char) block[i][j]);
-            } else {
+            }
+            else {
                 fprintf(output_file, "%c", (char) (block[i][j]));
             }
         }
@@ -177,7 +179,8 @@ void write_last_block(FILE *output_file, uint8_t **block, uint8_t size, uint64_t
         for (int32_t j = 0; j < word_size; j++) {
             if ((output_file == stdout) || (output_file == stderr)) {
                 if (!verbose) printf("%c", (char) block[i][j]);
-            } else {
+            }
+            else {
                 fprintf(output_file, "%c", (char) block[i][j]);
             }
         }
@@ -186,7 +189,8 @@ void write_last_block(FILE *output_file, uint8_t **block, uint8_t size, uint64_t
     for (int32_t i = 0; i < last_word_size; i++) {
         if ((output_file == stdout) || (output_file == stderr)) {
             if (!verbose) printf("%c", (char) block[size - 1][i]);
-        } else {
+        }
+        else {
             fprintf(output_file, "%c", (char) block[size - 1][i]);
         }
     }
@@ -217,7 +221,7 @@ int parse_args(args_t *args, int argc, char *argv[]) {
     args->nb_threads = 4;
     args->verbose = false;
     args->output_stream = stdout;
-    int opt;
+    int32_t opt;
     while ((opt = getopt(argc, argv, "n:vf:")) != -1) {
         switch (opt) {
             case 'n':
@@ -299,10 +303,11 @@ thread_infos_t *producer(char *file_path, args_t args) {
         printf(">> block_size : %d \n", *file_data->block_size);
         printf(">> word_size : %d \n", *file_data->word_size);
         printf(">> redundancy : %d \n", *file_data->redundancy);
-        printf(">> message_size : %lu\n", *file_data->message_size);
+        printf(">> message_size : %"PRIu64"\n", *file_data->message_size);
         if (coeffs == NULL) {
             printf("You have to generate coefficients before printing them!\n");
-        } else {
+        }
+        else {
             printf(">> coefficients :\n");
             printf_matrix(coeffs, *file_data->redundancy, *file_data->block_size);
         }
@@ -468,7 +473,8 @@ void write_output(thread_infos_t *t_infos, char *file_name) {
         fprintf(stdout, "%c", htobe32(strlen(file_name)));
         fprintf(stdout, "%c", htobe32(t_infos->message_size));
         fprintf(stdout, "%s", file_name);
-    } else if (has_output) {
+    }
+    else if (has_output) {
         uint32_t bytes_len_directory_entry_name = htobe32(strlen(file_name));
         uint64_t bytes_message_size = htobe64(t_infos->message_size);
         fwrite(&bytes_len_directory_entry_name, sizeof(uint32_t), 1, t_infos->output_stream);
@@ -595,7 +601,8 @@ void *run_consumer(void *elem) {
             sem_post(writer_full);
 
             pthread_exit(NULL);
-        } else {
+        }
+        else {
             sem_wait(writer_empty);
             pthread_mutex_lock(&write_mutex);
 
@@ -630,7 +637,8 @@ void *run_writer(void *elem) {
             if (count_stop == args->nb_threads) {
                 pthread_exit(NULL);
             }
-        } else {
+        }
+        else {
             // Use consumer data
             write_output(t_infos, t_infos->d_name);
         }

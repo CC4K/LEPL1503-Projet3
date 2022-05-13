@@ -48,12 +48,6 @@ Here are some of the parameters you can use alongside the base command :
 - `-v` : to set verbose mode to 'true' and show steps of the program in your terminal
 - `-f output.txt` : to get your output in a .txt file (here named "output.txt")
 - `-n 4` : to specify the number of threads you want to run the "thread" executable with (here 4 threads)
-## Performance results
+## For Mac users
 
-Here is our first performance test showing the time needed to execute the program in C with one thread versus in Python.
-
-The times were obtained by calculating the mean of 20 execution of each program.
-
-Results :
-- Python : 1.47261415 sec
-- C (1 thread) : 0.00826245 sec
+If the program does not run because of warnings on MacOS, you need to remove the "-Werror" flag in CFLAGS at the beginning of the Makefile

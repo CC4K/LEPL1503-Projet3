@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <inttypes.h>
 #include <dirent.h>
 #include <errno.h>
 #include <getopt.h>
@@ -283,7 +284,7 @@ int main(int argc, char* argv[]) {
             printf(">> block_size : %d \n", *file_data->block_size);
             printf(">> word_size : %d \n", *file_data->word_size);
             printf(">> redundancy : %d \n", *file_data->redundancy);
-            printf(">> message_size : %lu\n", *file_data->message_size);
+            printf(">> message_size : %"PRIu64"\n", *file_data->message_size);
         }
 
         // Setup main global variables
