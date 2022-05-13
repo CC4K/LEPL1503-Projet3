@@ -24,6 +24,7 @@ typedef struct {
     uint32_t true_length_last_symbols;
     uint8_t** decoded;
     char full_path[PATH_MAX];
+    char* d_name;
     bool stop;
 } thread_infos_t;
 
