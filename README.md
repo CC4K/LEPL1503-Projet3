@@ -6,13 +6,13 @@
 ---
 ## Project goals
 
-This project is an **Forward Erasure Correction** (FEC) algorithm capable of fixing packet loss in network transmissions.
+This project is a **Forward Erasure Correction** (FEC) algorithm capable of fixing packet loss in network transmissions.
 Given the said algorithm in Python, we were tasked to translate it in C and use threads to improve it.
-## How does this program works ?
+## How does this program work ?
 
 The program takes binary files in input.
 
-The 24 first bytes of the file gives us :
+The 24 first bytes of the file give us :
 - **seed** : number used to generate random numbers needed for file correction, encrypted on a 4 bytes unsigned integer
 - **block_size** : size of the source symbols in the file, encrypted on a 4 bytes unsigned integer
 - **word_size** : size of a word in the file, encrypted on a 4 bytes unsigned integer
@@ -36,8 +36,8 @@ The project includes a Makefile to avoid overcomplicated commands :
 - `make fec_threads` : compiles threaded code for execution
 - `make run` : compiles and runs sequential code (default output is output.txt and verbose is activated)
 - `make threads_run` : compiles and runs threaded code (default output is output.txt, verbose is activated and 4 threads are running)
-- `make valgrind_run` : compiles and runs sequential code with valgrind
-- `make valgrind_threads` : compiles and runs threaded code with valgrind
+- `make valgrind_run` : compiles and runs sequential code with Valgrind
+- `make valgrind_threads` : compiles and runs threaded code with Valgrind
 - `make tests` : compiles and runs the tests (as well as the tested files)
 - `make clean` : clears all compiled files
 
