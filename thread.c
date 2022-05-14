@@ -48,9 +48,6 @@ uint32_t consume_buf_in = 0;
 uint32_t consume_buf_out = 0;
 
 uint8_t nb_files = 0;
-uint8_t nb_threads;
-uint8_t count_stop = 0;
-
 //======================= Functions =========================//
 /**
  * Retrieves the data from the 'data' block as specified in the statement
@@ -286,7 +283,7 @@ thread_infos_t *producer(char *file_path, args_t args) {
         printf("========================================================================================================\n");
         fprintf(stderr, "Failed to open the input file %s: %s\n", file_path, strerror(errno));
         // TODO : Il faut le sortir en argument pour y accéder ds le main
-//        goto file_read_error;
+        //goto file_read_error;
         exit(EXIT_FAILURE);
     }
     if (args.verbose) {
@@ -296,7 +293,9 @@ thread_infos_t *producer(char *file_path, args_t args) {
 
     // Get file data and generate coefficients
     file_data_t *file_data = get_file_info(file_path);
-    uint8_t **coeffs = gen_coefs(*file_data->seed, *file_data->redundancy, *file_data->block_size);
+    uint8_t **coeffs = gen_coefs(*file_data->seed,
+                                 *file_data->redundancy,
+                                 *file_data->block_size);
 
     if (args.verbose) {
         printf(">> seed : %d \n", *file_data->seed);
@@ -309,7 +308,9 @@ thread_infos_t *producer(char *file_path, args_t args) {
         }
         else {
             printf(">> coefficients :\n");
-            printf_matrix(coeffs, *file_data->redundancy, *file_data->block_size);
+            printf_matrix(coeffs,
+                          *file_data->redundancy,
+                          *file_data->block_size);
         }
     }
 
@@ -497,7 +498,10 @@ void write_output(thread_infos_t *t_infos, char *file_name) {
     free(t_infos->blocks);
 
     if (t_infos->contains_uncomplete_block) {
-        write_last_block(t_infos->output_stream, t_infos->decoded, t_infos->nb_remaining_symbols, t_infos->word_size,
+        write_last_block(t_infos->output_stream,
+                         t_infos->decoded,
+                         t_infos->nb_remaining_symbols,
+                         t_infos->word_size,
                          t_infos->true_length_last_symbols);
 
         // TODO : Free decoded
@@ -539,8 +543,8 @@ void *run_producer(void *elem) {
         // Produce and set variable
         produce_buf[produce_buf_in] = producer(full_path, *args);
         strcpy(produce_buf[produce_buf_in]->full_path, full_path);
-        produce_buf[produce_buf_in]->stop = false;
-        produce_buf[produce_buf_in]->d_name = directory_entry->d_name;
+        produce_buf[produce_buf_in]->stop = 0;
+        strcpy(produce_buf[produce_buf_in]->d_name, directory_entry->d_name);
 
         produce_buf_in++;
 
@@ -554,8 +558,10 @@ void *run_producer(void *elem) {
         thread_infos_t *stop = malloc(sizeof(thread_infos_t));
         if (stop == NULL) exit(EXIT_FAILURE);
 
-        stop->stop = true;
+        stop->stop = 1;
         strcpy(stop->full_path, "none");
+        strcpy(stop->d_name, "none");
+
         // Something else than non will produce a segmentation fault
 
         sem_wait(producter_empty);
@@ -594,6 +600,7 @@ void *run_consumer(void *elem) {
             sem_wait(writer_empty);
             pthread_mutex_lock(&write_mutex);
 
+            // add Stop-thread in consume buf
             consume_buf[consume_buf_in] = t_infos;
             consume_buf_in++;
 
@@ -603,12 +610,13 @@ void *run_consumer(void *elem) {
             pthread_exit(NULL);
         }
         else {
+
             sem_wait(writer_empty);
             pthread_mutex_lock(&write_mutex);
 
-            consumer(t_infos); // consume to change t_infos;
             consume_buf[consume_buf_in] = t_infos;
             consume_buf_in++;
+            consumer(t_infos); // consume to change t_infos;
 
             pthread_mutex_unlock(&write_mutex);
             sem_post(writer_full);
@@ -621,8 +629,8 @@ void *run_consumer(void *elem) {
  * @param elem: argument given when calling struct dirent* directory_entry
  */
 void *run_writer(void *elem) {
-    args_t *args = (args_t *) elem;
     while (1) {
+
         sem_wait(writer_full);
         pthread_mutex_lock(&write_mutex);
 
@@ -632,15 +640,22 @@ void *run_writer(void *elem) {
         pthread_mutex_unlock(&write_mutex);
         sem_post(writer_empty);
 
+        printf("\nD_name = %s", t_infos->d_name);
+        printf("\nStop : %d", t_infos->stop);
+
         if (t_infos->stop) {
-            count_stop++;
-            if (count_stop == args->nb_threads) {
-                pthread_exit(NULL);
-            }
+            printf("\n1");
+            pthread_exit(NULL);
         }
         else {
-            // Use consumer data
+
+            sem_wait(writer_empty);
+            pthread_mutex_lock(&write_mutex);
+
             write_output(t_infos, t_infos->d_name);
+
+            pthread_mutex_unlock(&write_mutex);
+            sem_post(writer_full);
         }
 
         // TODO : Free t_infos
@@ -683,7 +698,7 @@ int main(int argc, char *argv[]) {
     // Thread
     pthread_t producer_thread;
     pthread_t consume_thread[args.nb_threads];
-    pthread_t write_thread;
+    pthread_t write_thread[args.nb_threads];
 
     // Semaphores
     producter_empty = my_sem_init(MAX_INPUT);
@@ -714,11 +729,15 @@ int main(int argc, char *argv[]) {
     }
 
     // Writer : writes repaired blocks to output
-    err = pthread_create(&write_thread, NULL, &run_writer, &args);
-    if (err != 0) {
-        printf("Error while creating thread run_writer");
-        exit(EXIT_FAILURE);
+
+    for (int i = 0; i < args.nb_threads; ++i) {
+        err = pthread_create(&write_thread[i], NULL, &run_writer, &args);
+        if (err != 0) {
+            printf("Error while creating thread run_writer");
+            exit(EXIT_FAILURE);
+        }
     }
+
 
     // Join threads
     err = pthread_join(producer_thread, NULL);
@@ -735,11 +754,14 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    err = pthread_join(write_thread, NULL);
-    if (err != 0) {
-        printf("Error while joining thread writer_thread");
-        exit(EXIT_FAILURE);
+    for (int i = 0; i < args.nb_threads; ++i) {
+        err = pthread_join(write_thread[i], NULL);
+        if (err != 0) {
+            printf("Error while joining thread writer_thread");
+            exit(EXIT_FAILURE);
+        }
     }
+
 
     // Destroy semaphores
     my_sem_destroy(producter_empty);

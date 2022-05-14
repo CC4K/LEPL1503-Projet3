@@ -24,8 +24,8 @@ typedef struct {
     uint32_t true_length_last_symbols;
     uint8_t** decoded;
     char full_path[PATH_MAX];
-    char* d_name;
-    bool stop;
+    char d_name[PATH_MAX];
+    uint8_t stop;
 } thread_infos_t;
 
 #endif //GROUPEY2_THREAD_INFO_H

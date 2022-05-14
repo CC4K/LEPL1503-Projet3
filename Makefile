@@ -6,7 +6,7 @@ INCLUDE_HEADERS_DIRECTORY=-Iheaders
 
 fec: main.c
 	@rm -f fec
-	@$(CC) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fec
+	@$(CC) -O3 main.c $(SRC) $(LIBS) -o fec
 
 fec_threads: thread.c
 	@rm -f thread
@@ -20,7 +20,7 @@ run: main.c
 threads_run: thread.c
 	@rm -f thread
 	@$(CC) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o thread
-	@./thread input_binary -n 4 -f output.txt -v
+	@./thread input_binary -n 4 -f output.txt
 
 valgrind_run: main.c
 	@rm -f fec
@@ -30,7 +30,7 @@ valgrind_run: main.c
 valgrind_threads: thread.c
 	@rm -f fec
 	@$(CC) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o thread
-	@valgrind --leak-check=full --show-leak-kinds=all ./thread input_binary/ -n 4 -f output.txt
+	@valgrind --leak-check=full -s --show-leak-kinds=all ./thread input_binary/ -n 4 -f output.txt
 
 tests: tests/
 	@$(CC) -O3 tests/test_tinymt32.c src/system.c src/tinymt32.c -lcunit -o tests/test_tinymt32
