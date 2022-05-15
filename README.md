@@ -75,7 +75,8 @@ The project includes a Makefile to avoid overcomplicated commands :
 - `make valgrind_threads` : compiles and runs threaded code with Valgrind
 - `make tests` : compiles and runs the tests (as well as the tested files)
 - `make clean` : clears all compiled files
-- `make help` : show all commands
+- `make help` : show arguments to help compile the program
+- `make help_cmd`: show all commands
 
 To run the executable "fec", use `./fec input_binary/` which will print your output straight to your terminal.
 Same goes for the "thread" executable.

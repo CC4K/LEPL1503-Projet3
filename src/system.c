@@ -12,7 +12,7 @@
 
 //====================== Functions ==========================//
 uint8_t* gf_256_full_add_vector(uint8_t* symbol_1, uint8_t* symbol_2, uint32_t symbol_size) {
-    // Allocate memory for output
+    // Allocates memory for output
     uint8_t* output = malloc(sizeof(uint8_t) * symbol_size);
     if (output == NULL) exit(EXIT_FAILURE);
 
@@ -24,7 +24,7 @@ uint8_t* gf_256_full_add_vector(uint8_t* symbol_1, uint8_t* symbol_2, uint32_t s
 }
 
 uint8_t* gf_256_mul_vector(uint8_t* symbol, uint8_t coef, uint32_t symbol_size) {
-    // Allocate memory for output
+    // Allocates memory for output
     uint8_t* output = malloc(sizeof(uint8_t) * symbol_size);
     if (output == NULL) exit(EXIT_FAILURE);
 
@@ -36,7 +36,7 @@ uint8_t* gf_256_mul_vector(uint8_t* symbol, uint8_t coef, uint32_t symbol_size) 
 }
 
 uint8_t* gf_256_inv_vector(uint8_t* symbol, uint8_t coef, uint32_t symbol_size) {
-    // Allocate memory for output
+    // Allocates memory for output
     uint8_t* output = malloc(sizeof(uint8_t) * symbol_size);
     if (output == NULL) exit(EXIT_FAILURE);
 
@@ -90,7 +90,7 @@ void gf_256_gaussian_elimination(uint8_t** A, uint8_t** b, uint32_t symbol_size,
 }
 
 uint8_t** gen_coefs(uint32_t seed, uint32_t nss, uint32_t nrs) {
-    // Allocate memory for coefs matrix
+    // Allocates memory for coefs matrix
     uint8_t** coeffs = malloc(sizeof(uint8_t*) * nss);
     if (coeffs == NULL) exit(EXIT_FAILURE);
     for (int32_t i = 0; i < nss; i++) {
@@ -106,7 +106,7 @@ uint8_t** gen_coefs(uint32_t seed, uint32_t nss, uint32_t nrs) {
     prng.tmat = 0x3793fdff;
     tinymt32_init(&prng, seed);
 
-    // Generate all coefficients
+    // Generates all coefficients
     for (int32_t i = 0; i < nss; i++) {
         for (int32_t j = 0; j < nrs; j++) {
             coeffs[i][j] = (uint8_t) tinymt32_generate_uint32(&prng);
