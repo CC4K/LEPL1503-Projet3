@@ -56,7 +56,7 @@ uint8_t NULL_threads_count = 0;
  * @return output: a structure which contains pointers to the seed, the word_size, the block_size, the redundancy and message_size
  *                 - seed: the seed for random numbers generation
  *                 - block_size: size of a block - size of source symbols in the block
- *                 - word_size: the size of a 'full' symbol in a block
+ *                 - word_size: the size of a symbol in a block
  *                 - redundancy: the amount of redundancy symbols in the block
  *                 - message_size: the size (in bytes) of the original file we wish to recover.
  *                                 This value only take into consideration the file data thus without recovery symbols
@@ -65,7 +65,7 @@ uint8_t NULL_threads_count = 0;
 file_data_t* get_file_info(char* filename) {
     // Made by Jacques
 
-    // Allocate memory for the returned data
+    // Allocates memory for the returned data
     file_data_t* output = malloc(sizeof(file_data_t));
     if (output == NULL) exit(EXIT_FAILURE);
 
@@ -75,34 +75,34 @@ file_data_t* get_file_info(char* filename) {
     // Open the file
     fileptr = fopen(filename, "rb");
 
-    // Create a buffer which contains the first 24 bytes
+    // Creates a buffer which contains the first 24 bytes
     buf = malloc(4 * sizeof(uint32_t) + 1 * sizeof(uint64_t));
     if (buf == NULL) exit(EXIT_FAILURE);
     int32_t err = fread(buf, 4 * sizeof(uint32_t) + 1 * sizeof(uint64_t), 1, fileptr);
     if (err == 0) exit(EXIT_FAILURE);
 
-    // Allocate memory for the structure pointers
+    // Allocates memory for the structure pointers
     output->seed = malloc(sizeof(uint32_t));
     output->block_size = malloc(sizeof(uint32_t));
     output->word_size = malloc(sizeof(uint32_t));
     output->redundancy = malloc(sizeof(uint32_t));
     output->message_size = malloc(sizeof(uint64_t));
 
-    // Check if malloc didn't fail
+    // Checks if malloc didn't fail
     if (output->seed == NULL) exit(EXIT_FAILURE);
     if (output->block_size == NULL) exit(EXIT_FAILURE);
     if (output->word_size == NULL) exit(EXIT_FAILURE);
     if (output->redundancy == NULL) exit(EXIT_FAILURE);
     if (output->message_size == NULL) exit(EXIT_FAILURE);
 
-    // Store each value
+    // Stores each value
     *output->seed = be32toh((uint32_t) * buf);
     *output->block_size = be32toh((uint32_t) * (buf + 1));
     *output->word_size = be32toh((uint32_t) * (buf + 2));
     *output->redundancy = be32toh((uint32_t) * (buf + 3));
     *output->message_size = be64toh(*((uint64_t *) buf + 2));
 
-    // Close the file
+    // Closes the file
     fclose(fileptr);
 
     // Free the buffer
@@ -119,15 +119,15 @@ file_data_t* get_file_info(char* filename) {
 char* block_to_string(uint8_t** block, uint32_t size) {
     // Made by Jacques
 
-    // Allocate memory for the returned string
+    // Allocates memory for the returned string
     char* str = malloc(sizeof(char) * ((size * word_size) + 1));
     if (str == NULL) exit(EXIT_FAILURE);
 
-    // Record block elements in the string array
+    // Records block elements in the string array
     int32_t index = 0;
     for (int32_t i = 0; i < size; i++) {
         for (int32_t j = 0; j < word_size; j++) {
-            // Stop at the first 0 we meet
+            // Stops at the first 0 we meet
             if (block[i][j] == 0) {
                 // Add end of string and return
                 str[index] = '\0';
@@ -309,7 +309,7 @@ thread_infos_t* producer(char* file_path, args_t args) {
         }
     }
 
-    // Create and fill buffer
+    // Creates and fills buffer
     fseek(input_file, 0, SEEK_END);
     uint64_t filelen = ftell(input_file);
     rewind(input_file);
@@ -326,7 +326,7 @@ thread_infos_t* producer(char* file_path, args_t args) {
         printf("\n");
     }
 
-    // Calculate number of full blocks
+    // Calculates number of full blocks
     double num = (double) (filelen - 24);
     double den = (double) *file_data->word_size * ((double) *file_data->block_size + (double) *file_data->redundancy);
     uint32_t nb_blocks = ceil(num / den);
@@ -384,7 +384,7 @@ void consumer(thread_infos_t* t_infos) {
     redundancy = t_infos->redundancy;
     verbose = t_infos->verbose;
 
-    // Calculate and write full blocks to output
+    // Calculates and writes full blocks to output
     t_infos->blocks = malloc(sizeof(uint8_t**) * t_infos->nb_blocks);
     if (t_infos->blocks == NULL) exit(EXIT_FAILURE);
 
@@ -414,7 +414,7 @@ void consumer(thread_infos_t* t_infos) {
         readed += step;
     }
 
-    // Calculate and write last block to output
+    // Calculates and writes last block to output
     uint32_t readed_symbols = (t_infos->block_size) * (t_infos->word_size) * (t_infos->nb_blocks);
     uint8_t* temps_buf = malloc(sizeof(uint8_t) * ((t_infos->filelen) - 24 - readed));
     for (int32_t i = 0; i < t_infos->filelen - 24 - readed; i++) {
@@ -453,7 +453,7 @@ void consumer(thread_infos_t* t_infos) {
         t_infos->true_length_last_symbols = true_length_last_symbol;
     }
 
-    // Close the input file
+    // Closes the input file
     fclose(t_infos->input_file);
 }
 
@@ -463,7 +463,7 @@ void consumer(thread_infos_t* t_infos) {
  * @param file_name: the name of the file
  */
 void write_output(thread_infos_t* t_infos, char* file_name) {
-    // Write bytes into output
+    // Writes bytes into output
     bool has_output = (t_infos->output_stream != stdout) && (t_infos->output_stream != stderr);
     if (!has_output && !t_infos->verbose) {
         fprintf(stdout, "%c", htobe32(strlen(file_name)));
@@ -515,14 +515,14 @@ void* run_producer(void* elem) {
     struct dirent *directory_entry;
     args_t* args = (args_t*) elem;
 
-    // Iterate over all binary file
+    // Iterates over all binary file
     while ((directory_entry = readdir(args->input_dir))) {
 
-        // Ignore parent and current directory
+        // Ignores parent and current directory
         if (!strcmp(directory_entry->d_name, ".")) continue;
         if (!strcmp(directory_entry->d_name, "..")) continue;
 
-        // Add the directory path to the filename to open it
+        // Adds the directory path to the filename to open it
         char full_path[PATH_MAX];
         memset(full_path, 0, sizeof(char) * PATH_MAX);
         strcpy(full_path, args->input_dir_path);
@@ -535,7 +535,7 @@ void* run_producer(void* elem) {
         sem_wait(producter_empty);
         pthread_mutex_lock(&produce_mutex); //Lock mutex
 
-        // Produce and set variable
+        // Produces and sets variable
         produce_buf[produce_buf_in] = producer(full_path, *args);
         strcpy(produce_buf[produce_buf_in]->full_path, full_path);
         strcpy(produce_buf[produce_buf_in]->d_name, directory_entry->d_name);
@@ -547,7 +547,7 @@ void* run_producer(void* elem) {
         sem_post(producter_full);
     }
 
-    // Create NULL's on buffer to tell threads when stop,
+    // Creates NULL's on buffer to tell threads when stop,
     for (int32_t i = 0; i < args->nb_threads; i++) {
 
         sem_wait(producter_empty);
@@ -676,7 +676,7 @@ int main(int argc, char *argv[]) {
     pthread_mutex_init(&(produce_mutex), NULL);
     pthread_mutex_init(&(write_mutex), NULL);
 
-    //======================================== Create and join threads ===============================================//
+    //======================================== Creates and joins threads ===============================================//
     // Producer : reads file, gets info file, creates coeffs
     err = pthread_create(&producer_thread, NULL, &run_producer, &args);
     if (err != 0) {

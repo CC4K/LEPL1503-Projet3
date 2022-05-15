@@ -30,7 +30,7 @@
  * @return output: a structure which contains pointers to the seed, the word_size, the block_size, the redundancy and message_size
  *                 - seed: the seed for random numbers generation
  *                 - block_size: size of a block - size of source symbols in the block
- *                 - word_size: the size of a 'full' symbol in a block
+ *                 - word_size: the size of a symbol in a block
  *                 - redundancy: the amount of redundancy symbols in the block
  *                 - message_size: the size (in bytes) of the original file we wish to recover.
  *                                 This value only take into consideration the file data thus without recovery symbols
@@ -49,34 +49,34 @@ file_data_t* get_file_info(char* filename) {
     // Open the file
     fileptr = fopen(filename, "rb");
 
-    // Create a buffer which contains the first 24 bytes
+    // Creates a buffer which contains the first 24 bytes
     buf = malloc(4 * sizeof(uint32_t)+1 * sizeof(uint64_t));
     if (buf == NULL) exit(EXIT_FAILURE);
     int32_t err = fread(buf,4 * sizeof(uint32_t)+1 * sizeof(uint64_t),1,fileptr);
     if (err == 0) exit(EXIT_FAILURE);
 
-    // Allocate memory for the structure pointers
+    // Allocates memory for the structure pointers
     output->seed = malloc(sizeof(uint32_t));
     output->block_size = malloc(sizeof(uint32_t));
     output->word_size = malloc(sizeof(uint32_t));
     output->redundancy = malloc(sizeof(uint32_t));
     output->message_size = malloc(sizeof(uint64_t));
 
-    // Check if malloc didn't fail
+    // Checks if malloc didn't fail
     if (output->seed == NULL) exit(EXIT_FAILURE);
     if (output->block_size == NULL) exit(EXIT_FAILURE);
     if (output->word_size == NULL) exit(EXIT_FAILURE);
     if (output->redundancy == NULL) exit(EXIT_FAILURE);
     if (output->message_size == NULL) exit(EXIT_FAILURE);
 
-    // Store each value
+    // Stores each value
     *output->seed = be32toh((uint32_t) * buf);
     *output->block_size = be32toh((uint32_t) * (buf+1));
     *output->word_size = be32toh((uint32_t) * (buf+2));
     *output->redundancy = be32toh((uint32_t) * (buf+3));
     *output->message_size = be64toh(*((uint64_t *) buf+2));
 
-    // Close the file
+    // Closes the file
     fclose(fileptr);
 
     // Free the buffer
@@ -144,7 +144,7 @@ void write_block(FILE* output_file, uint8_t** block, uint32_t size, uint64_t wor
  * @param output_file: the output_file
  * @param block: the said block
  * @param size: the size of the block
- * @param word_size: the size of a 'full' symbol
+ * @param word_size: the size of a symbol
  * @param last_word_size: the size of the very last word of the last block
  */
 void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint64_t word_size, uint32_t last_word_size) {
@@ -277,7 +277,7 @@ int main(int argc, char* argv[]) {
             printf("Successfully opened the file %s\n", full_path);
         }
 
-        //======================================= Get file infos =====================================================//
+        //======================================= Get file's infos =====================================================//
         file_data_t* file_data = get_file_info(full_path);
         if (verbose) {
             printf(">> seed : %d \n", *file_data->seed);
@@ -297,10 +297,10 @@ int main(int argc, char* argv[]) {
         bool has_output = (args.output_stream != stdout) && (args.output_stream != stderr);
         uint32_t readed = 0;
 
-        //=============================== Generate matrix of coefficients ============================================//
+        //=============================== Generates matrix of coefficients ============================================//
         coeffs = gen_coefs(*file_data->seed, redundancy, block_size);
 
-        // Free file data
+        // Free file_data
         free(file_data->seed);
         free(file_data->block_size);
         free(file_data->word_size);
@@ -318,7 +318,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        //============================== Create buffer for input binary data =========================================//
+        //============================== Creates buffer for input binary data =========================================//
         fseek(input_file, 0, SEEK_END);
         uint64_t filelen = ftell(input_file);
         rewind(input_file);
@@ -335,7 +335,7 @@ int main(int argc, char* argv[]) {
             printf("\n");
         }
 
-        //================================== Detect number of full blocks ============================================//
+        //================================== Detects number of full blocks ============================================//
         double num = (double) (filelen - 24);
         double den = (double) word_size * ((double) block_size + (double) redundancy);
         uint32_t nb_blocks = ceil(num/den);
@@ -353,7 +353,7 @@ int main(int argc, char* argv[]) {
             printf("This file doesn't contain non-full blocks\n\n");
         }
 
-        //=========================== Write size of name, size and name to output ====================================//
+        //=========================== Writes size of name, size of file and name to output ====================================//
         if (!has_output && !verbose) {
             fprintf(stdout, "%c", htobe32(strlen(directory_entry->d_name)));
             fprintf(stdout, "%c", htobe32(message_size));
@@ -367,7 +367,7 @@ int main(int argc, char* argv[]) {
             fprintf(args.output_stream, "%s", directory_entry->d_name);
         }
 
-        //================================= Write full blocks to output ==============================================//
+        //================================= Writes full blocks to output ==============================================//
         for (int i = 0; i < nb_blocks; i++) {
             uint8_t* temps_buf = malloc(sizeof(uint8_t) * step);
             if (temps_buf == NULL) exit(EXIT_FAILURE);
@@ -400,7 +400,7 @@ int main(int argc, char* argv[]) {
             readed += step;
         }
 
-        //================================= Write last block to output ===============================================//
+        //================================= Writes last block to output ===============================================//
         uint32_t readed_symbols = block_size * word_size * nb_blocks;
         uint8_t* temps_buf = malloc(sizeof(uint8_t) * filelen-24-readed);
         if (temps_buf == NULL) exit(EXIT_FAILURE);
@@ -448,14 +448,14 @@ int main(int argc, char* argv[]) {
         fclose(input_file);
     }
 
-    // Calculate the time taken
+    // Calculates the time taken
     time = clock() - time;
     double time_taken = ((double) time)/CLOCKS_PER_SEC;
     printf("The program took %f seconds to execute\n", time_taken);
     bool has_output = (args.output_stream != stdout) && (args.output_stream != stderr);
     if (!verbose && !has_output) printf("\n");
 
-    // Close the input directory and the output file
+    // Closes the input directory and the output file
     err = closedir(args.input_dir);
     if (err < 0) {
         fprintf(stderr, "Error while closing the input directory containing the instance files\n");

@@ -54,7 +54,7 @@ void printf_linear_system(uint8_t** A, uint8_t** B, uint8_t nb_unk) {
 uint8_t** make_block(uint8_t* data, uint8_t size) {
     // Made by Jacques
 
-    // Allocate memory for the returned block
+    // Allocates memory for the returned block
     uint8_t** block = malloc(sizeof(uint8_t*) * (size + redundancy));
     if (block == NULL) exit(EXIT_FAILURE);
     for (int32_t i = 0; i < (size + redundancy); i++) {
@@ -74,7 +74,7 @@ uint8_t** make_block(uint8_t* data, uint8_t size) {
 unknowns_t* find_lost_words(uint8_t** block, uint8_t size) {
     // Made by Cédric
 
-    // Initialize an array of boolean of size 'size' to false & the amount of unknowns to 0
+    // Initializes an array of boolean of size 'size' to false & the amount of unknowns to 0
     uint8_t* unknown_indexes = malloc(sizeof(uint8_t) * size);
     if (unknown_indexes == NULL) exit(EXIT_FAILURE);
     for (int32_t i = 0; i < size; i++) {
@@ -95,7 +95,7 @@ unknowns_t* find_lost_words(uint8_t** block, uint8_t size) {
         }
     }
 
-    // Allocate memory to store the results in a struct and return it
+    // Allocates memory to store the results in a struct and return it
     unknowns_t* output = malloc(sizeof(unknowns_t));
     if (output == NULL) exit(EXIT_FAILURE);
     output->unknown_map = unknown_indexes;
@@ -117,7 +117,7 @@ unknowns_t* find_lost_words(uint8_t** block, uint8_t size) {
 linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, uint8_t** current_block, uint8_t block_size) {
     // Made by Romain
 
-    // Allocate memory for the two matrices A and B
+    // Allocates memory for the two matrices A and B
     uint8_t** A = malloc(sizeof(uint8_t*) * nb_unk);
     if (A == NULL) exit(EXIT_FAILURE);
     for (int32_t i = 0; i < nb_unk; i++) {
@@ -152,7 +152,7 @@ linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, ui
         printf(">> size : %d\n", nb_unk);
     }
 
-    // Allocate memory to the structure that stores the results and return it
+    // Allocates memory to the structure that stores the results and return it
     linear_system_t* output = malloc(sizeof(linear_system_t));
     if (output == NULL) exit(EXIT_FAILURE);
     output->A = A;
