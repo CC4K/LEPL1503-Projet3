@@ -20,7 +20,7 @@ help_cmd:
 	@echo \> 'make run' \	\	: compiles and runs main.c with the program output in output.txt and verbose mode activated
 	@echo \> 'make threads_run' \	\: compiles and runs thread.c with the program output in output.txt and verbose mode activated
 	@echo \> 'make valgrind_run' \	: compiles and runs main.c with Valgrind to check memory leaks
-	@echo \> 'make valgrind_threads' \	: compiles and runs thread.c with Valgrind to check memory leaks
+	@echo \> 'make valgrind_threads' \: compiles and runs thread.c with Valgrind to check memory leaks
 	@echo \> 'make tests' \	\	: compiles and runs all tests with Cunit
 	@echo \> 'make clean' \	\	: deletes all compiled files in the project
 
