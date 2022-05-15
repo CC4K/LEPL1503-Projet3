@@ -640,11 +640,8 @@ void *run_writer(void *elem) {
         pthread_mutex_unlock(&write_mutex);
         sem_post(writer_empty);
 
-        printf("\nD_name = %s", t_infos->d_name);
-        printf("\nStop : %d", t_infos->stop);
 
         if (t_infos->stop) {
-            printf("\n1");
             pthread_exit(NULL);
         }
         else {
