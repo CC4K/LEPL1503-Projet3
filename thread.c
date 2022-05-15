@@ -498,12 +498,6 @@ void write_output(thread_infos_t* t_infos, char* file_name) {
                          t_infos->nb_remaining_symbols,
                          t_infos->word_size,
                          t_infos->true_length_last_symbols);
-
-        // TODO : Free decoded
-//        for (int i = 0; i < t_infos->block_size + t_infos->redundancy; i++) {
-//            free(t_infos->decoded[i]);
-//        }
-//        free(t_infos->decoded);
     }
 }
 
@@ -635,14 +629,6 @@ void* run_writer(void* elem) {
             // Use consumer data
             write_output(t_infos, t_infos->d_name);
         }
-
-        // TODO : Free t_infos
-//        free(t_infos->input_file);
-//        free(t_infos->buf);
-//        for (int i = 0; i < t_infos->block_size + t_infos->redundancy; i++) {
-//            free(t_infos->decoded[i]);
-//        }
-//        free(t_infos->decoded);
     }
 }
 
@@ -748,14 +734,4 @@ int main(int argc, char *argv[]) {
     }
     return 0;
 
-    // TODO: debug ici (il faut déclarer l'appel dans le main pr que ça marche)
-//    file_read_error:
-//    err = closedir(args.input_dir);
-//    if (err < 0) {
-//        fprintf(stderr, "Error while closing the input directory containing the instance files\n");
-//    }
-//    if (args.output_stream != stdout) {
-//        fclose(args.output_stream);
-//    }
-//    exit(EXIT_FAILURE);
 }
