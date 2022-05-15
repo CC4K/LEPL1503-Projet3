@@ -4,6 +4,16 @@ SRC=src/block_process.c src/system.c src/tinymt32.c
 LIBS=-lcunit -lpthread -lm
 INCLUDE_HEADERS_DIRECTORY=-Iheaders
 
+help:
+	@echo -fec : compile main.c with the name fec
+	@echo -fec_threads : compile thread.c with the name thread
+	@echo -run : compile and run the main.c with the input_binary file and output.txt as the output file in verbose mode
+	@echo -threads_run : compile and run the thread.c with the input_binary file and the output.txt as the output file in verbose mode
+	@echo -valgrind_run : compile and run the main.c with valgrind to check memory leak
+	@echo -valgrind_threads : comple and run the thread.c with valgrind to check memory leak
+	@echo -tests : run all tests with Cunit
+	@echo -clean : delete all compiled files in the project
+
 fec: main.c
 	@rm -f fec
 	@$(CC) -O3 main.c $(SRC) $(LIBS) -o fec
@@ -15,7 +25,7 @@ fec_threads: thread.c
 run: main.c
 	@rm -f fec
 	@$(CC) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fec
-	@./fec input_binary/ -f output.txt -v
+	@./fec input_binary/ -f output.txt
 
 threads_run: thread.c
 	@rm -f thread

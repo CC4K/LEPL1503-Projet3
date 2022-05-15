@@ -26,6 +26,41 @@ For each block, we calculate the missing value for the full blocks, translate it
 Then the same is done with the very last block (if there is one).
 
 Finally, the program can close the binary file.
+
+##Requierement
+to run this project you will need 3 modules :
+- GCC
+- Cunit
+- valgrind
+
+To download those run those commandes in a UNIX terminal
+Before dowloading the modules make sure you are up to date by typing in the terminal `sudo apt update && sudo apt upgrade`
+###For Windows:
+on a Unix terminal or a virtual machine on Unix
+
+GCC:`sudo apt install build-essential`
+
+Valgrind:`sudo apt-get install valgrind`
+
+Cunit:`sudo apt-get install libcunit1 libcunit1-doc libcunit1-dev`
+
+### For Mac OS
+
+by using Homebrew:
+
+GCC:`brew install gcc`
+
+Valgrind:`brew install valgrind`
+
+Cunit:`brew install cunit`
+
+### For Ubuntu
+GCC:`sudo apt install build-essential`
+
+Valgrind:`sudo apt-get install valgrind`
+
+Cunit:`sudo apt-get install libcunit1 libcunit1-doc libcunit1-dev`
+
 ## How to run the program ?
 
 First you must have your binary files in the `input_binary/` directory.
