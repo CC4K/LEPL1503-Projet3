@@ -5,14 +5,24 @@ LIBS=-lcunit -lpthread -lm
 INCLUDE_HEADERS_DIRECTORY=-Iheaders
 
 help:
-	@echo -fec : compile main.c with the name fec
-	@echo -fec_threads : compile thread.c with the name thread
-	@echo -run : compile and run the main.c with the input_binary file and output.txt as the output file in verbose mode
-	@echo -threads_run : compile and run the thread.c with the input_binary file and the output.txt as the output file in verbose mode
-	@echo -valgrind_run : compile and run the main.c with valgrind to check memory leak
-	@echo -valgrind_threads : comple and run the thread.c with valgrind to check memory leak
-	@echo -tests : run all tests with Cunit
-	@echo -clean : delete all compiled files in the project
+	@echo \> 'make help_cmd' : to see all the available commands
+	@echo if you wish to run compiled code yourself :
+	@echo \> './[name of executable] input_binary/' : is the base command and will print your output straight to terminal
+	@echo here are the flags available to use after the base command :
+	@echo '-v' \	\	\	\: to activate verbose mode and show steps of the program in your terminal
+	@echo '-f [name of output].txt' \: to get your output in a .txt file
+	@echo '-n [number of threads]' \	: to specify the number of threads you want to run the "thread" executable with
+
+help_cmd:
+	@echo \> 'make fec' \	\	\: compiles main.c with the name fec
+	@echo \> 'make fec_threads' \	\: compiles thread.c with the name thread
+	@echo \> 'make help'\	\	\: commands and flags to run compiled code yourself
+	@echo \> 'make run' \	\	: compiles and runs main.c with the program output in output.txt and verbose mode activated
+	@echo \> 'make threads_run' \	\: compiles and runs thread.c with the program output in output.txt and verbose mode activated
+	@echo \> 'make valgrind_run' \	: compiles and runs main.c with Valgrind to check memory leaks
+	@echo \> 'make valgrind_threads' \: compiles and runs thread.c with Valgrind to check memory leaks
+	@echo \> 'make tests' \	\	: compiles and runs all tests with Cunit
+	@echo \> 'make clean' \	\	: deletes all compiled files in the project
 
 fec: main.c
 	@rm -f fec
