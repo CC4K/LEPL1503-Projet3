@@ -14,9 +14,9 @@ help:
 	@echo '-n [number of threads]' \	: to specify the number of threads you want to run the "thread" executable with
 
 help_cmd:
-	@echo \> 'make help'\	\	\: commands and flags to run compiled code yourself
 	@echo \> 'make fec' \	\	\: compiles main.c with the name fec
 	@echo \> 'make fec_threads' \	\: compiles thread.c with the name thread
+	@echo \> 'make help'\	\	\: commands and flags to run compiled code yourself
 	@echo \> 'make run' \	\	: compiles and runs main.c with the program output in output.txt and verbose mode activated
 	@echo \> 'make threads_run' \	\: compiles and runs thread.c with the program output in output.txt and verbose mode activated
 	@echo \> 'make valgrind_run' \	: compiles and runs main.c with Valgrind to check memory leaks
