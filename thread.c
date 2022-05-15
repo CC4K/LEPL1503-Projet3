@@ -28,14 +28,14 @@
 
 //====================================Globals variables=======================================//
 // Semaphores
-sem_t *producter_empty;
-sem_t *producter_full;
-sem_t *writer_empty;
-sem_t *writer_full;
+sem_t* producter_empty;
+sem_t* producter_full;
+sem_t* writer_empty;
+sem_t* writer_full;
 
 // Buffers
-thread_infos_t *produce_buf[MAX_INPUT];
-thread_infos_t *consume_buf[MAX_INPUT];
+thread_infos_t* produce_buf[MAX_INPUT];
+thread_infos_t* consume_buf[MAX_INPUT];
 
 // Mutex
 pthread_mutex_t produce_mutex;
@@ -62,15 +62,15 @@ uint8_t NULL_threads_count = 0;
  *                                 This value only take into consideration the file data thus without recovery symbols
  *                                 nor the data listed above
  */
-file_data_t *get_file_info(char *filename) {
+file_data_t* get_file_info(char* filename) {
     // Made by Jacques
 
     // Allocate memory for the returned data
-    file_data_t *output = malloc(sizeof(file_data_t));
+    file_data_t* output = malloc(sizeof(file_data_t));
     if (output == NULL) exit(EXIT_FAILURE);
 
-    FILE *fileptr;
-    uint32_t * buf;
+    FILE* fileptr;
+    uint32_t* buf;
 
     // Open the file
     fileptr = fopen(filename, "rb");
@@ -78,7 +78,7 @@ file_data_t *get_file_info(char *filename) {
     // Create a buffer which contains the first 24 bytes
     buf = malloc(4 * sizeof(uint32_t) + 1 * sizeof(uint64_t));
     if (buf == NULL) exit(EXIT_FAILURE);
-    int err = fread(buf, 4 * sizeof(uint32_t) + 1 * sizeof(uint64_t), 1, fileptr);
+    int32_t err = fread(buf, 4 * sizeof(uint32_t) + 1 * sizeof(uint64_t), 1, fileptr);
     if (err == 0) exit(EXIT_FAILURE);
 
     // Allocate memory for the structure pointers
@@ -116,15 +116,15 @@ file_data_t *get_file_info(char *filename) {
  * @param size: the size of the block
  * @return str: the block's string converted into binary
  */
-char *block_to_string(uint8_t **block, uint32_t size) {
+char* block_to_string(uint8_t** block, uint32_t size) {
     // Made by Jacques
 
     // Allocate memory for the returned string
-    char *str = malloc(sizeof(char) * ((size * word_size) + 1));
+    char* str = malloc(sizeof(char) * ((size * word_size) + 1));
     if (str == NULL) exit(EXIT_FAILURE);
 
     // Record block elements in the string array
-    int index = 0;
+    int32_t index = 0;
     for (int32_t i = 0; i < size; i++) {
         for (int32_t j = 0; j < word_size; j++) {
             // Stop at the first 0 we meet
@@ -150,7 +150,7 @@ char *block_to_string(uint8_t **block, uint32_t size) {
  * @param size: the size of the block
  * @param word_size: the size of each symbol in the block
  */
-void write_block(FILE *output_file, uint8_t **block, uint32_t size, uint64_t word_size) {
+void write_block(FILE* output_file, uint8_t** block, uint32_t size, uint64_t word_size) {
     for (int32_t i = 0; i < size; i++) {
         for (int32_t j = 0; j < word_size; j++) {
             if ((output_file == stdout) || (output_file == stderr)) {
@@ -172,7 +172,7 @@ void write_block(FILE *output_file, uint8_t **block, uint32_t size, uint64_t wor
  * @param word_size: the size of a 'full' symbol
  * @param last_word_size: the size of the very last word of the last block
  */
-void write_last_block(FILE *output_file, uint8_t **block, uint8_t size, uint64_t word_size, uint32_t last_word_size) {
+void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint64_t word_size, uint32_t last_word_size) {
     for (int32_t i = 0; i < size - 1; i++) {
         for (int32_t j = 0; j < word_size; j++) {
             if ((output_file == stdout) || (output_file == stderr)) {
@@ -198,21 +198,19 @@ void write_last_block(FILE *output_file, uint8_t **block, uint8_t size, uint64_t
  * Shows the arguments used during program execution
  * @param prog_name
  */
-void usage(char *prog_name) {
+void usage(char* prog_name) {
     fprintf(stderr, "USAGE:\n");
     fprintf(stderr, "    %s [OPTIONS] input_dir\n", prog_name);
     fprintf(stderr, "    input_dir: path to the directory containing the instance files with the encoded messages\n");
     fprintf(stderr, "    -f output_file: path to the output file containing all decoded messages\n");
-    fprintf(stderr,
-            "    -n n_threads (default: 4): set the number of computing threads that will be used to execute the RLC algorithm\n");
-    fprintf(stderr,
-            "    -v : enable debugging messages. If not set, no such messages will be displayed (except error messages on failure)\n");
+    fprintf(stderr, "    -n n_threads (default: 4): set the number of computing threads that will be used to execute the RLC algorithm\n");
+    fprintf(stderr, "    -v : enable debugging messages. If not set, no such messages will be displayed (except error messages on failure)\n");
 }
 
 /**
  * Reads the arguments passed during execution to store them in args_t structure
  */
-int parse_args(args_t *args, int argc, char *argv[]) {
+int parse_args(args_t* args, int argc, char* argv[]) {
     memset(args, 0, sizeof(args_t));
 
     // Default values of the arguments
@@ -270,21 +268,21 @@ int parse_args(args_t *args, int argc, char *argv[]) {
  * @param args: parsed file arguments
  * @return input_file, output_stream, nb_blocks, buf, coeffs, word_size, block_size, redundancy, message_size, verbose, filelen, contain_uncomplete_blocks
  */
-thread_infos_t *producer(char *file_path, args_t args) {
+thread_infos_t* producer(char* file_path, args_t args) {
     // Initialize the structure to store data to pass to consumer
-    thread_infos_t *t_infos = malloc(sizeof(thread_infos_t));
+    thread_infos_t* t_infos = malloc(sizeof(thread_infos_t));
     if (t_infos == NULL) {
-        printf("\nError Malloc Open_File_Producter\n");
+        printf("\nError Malloc Open_File_Producer\n");
         exit(EXIT_FAILURE);
     }
 
     // Open the file
-    FILE *input_file = fopen(file_path, "r");
+    FILE* input_file = fopen(file_path, "r");
     if (input_file == NULL) {
         printf("========================================================================================================\n");
         fprintf(stderr, "Failed to open the input file %s: %s\n", file_path, strerror(errno));
         // TODO : Il faut le sortir en argument pour y accéder ds le main
-//        goto file_read_error;
+        //goto file_read_error;
         exit(EXIT_FAILURE);
     }
     if (args.verbose) {
@@ -293,8 +291,8 @@ thread_infos_t *producer(char *file_path, args_t args) {
     }
 
     // Get file data and generate coefficients
-    file_data_t *file_data = get_file_info(file_path);
-    uint8_t **coeffs = gen_coefs(*file_data->seed, *file_data->redundancy, *file_data->block_size);
+    file_data_t* file_data = get_file_info(file_path);
+    uint8_t** coeffs = gen_coefs(*file_data->seed, *file_data->redundancy, *file_data->block_size);
 
     if (args.verbose) {
         printf(">> seed : %d \n", *file_data->seed);
@@ -315,14 +313,14 @@ thread_infos_t *producer(char *file_path, args_t args) {
     fseek(input_file, 0, SEEK_END);
     uint64_t filelen = ftell(input_file);
     rewind(input_file);
-    uint8_t *buf = malloc(sizeof(char) * filelen);
+    uint8_t* buf = malloc(sizeof(char) * filelen);
     if (buf == NULL) exit(EXIT_FAILURE);
-    int err = fread(buf, filelen, 1, input_file);
+    int32_t err = fread(buf, filelen, 1, input_file);
     if (err == 0) exit(EXIT_FAILURE);
 
     if (args.verbose) {
         printf(">> binary data : \n");
-        for (int i = 24; i < filelen; i++) {
+        for (int32_t i = 24; i < filelen; i++) {
             printf("%d ", buf[i]);
         }
         printf("\n");
@@ -377,7 +375,7 @@ thread_infos_t *producer(char *file_path, args_t args) {
  * After this function is called, all symbols must have been found.
  * @param t_infos: a structure containing data needed to calculate lost symbols
  */
-void consumer(thread_infos_t *t_infos) {
+void consumer(thread_infos_t* t_infos) {
     // Setup variables
     uint32_t step = t_infos->word_size * (t_infos->block_size + t_infos->redundancy);
     uint32_t readed = 0;
@@ -387,7 +385,7 @@ void consumer(thread_infos_t *t_infos) {
     verbose = t_infos->verbose;
 
     // Calculate and write full blocks to output
-    t_infos->blocks = malloc(sizeof(uint8_t * *) * t_infos->nb_blocks);
+    t_infos->blocks = malloc(sizeof(uint8_t**) * t_infos->nb_blocks);
     if (t_infos->blocks == NULL) exit(EXIT_FAILURE);
 
     for (int32_t i = 0; i < t_infos->nb_blocks; i++) {
@@ -396,16 +394,16 @@ void consumer(thread_infos_t *t_infos) {
             temps_buf[j] = t_infos->buf[(i * step) + j + 24];
         }
 
-        uint8_t **current_block = make_block(temps_buf, t_infos->block_size);
+        uint8_t** current_block = make_block(temps_buf, t_infos->block_size);
         // Free temporary buffer
         free(temps_buf);
-        uint8_t **response = process_block(current_block, t_infos->block_size);
+        uint8_t** response = process_block(current_block, t_infos->block_size);
 
         if (t_infos->verbose) {
             printf(">> processed block %d :\n", i);
             printf_matrix(response, (t_infos->block_size + t_infos->redundancy), t_infos->word_size);
             printf(">> to_string :\n");
-            char *str = block_to_string(response, t_infos->block_size);
+            char* str = block_to_string(response, t_infos->block_size);
             printf("%s", str);
             free(str);
             printf("\n\n--------------------------------------------------------------------------------------------------------\n");
@@ -418,7 +416,7 @@ void consumer(thread_infos_t *t_infos) {
 
     // Calculate and write last block to output
     uint32_t readed_symbols = (t_infos->block_size) * (t_infos->word_size) * (t_infos->nb_blocks);
-    uint8_t *temps_buf = malloc(sizeof(uint8_t) * ((t_infos->filelen) - 24 - readed));
+    uint8_t* temps_buf = malloc(sizeof(uint8_t) * ((t_infos->filelen) - 24 - readed));
     for (int32_t i = 0; i < t_infos->filelen - 24 - readed; i++) {
         temps_buf[i] = t_infos->buf[24 + readed + i];
     }
@@ -427,13 +425,13 @@ void consumer(thread_infos_t *t_infos) {
 
     uint32_t nb_remaining_symbols = ((t_infos->filelen - 24 - readed) / t_infos->word_size) - t_infos->redundancy;
     if (t_infos->contains_uncomplete_block) {
-        uint8_t **last_block = make_block(temps_buf, nb_remaining_symbols);
+        uint8_t** last_block = make_block(temps_buf, nb_remaining_symbols);
         // Free used temporary buffer
         free(temps_buf);
-        uint8_t **decoded = process_block(last_block, nb_remaining_symbols);
+        uint8_t** decoded = process_block(last_block, nb_remaining_symbols);
 
         // Free global variable coefficients
-        for (int i = 0; i < t_infos->redundancy; i++) {
+        for (int32_t i = 0; i < t_infos->redundancy; i++) {
             free(t_infos->coeffs[i]);
         }
         free(t_infos->coeffs);
@@ -444,7 +442,7 @@ void consumer(thread_infos_t *t_infos) {
             printf(">> last processed block :\n");
             printf_matrix(decoded, (t_infos->filelen - 24 - readed) / t_infos->word_size, t_infos->word_size);
             printf(">> to_string :\n");
-            char *str = block_to_string(decoded, t_infos->block_size);
+            char* str = block_to_string(decoded, t_infos->block_size);
             printf("%s", str);
             free(str);
             printf("\n========================================================================================================\n\n");
@@ -464,7 +462,7 @@ void consumer(thread_infos_t *t_infos) {
  * @param t_infos: a structure containing data needed to calculate lost symbols
  * @param file_name: the name of the file
  */
-void write_output(thread_infos_t *t_infos, char *file_name) {
+void write_output(thread_infos_t* t_infos, char* file_name) {
     // Write bytes into output
     bool has_output = (t_infos->output_stream != stdout) && (t_infos->output_stream != stderr);
     if (!has_output && !t_infos->verbose) {
@@ -480,14 +478,14 @@ void write_output(thread_infos_t *t_infos, char *file_name) {
         fprintf(t_infos->output_stream, "%s", file_name);
     }
 
-    for (int i = 0; i < t_infos->nb_blocks; i++) {
+    for (int32_t i = 0; i < t_infos->nb_blocks; i++) {
         write_block(t_infos->output_stream,
                     t_infos->blocks[i],
                     t_infos->block_size,
                     t_infos->word_size);
 
         // Free blocks[i]
-        for (int j = 0; j < t_infos->block_size + t_infos->redundancy; j++) {
+        for (int32_t j = 0; j < t_infos->block_size + t_infos->redundancy; j++) {
             free(t_infos->blocks[i][j]);
         }
         free(t_infos->blocks[i]);
@@ -495,7 +493,10 @@ void write_output(thread_infos_t *t_infos, char *file_name) {
     free(t_infos->blocks);
 
     if (t_infos->contains_uncomplete_block) {
-        write_last_block(t_infos->output_stream, t_infos->decoded, t_infos->nb_remaining_symbols, t_infos->word_size,
+        write_last_block(t_infos->output_stream,
+                         t_infos->decoded,
+                         t_infos->nb_remaining_symbols,
+                         t_infos->word_size,
                          t_infos->true_length_last_symbols);
 
         // TODO : Free decoded
@@ -510,9 +511,9 @@ void write_output(thread_infos_t *t_infos, char *file_name) {
  * Loops threads on the producer function to extract file data for each file given in input
  * @param elem: argument given when calling struct dirent* directory_entry
  */
-void *run_producer(void *elem) {
+void* run_producer(void* elem) {
     struct dirent *directory_entry;
-    args_t *args = (args_t *) elem;
+    args_t* args = (args_t*) elem;
 
     // Iterate over all binary file
     while ((directory_entry = readdir(args->input_dir))) {
@@ -547,7 +548,7 @@ void *run_producer(void *elem) {
     }
 
     // Create NULL's on buffer to tell threads when stop,
-    for (int i = 0; i < args->nb_threads; i++) {
+    for (int32_t i = 0; i < args->nb_threads; i++) {
 
         sem_wait(producter_empty);
         pthread_mutex_lock(&produce_mutex);
@@ -566,14 +567,14 @@ void *run_producer(void *elem) {
  * Runs available consumer threads to calculate the lost symbols
  * @param elem: argument given when calling struct dirent* directory_entry
  */
-void *run_consumer(void *elem) {
+void* run_consumer(void* elem) {
     while (1) {
         // Wait and lock mutex when the thread is free to work
         sem_wait(producter_full);
         pthread_mutex_lock(&produce_mutex);
 
         // Get t_infos from buf
-        thread_infos_t *t_infos = produce_buf[produce_buf_out];
+        thread_infos_t* t_infos = produce_buf[produce_buf_out];
         produce_buf_out++;
 
         // Unlock and notify sem
@@ -611,8 +612,8 @@ void *run_consumer(void *elem) {
  * Runs the writer thread to write the completed blocks to output if the said data is calculated
  * @param elem: argument given when calling struct dirent* directory_entry
  */
-void *run_writer(void *elem) {
-    args_t *args = (args_t *) elem;
+void* run_writer(void* elem) {
+    args_t* args = (args_t*) elem;
     while (1) {
         sem_wait(writer_full);
         pthread_mutex_lock(&write_mutex);
