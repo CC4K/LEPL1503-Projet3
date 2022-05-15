@@ -33,8 +33,8 @@ to run this project you will need 3 modules :
 - Cunit
 - valgrind
 
-To download those run those commandes in a UNIX terminal
-Before dowloading the modules make sure you are up to date by typing in the terminal `sudo apt update && sudo apt upgrade`
+To download those, run those commandes in a UNIX terminal
+Before downloading the modules make sure you are up to date by typing in the terminal `sudo apt update && sudo apt upgrade`
 ###For Windows:
 on a Unix terminal or a virtual machine on Unix
 
@@ -75,6 +75,7 @@ The project includes a Makefile to avoid overcomplicated commands :
 - `make valgrind_threads` : compiles and runs threaded code with Valgrind
 - `make tests` : compiles and runs the tests (as well as the tested files)
 - `make clean` : clears all compiled files
+- `make help` : show all commands
 
 To run the executable "fec", use `./fec input_binary/` which will print your output straight to your terminal.
 Same goes for the "thread" executable.
