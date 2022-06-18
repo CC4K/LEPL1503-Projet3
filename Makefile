@@ -24,6 +24,9 @@ help_cmd:
 	@echo \> 'make tests' \	\	: compiles and runs all tests with Cunit
 	@echo \> 'make clean' \	\	: deletes all compiled files in the project
 
+%.o: %.c
+	@$(CC) $(INCLUDE_HEADERS_DIRECTORY) $(CFLAGS) -o $@ -c $<
+
 fec: main.c
 	@rm -f fec
 	@$(CC) -O3 main.c $(SRC) $(LIBS) -o fec
