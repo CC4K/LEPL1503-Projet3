@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -Werror -g
+CFLAGS=-Wall -Werror -g -std=gnu99
 SRC=src/block_process.c src/system.c src/tinymt32.c
 LIBS=-lcunit -lpthread -lm
 INCLUDE_HEADERS_DIRECTORY=-Iheaders
@@ -25,37 +25,40 @@ help_cmd:
 	@echo \> 'make clean' \	\	: deletes all compiled files in the project
 
 %.o: %.c
-	@$(CC) $(INCLUDE_HEADERS_DIRECTORY) $(CFLAGS) -o $@ -c $<
+	@$(CC) $(CFLAGS) $(INCLUDE_HEADERS_DIRECTORY) -o $@ -c $<
 
-fec: main.c
+all: thread.c src/block_process.c src/system.c src/tinymt32.c
+	@$(CC) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o all
+
+fec: main.c src/block_process.c src/system.c src/tinymt32.c
 	@rm -f fec
-	@$(CC) -O3 main.c $(SRC) $(LIBS) -o fec
+	@$(CC) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fec
 
-fec_threads: thread.c
+fec_threads: thread.c src/block_process.c src/system.c src/tinymt32.c
 	@rm -f thread
 	@$(CC) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o thread
 
-run: main.c
+run: main.c src/block_process.c src/system.c src/tinymt32.c
 	@rm -f fec
 	@$(CC) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fec
 	@./fec input_binary/ -f output.txt
 
-threads_run: thread.c
+threads_run: thread.c src/block_process.c src/system.c src/tinymt32.c
 	@rm -f thread
 	@$(CC) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o thread
 	@./thread input_binary -n 4 -f output.txt
 
-valgrind_run: main.c
+valgrind_run: main.c src/block_process.c src/system.c src/tinymt32.c
 	@rm -f fec
 	@$(CC) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fec
 	@valgrind --leak-check=full --show-leak-kinds=all ./fec input_binary/ -f output.txt
 
-valgrind_threads: thread.c
+valgrind_threads: thread.c src/block_process.c src/system.c src/tinymt32.c
 	@rm -f fec
 	@$(CC) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o thread
 	@valgrind --leak-check=full -s --show-leak-kinds=all ./thread input_binary/ -n 4 -f output.txt
 
-tests: tests/
+tests: tests/ src/block_process.c src/system.c src/tinymt32.c
 	@$(CC) -O3 tests/test_tinymt32.c src/system.c src/tinymt32.c -lcunit -o tests/test_tinymt32
 	./tests/test_tinymt32
 	@$(CC) -O3 tests/test_make_linear_system.c src/system.c src/tinymt32.c -lcunit -o tests/test_make_linear_system
@@ -80,7 +83,9 @@ tests: tests/
 	./tests/test_process_block
 
 clean:
+	@rm -f *.o
 	@rm -f src/*.o
+	@rm -f all
 	@rm -f fec
 	@rm -f thread
 	@rm -f *.txt
