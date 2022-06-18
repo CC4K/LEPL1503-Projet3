@@ -25,40 +25,40 @@ help_cmd:
 	@echo \> 'make clean' \	\	: deletes all compiled files in the project
 
 %.o: %.c
-	@$(CC) $(CFLAGS) $(INCLUDE_HEADERS_DIRECTORY) -o $@ -c $<
+	@$(CC) $(INCLUDE_HEADERS_DIRECTORY) $(CFLAGS) -o $@ -c $<
 
-all: thread.c src/block_process.c src/system.c src/tinymt32.c
-	@$(CC) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o all
+all: thread.c src/block_process.o src/system.o src/tinymt32.o
+	@$(CC) $(INCLUDE_HEADERS_DIRECTORY) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o all
 
-fec: main.c src/block_process.c src/system.c src/tinymt32.c
+fec: main.c src/block_process.o src/system.o src/tinymt32.o
 	@rm -f fec
-	@$(CC) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fec
+	@$(CC) $(INCLUDE_HEADERS_DIRECTORY) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fec
 
-fec_threads: thread.c src/block_process.c src/system.c src/tinymt32.c
+fec_threads: thread.c src/block_process.o src/system.o src/tinymt32.o
 	@rm -f thread
-	@$(CC) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o thread
+	@$(CC) $(INCLUDE_HEADERS_DIRECTORY) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o thread
 
-run: main.c src/block_process.c src/system.c src/tinymt32.c
+run: main.c src/block_process.o src/system.o src/tinymt32.o
 	@rm -f fec
-	@$(CC) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fec
-	@./fec input_binary/ -f output.txt
+	@$(CC) $(INCLUDE_HEADERS_DIRECTORY) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fec
+	@./fec input_binary/ -f output.txt -v
 
-threads_run: thread.c src/block_process.c src/system.c src/tinymt32.c
+threads_run: thread.c src/block_process.o src/system.o src/tinymt32.o
 	@rm -f thread
-	@$(CC) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o thread
-	@./thread input_binary -n 4 -f output.txt
+	@$(CC) $(INCLUDE_HEADERS_DIRECTORY) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o thread
+	@./thread input_binary -n 4 -f output.txt -v
 
-valgrind_run: main.c src/block_process.c src/system.c src/tinymt32.c
+valgrind_run: main.c src/block_process.o src/system.o src/tinymt32.o
 	@rm -f fec
-	@$(CC) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fec
+	@$(CC) $(INCLUDE_HEADERS_DIRECTORY) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fec
 	@valgrind --leak-check=full --show-leak-kinds=all ./fec input_binary/ -f output.txt
 
-valgrind_threads: thread.c src/block_process.c src/system.c src/tinymt32.c
+valgrind_threads: thread.c src/block_process.o src/system.o src/tinymt32.o
 	@rm -f fec
-	@$(CC) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o thread
+	@$(CC) $(INCLUDE_HEADERS_DIRECTORY) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o thread
 	@valgrind --leak-check=full -s --show-leak-kinds=all ./thread input_binary/ -n 4 -f output.txt
 
-tests: tests/ src/block_process.c src/system.c src/tinymt32.c
+tests: tests/
 	@$(CC) -O3 tests/test_tinymt32.c src/system.c src/tinymt32.c -lcunit -o tests/test_tinymt32
 	./tests/test_tinymt32
 	@$(CC) -O3 tests/test_make_linear_system.c src/system.c src/tinymt32.c -lcunit -o tests/test_make_linear_system
