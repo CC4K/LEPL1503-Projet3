@@ -11,6 +11,7 @@
 #include <string.h>
 #include <CUnit/Basic.h>
 #include "../headers/system.h"
+#include "../headers/global.h"
 
 // Setup structure for function to test
 typedef struct {
@@ -19,7 +20,6 @@ typedef struct {
 } linear_system_t;
 
 // Setup global variables
-uint8_t word_size = 3;
 uint8_t** coeffs = NULL;
 
 // Function to test

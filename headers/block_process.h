@@ -3,11 +3,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <global.h>
 
-uint8_t** coeffs;
-uint64_t word_size;
-uint32_t redundancy;
-bool verbose;
 
 /**
  * Structure to store missing words emplacements
@@ -70,7 +67,8 @@ unknowns_t* find_lost_words(uint8_t** block, uint8_t size);
  * @return A: the coefficients matrix
  * @return B: the independents terms vector. Each element of B is the same size as a data vector (packet)
  */
-linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, uint8_t** current_block, uint8_t block_size);
+linear_system_t*
+make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, uint8_t** current_block, uint8_t block_size);
 
 /**
  * Based on a block, find the unknowns (e.g., lost source symbols) and build the corresponding linear system.

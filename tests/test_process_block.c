@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "../headers/system.h"
+#include "../headers/global.h"
 
 // Setup structures for other functions
 typedef struct {
@@ -23,10 +24,6 @@ typedef struct {
     uint8_t** B;
 } linear_system_t;
 
-// Setup global variables
-bool verbose = false;
-uint64_t word_size = 3;
-uint8_t** coeffs = NULL;
 
 // Helping function
 void printf_linear_system(uint8_t** A, uint8_t** B, uint8_t nb_unk) {
