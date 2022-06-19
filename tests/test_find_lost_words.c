@@ -12,6 +12,8 @@
 
 // Setup global variables
 uint32_t block_size = 3;
+uint64_t word_size = 3;
+
 
 // Struct used by function to test
 typedef struct {

@@ -10,6 +10,9 @@
 #include <string.h>
 #include "../headers/global.h"
 
+uint64_t word_size = 3;
+
+
 
 // Function to test
 char* block_to_string(uint8_t** block, uint32_t size) {

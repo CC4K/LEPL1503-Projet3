@@ -14,6 +14,8 @@
 // Global variables
 #define SIZE 2048
 uint32_t block_size = 3;
+uint64_t word_size = 3;
+
 
 // Function to test
 void write_last_block(FILE* output_file, uint8_t** block, uint8_t size, uint8_t word_size, uint8_t last_word_size) {

@@ -61,14 +61,13 @@ unknowns_t* find_lost_words(uint8_t** block, uint8_t size);
 /**
  * Build a linear system Ax=b from the blocks given in args
  * @param unknown_indexes: index of the lost source symbols of a block. The input 'i' is 'true' if the symbol 'i' is lost
- * @param nb_unk: the amount of unknowns in the system - the size of the system
+ * @pixearam nb_unk: the amount of unknowns in the system - the size of the system
  * @param current_block: the block of symbols to solve
  * @param block_size: the amount of source symbols in the block
  * @return A: the coefficients matrix
  * @return B: the independents terms vector. Each element of B is the same size as a data vector (packet)
  */
-linear_system_t*
-make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, uint8_t** current_block, uint8_t block_size);
+linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, uint8_t** current_block, uint8_t block_size);
 
 /**
  * Based on a block, find the unknowns (e.g., lost source symbols) and build the corresponding linear system.

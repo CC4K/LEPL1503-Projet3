@@ -21,6 +21,8 @@ typedef struct {
 
 // Setup global variables
 uint8_t** coeffs = NULL;
+uint64_t word_size = 3;
+
 
 // Function to test
 linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, uint8_t** current_block, uint8_t block_size) {

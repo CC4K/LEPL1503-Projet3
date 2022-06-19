@@ -23,6 +23,9 @@ typedef struct {
     uint8_t** A;
     uint8_t** B;
 } linear_system_t;
+bool verbose = false;
+uint64_t word_size = 3;
+uint8_t** coeffs = NULL;
 
 
 // Helping function
