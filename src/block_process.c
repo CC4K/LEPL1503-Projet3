@@ -11,7 +11,6 @@
 #include "../headers/system.h"
 #include "../headers/global.h"
 
-//================== Global Variables =======================//
 uint8_t** coeffs = NULL;
 uint64_t word_size = 0;
 uint32_t redundancy = 0;
