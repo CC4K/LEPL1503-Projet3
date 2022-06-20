@@ -264,7 +264,7 @@ int main(int argc, char* argv[]) {
         strcat(full_path, directory_entry->d_name);
 
         // Setup verbose global variable
-        verbose = args.verbose;
+        //verbose = args.verbose;
 
         //======================================= Open input file ====================================================//
         input_file = fopen(full_path, "r");
