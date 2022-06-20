@@ -3,8 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <global.h>
-
+#include "global.h"
 
 /**
  * Structure to store missing words emplacements

@@ -10,7 +10,6 @@
 #include <string.h>
 #include "../headers/global.h"
 
-uint64_t word_size = 3;
 
 
 
