@@ -22,6 +22,7 @@
 #include "headers/file_data.h"
 #include "headers/block_process.h"
 #include "headers/portable_endian.h"
+#include "headers/global.h"
 
 //======================= Functions =========================//
 /**
