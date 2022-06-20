@@ -32,11 +32,11 @@ all: thread.c src/block_process.o src/system.o src/tinymt32.o
 
 fec: main.c src/block_process.o src/system.o src/tinymt32.o
 	@rm -f fec
-	@$(CC) $(INCLUDE_HEADERS_DIRECTORY) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fe
+	@$(CC) $(INCLUDE_HEADERS_DIRECTORY) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fec
 
 debug: main.c src/block_process.o src/system.o src/tinymt32.o
 	@rm -f debug
-	@$(CC) $(INCLUDE_HEADERS_DIRECTORY) $(CFLAGS) main.c $(SRC) $(LIBS) -o -g fec
+	@$(CC) $(INCLUDE_HEADERS_DIRECTORY) -O3 main.c $(SRC) $(LIBS) -g -std=gnu99 -o fec
 
 fec_threads: thread.c src/block_process.o src/system.o src/tinymt32.o
 	@rm -f thread
