@@ -4,6 +4,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+uint8_t** coeffs;
+uint64_t word_size;
+uint32_t redundancy;
+bool verbose;
 
 /**
  * Structure to store missing words emplacements
@@ -60,7 +64,7 @@ unknowns_t* find_lost_words(uint8_t** block, uint8_t size);
 /**
  * Build a linear system Ax=b from the blocks given in args
  * @param unknown_indexes: index of the lost source symbols of a block. The input 'i' is 'true' if the symbol 'i' is lost
- * @pixearam nb_unk: the amount of unknowns in the system - the size of the system
+ * @param nb_unk: the amount of unknowns in the system - the size of the system
  * @param current_block: the block of symbols to solve
  * @param block_size: the amount of source symbols in the block
  * @return A: the coefficients matrix

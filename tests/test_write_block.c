@@ -9,13 +9,11 @@
 #include <CUnit/Basic.h>
 #include <stdint.h>
 #include <string.h>
-#include "../headers/global.h"
 
 // Global variables
 #define SIZE 2048
 uint32_t block_size = 3;
 uint64_t word_size = 3;
-
 
 // Function to test
 void write_block(FILE* output_file, uint8_t** block, uint32_t size, uint64_t word_size) {

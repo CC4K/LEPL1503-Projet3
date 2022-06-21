@@ -11,7 +11,6 @@
 #include <stdint.h>
 #include <string.h>
 #include "../headers/system.h"
-#include "../headers/global.h"
 
 // Setup structures for other functions
 typedef struct {
@@ -24,10 +23,13 @@ typedef struct {
     uint8_t** B;
 } linear_system_t;
 
+// Setup global variables
+bool verbose = false;
+uint64_t word_size = 3;
+uint8_t** coeffs = NULL;
 
 // Helping function
 void printf_linear_system(uint8_t** A, uint8_t** B, uint8_t nb_unk) {
-    word_size = 3;
     printf(">> linear_system :\n");
     for (int32_t i = 0; i < nb_unk; i++) {
         printf("[ ");
@@ -45,7 +47,7 @@ void printf_linear_system(uint8_t** A, uint8_t** B, uint8_t nb_unk) {
 // Function needed for process_block
 linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, uint8_t** current_block, uint8_t block_size) {
     // Crée par Romain le 15/04/22
-    word_size = 3;
+
     // Allocate memory for the two matrices
     uint8_t** A = malloc(sizeof(uint8_t*) * nb_unk);
     if (A == NULL) exit(EXIT_FAILURE);
@@ -83,7 +85,6 @@ linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, ui
 }
 
 unknowns_t* find_lost_words(uint8_t** block, uint8_t size) {
-    word_size = 3;
     // Initialize an array of boolean of size 'size' to false & the unknowns to 0
     uint8_t* unknown_indexes = malloc(sizeof(uint8_t) * size);
     if (unknown_indexes == NULL) exit(EXIT_FAILURE);
@@ -122,7 +123,6 @@ uint8_t** process_block(uint8_t** block, uint8_t size) {
 
     // If there are no unknowns return block
     if (input_unknowns->unknowns_amount > 0) {
-        word_size = 3;
         linear_system_t* input_linear_system = make_linear_system(input_unknowns->unknown_map, input_unknowns->unknowns_amount, block, size);
 
         // Gaussian elimination 'in place'

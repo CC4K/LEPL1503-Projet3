@@ -11,7 +11,6 @@
 #include <string.h>
 #include <CUnit/Basic.h>
 #include "../headers/system.h"
-#include "../headers/global.h"
 
 // Setup structure for function to test
 typedef struct {
@@ -20,9 +19,8 @@ typedef struct {
 } linear_system_t;
 
 // Setup global variables
+uint8_t word_size = 3;
 uint8_t** coeffs = NULL;
-uint64_t word_size = 3;
-
 
 // Function to test
 linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, uint8_t** current_block, uint8_t block_size) {
@@ -144,7 +142,7 @@ void test_MLS() {
     correct_B[0][2] = 0;
     for (int32_t i = 0; i < 1; i++) {
         for (int32_t j = 0; j < 1; j++) {
-             CU_ASSERT_EQUAL(test->A[i][j], correct_A[i][j]);
+            CU_ASSERT_EQUAL(test->A[i][j], correct_A[i][j]);
         }
         printf("\n");
     }
