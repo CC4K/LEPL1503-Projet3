@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-Wall -Werror -g -std=gnu99
-SRC=src/block_process.c src/system.c src/tinymt32.c
+SRC=src/block_process.o src/system.o src/tinymt32.o
 LIBS=-lcunit -lpthread -lm
 INCLUDE_HEADERS_DIRECTORY=-Iheaders
 
@@ -13,7 +13,10 @@ threads_run: thread.c src/block_process.o src/system.o src/tinymt32.o
 	@$(CC) $(INCLUDE_HEADERS_DIRECTORY) $(CFLAGS) -o $@ -c $<
 
 all: thread.c src/block_process.o src/system.o src/tinymt32.o
+	@rm -f thread
+	@rm -f fec
 	@$(CC) $(INCLUDE_HEADERS_DIRECTORY) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o all
+	@$(CC) $(INCLUDE_HEADERS_DIRECTORY) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fec
 
 fec: main.c src/block_process.o src/system.o src/tinymt32.o
 	@rm -f fec
