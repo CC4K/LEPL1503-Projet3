@@ -10,6 +10,10 @@
 #include "../headers/block_process.h"
 #include "../headers/system.h"
 
+uint8_t** coeffs;
+uint64_t word_size;
+uint32_t redundancy;
+bool verbose;
 
 //======================= Functions =========================//
 void printf_matrix(uint8_t** matrix, uint8_t n, uint8_t m) {
