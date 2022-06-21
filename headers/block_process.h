@@ -4,6 +4,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+uint8_t** coeffs;
+uint64_t word_size;
+uint32_t redundancy;
+bool verbose;
 
 /**
  * Structure to store missing words emplacements
