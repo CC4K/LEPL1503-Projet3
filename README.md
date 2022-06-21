@@ -86,6 +86,8 @@ We've been warned by email of a linker error with no other details. We then down
 
 We found a Makefile error upon CLion opening and changed the commands but nothing seemed to change.
 
-After sending back an email we were notified an error appeared on UDS systems concerning multiple definitions of our global variables in src/block_process.
+After sending back an email we were notified an error appeared on UDS systems concerning multiple definitions of our global variables in src/block_process.c
+
+We tried to move the global variables into a header solely dedicated to them but after multiple hours of debugging we noticed too late that it created more issues than it solved and reverted back to an older version of the repository.
 
 Since by the time we knew what the error was we had less than 24 hours left to resubmit our project and there was unfortunately only 3 of us working to fix it, we sadly coudln't resolve the error. Because of this our project will only work on Raspberry Pi and Ubuntu Linux systems but not UDS machines.
