@@ -4,25 +4,10 @@ SRC=src/block_process.c src/system.c src/tinymt32.c
 LIBS=-lcunit -lpthread -lm
 INCLUDE_HEADERS_DIRECTORY=-Iheaders
 
-help:
-	@echo \> 'make help_cmd' : to see all the available commands
-	@echo if you wish to run compiled code yourself :
-	@echo \> './[name of executable] input_binary/' : is the base command and will print your output straight to terminal
-	@echo here are the flags available to use after the base command :
-	@echo '-v' \	\	\	\: to activate verbose mode and show steps of the program in your terminal
-	@echo '-f [name of output].txt' \: to get your output in a .txt file
-	@echo '-n [number of threads]' \	: to specify the number of threads you want to run the "thread" executable with
-
-help_cmd:
-	@echo \> 'make fec' \	\	\: compiles main.c with the name fec
-	@echo \> 'make fec_threads' \	\: compiles thread.c with the name thread
-	@echo \> 'make help'\	\	\: commands and flags to run compiled code yourself
-	@echo \> 'make run' \	\	: compiles and runs main.c with the program output in output.txt and verbose mode activated
-	@echo \> 'make threads_run' \	\: compiles and runs thread.c with the program output in output.txt and verbose mode activated
-	@echo \> 'make valgrind_run' \	: compiles and runs main.c with Valgrind to check memory leaks
-	@echo \> 'make valgrind_threads' \: compiles and runs thread.c with Valgrind to check memory leaks
-	@echo \> 'make tests' \	\	: compiles and runs all tests with Cunit
-	@echo \> 'make clean' \	\	: deletes all compiled files in the project
+threads_run: thread.c src/block_process.o src/system.o src/tinymt32.o
+	@rm -f thread
+	@$(CC) $(INCLUDE_HEADERS_DIRECTORY) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o thread
+	@./thread input_binary -n 4 -f output.txt
 
 %.o: %.c
 	@$(CC) $(INCLUDE_HEADERS_DIRECTORY) $(CFLAGS) -o $@ -c $<
@@ -42,11 +27,6 @@ run: main.c src/block_process.o src/system.o src/tinymt32.o
 	@rm -f fec
 	@$(CC) $(INCLUDE_HEADERS_DIRECTORY) $(CFLAGS) -O3 main.c $(SRC) $(LIBS) -o fec
 	@./fec input_binary/ -f output.txt -v
-
-threads_run: thread.c src/block_process.o src/system.o src/tinymt32.o
-	@rm -f thread
-	@$(CC) $(INCLUDE_HEADERS_DIRECTORY) $(CFLAGS) -O3 thread.c $(SRC) $(LIBS) -o thread
-	@./thread input_binary -n 4 -f output.txt -v
 
 valgrind_run: main.c src/block_process.o src/system.o src/tinymt32.o
 	@rm -f fec
@@ -101,6 +81,27 @@ clean:
 	@rm -f tests/test_write_last_block
 	@rm -f tests/test_write_block
 	@rm -f tests/*.txt
+
+help:
+	@echo \> 'make help_cmd' : to see all the available commands
+	@echo if you wish to run compiled code yourself :
+	@echo \> './[name of executable] input_binary/' : is the base command and will print your output straight to terminal
+	@echo here are the flags available to use after the base command :
+	@echo '-v' \	\	\	\: to activate verbose mode and show steps of the program in your terminal
+	@echo '-f [name of output].txt' \: to get your output in a .txt file
+	@echo '-n [number of threads]' \	: to specify the number of threads you want to run the "thread" executable with
+
+help_cmd:
+	@echo \> 'make fec' \	\	\: compiles main.c with the name fec
+	@echo \> 'make fec_threads' \	\: compiles thread.c with the name thread
+	@echo \> 'make help'\	\	\: commands and flags to run compiled code yourself
+	@echo \> 'make run' \	\	: compiles and runs main.c with the program output in output.txt and verbose mode activated
+	@echo \> 'make threads_run' \	\: compiles and runs thread.c with the program output in output.txt and verbose mode activated
+	@echo \> 'make valgrind_run' \	: compiles and runs main.c with Valgrind to check memory leaks
+	@echo \> 'make valgrind_threads' \: compiles and runs thread.c with Valgrind to check memory leaks
+	@echo \> 'make tests' \	\	: compiles and runs all tests with Cunit
+	@echo \> 'make clean' \	\	: deletes all compiled files in the project
+
 
 # a .PHONY target forces make to execute the command even if the target already exists
 .PHONY: clean tests

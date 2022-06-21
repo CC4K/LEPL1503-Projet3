@@ -11,10 +11,7 @@
 #include "../headers/system.h"
 
 //================== Global Variables =======================//
-uint8_t** coeffs = NULL;
-uint64_t word_size = 0;
-uint32_t redundancy = 0;
-bool verbose = false;
+
 
 //======================= Functions =========================//
 void printf_matrix(uint8_t** matrix, uint8_t n, uint8_t m) {
