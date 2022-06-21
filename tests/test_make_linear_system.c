@@ -19,8 +19,9 @@ typedef struct {
 } linear_system_t;
 
 // Setup global variables
-uint8_t word_size = 3;
-uint8_t** coeffs = NULL;
+uint8_t** test_coeffs = NULL;
+uint64_t test_word_size = 3;
+
 
 // Function to test
 linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, uint8_t** current_block, uint8_t block_size) {
@@ -43,12 +44,12 @@ linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, ui
         int32_t temp = 0;
         for (int32_t j = 0; j < block_size; j++) {
             if (unknown_indexes[j] == 1) {
-                A[i][temp] = coeffs[i][j];
+                A[i][temp] = test_coeffs[i][j];
                 temp++;
             }
             else {
-                uint8_t* vec_mul = gf_256_mul_vector(current_block[j], coeffs[i][j], word_size);
-                B[i] = gf_256_full_add_vector(B[i], vec_mul,word_size);
+                uint8_t* vec_mul = gf_256_mul_vector(current_block[j], test_coeffs[i][j], test_word_size);
+                B[i] = gf_256_full_add_vector(B[i], vec_mul,test_word_size);
                 free(vec_mul);
             }
         }
@@ -63,24 +64,24 @@ linear_system_t* make_linear_system(uint8_t* unknown_indexes, uint8_t nb_unk, ui
 }
 
 void test_MLS() {
-    coeffs = malloc(sizeof(uint8_t*) * 4);
-    if (coeffs == NULL) exit(EXIT_FAILURE);
+    test_coeffs = malloc(sizeof(uint8_t*) * 4);
+    if (test_coeffs == NULL) exit(EXIT_FAILURE);
     for (int32_t i = 0; i < 4; i++) {
-        coeffs[i] = malloc(sizeof(uint8_t) * 3);
-        if (coeffs[i] == NULL) exit(EXIT_FAILURE);
+        test_coeffs[i] = malloc(sizeof(uint8_t) * 3);
+        if (test_coeffs[i] == NULL) exit(EXIT_FAILURE);
     }
-    coeffs[0][0] = 171;
-    coeffs[0][1] = 165;
-    coeffs[0][2] = 55;
-    coeffs[1][0] = 61;
-    coeffs[1][1] = 69;
-    coeffs[1][2] = 143;
-    coeffs[2][0] = 152;
-    coeffs[2][1] = 158;
-    coeffs[2][2] = 168;
-    coeffs[3][0] = 64;
-    coeffs[3][1] = 5;
-    coeffs[3][2] = 91;
+    test_coeffs[0][0] = 171;
+    test_coeffs[0][1] = 165;
+    test_coeffs[0][2] = 55;
+    test_coeffs[1][0] = 61;
+    test_coeffs[1][1] = 69;
+    test_coeffs[1][2] = 143;
+    test_coeffs[2][0] = 152;
+    test_coeffs[2][1] = 158;
+    test_coeffs[2][2] = 168;
+    test_coeffs[3][0] = 64;
+    test_coeffs[3][1] = 5;
+    test_coeffs[3][2] = 91;
     uint8_t nb_unk = 1;
     uint8_t block_size = 2;
     uint8_t** current_block = malloc(sizeof(uint8_t*) * 6);
@@ -155,7 +156,7 @@ void test_MLS() {
     free(test);
     free(current_block);
     free(unknown_indexes);
-    free(coeffs);
+    free(test_coeffs);
     free(correct_B);
     free(correct_A);
 }
