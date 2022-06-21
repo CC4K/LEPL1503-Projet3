@@ -9,7 +9,6 @@
 #include <string.h>
 #include "../headers/block_process.h"
 #include "../headers/system.h"
-#include "../headers/global.h"
 
 
 //======================= Functions =========================//
