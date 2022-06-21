@@ -26,41 +26,33 @@ For each block, we calculate the missing value for the full blocks, translate it
 Then the same is done with the very last block (if there is one).
 
 Finally, the program can close the binary file.
+## Requirements
 
-##Requierement
-to run this project you will need 3 modules :
+To run this project you will need 3 modules :
 - GCC
 - Cunit
 - valgrind
 
-To download those, run those commandes in a UNIX terminal
+To download them, run these commandes in a UNIX terminal
 Before downloading the modules make sure you are up to date by typing in the terminal `sudo apt update && sudo apt upgrade`
-###For Windows:
-on a Unix terminal or a virtual machine on Unix
+### For a virtual machine on Windows or the "Linux subsystems for Windows"
 
-GCC:`sudo apt install build-essential`
-
-Valgrind:`sudo apt-get install valgrind`
-
-Cunit:`sudo apt-get install libcunit1 libcunit1-doc libcunit1-dev`
-
+On a UNIX terminal :
+- GCC:`sudo apt install build-essential`
+- Valgrind:`sudo apt-get install valgrind`
+- Cunit:`sudo apt-get install libcunit1 libcunit1-doc libcunit1-dev`
 ### For Mac OS
 
-by using Homebrew:
-
-GCC:`brew install gcc`
-
-Valgrind:`brew install valgrind`
-
-Cunit:`brew install cunit`
-
+By using Homebrew :
+- GCC:`brew install gcc`
+- Valgrind:`brew install valgrind`
+- Cunit:`brew install cunit`
 ### For Ubuntu
-GCC:`sudo apt install build-essential`
 
-Valgrind:`sudo apt-get install valgrind`
-
-Cunit:`sudo apt-get install libcunit1 libcunit1-doc libcunit1-dev`
-
+On a UNIX terminal :
+- GCC:`sudo apt install build-essential`
+- Valgrind:`sudo apt-get install valgrind`
+- Cunit:`sudo apt-get install libcunit1 libcunit1-doc libcunit1-dev`
 ## How to run the program ?
 
 First you must have your binary files in the `input_binary/` directory.
@@ -85,6 +77,15 @@ Here are some of the parameters you can use alongside the base command :
 - `-v` : to set verbose mode to 'true' and show steps of the program in your terminal
 - `-f output.txt` : to get your output in a .txt file (here named "output.txt")
 - `-n 4` : to specify the number of threads you want to run the "thread" executable with (here 4 threads)
-## For Mac users
+## Note for Mac users
 
 If the program does not run because of warnings on MacOS, you need to remove the "-Werror" flag in CFLAGS at the beginning of the Makefile
+## Note on the second submission of the project
+
+We've been warned by email of a linker error with no other details. We then downloaded the project files submitted on Inginious to test them but no error was shown and the program worked as expected even though we ran it with -Wall and -Werror flags.
+
+We found a Makefile error upon CLion opening and changed the commands but nothing seemed to change.
+
+After sending back an email we were notified an error appeared on UDS systems concerning multiple definitions of our global variables in src/block_process.
+
+Since by the time we knew what the error was we had less than 24 hours left to resubmit our project and there was unfortunately only 3 of us working to fix it, we sadly coudln't resolve the error. Because of this our project will only work on Raspberry Pi and Ubuntu Linux systems but not UDS machines.
