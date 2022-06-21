@@ -91,3 +91,5 @@ After sending back an email we were notified an error appeared on UDS systems co
 We tried to move the global variables into a header solely dedicated to them but after multiple hours of debugging we noticed too late that it created more issues than it solved and reverted back to an older version of the repository.
 
 Since by the time we knew what the error was we had less than 24 hours left to resubmit our project and there was unfortunately only 3 of us working to fix it, we sadly coudln't resolve the error. Because of this our project will only work on Raspberry Pi and Ubuntu Linux systems but not UDS machines.
+
+Proof of the program working on Ubuntu : https://streamable.com/5u42e3
